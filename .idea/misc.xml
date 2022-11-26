@@ -3,7 +3,14 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
-        <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/activity_main.xml" value="0.1" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/btn_bg_white_opc.xml" value="0.347" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/btn_bg_white_press.xml" value="0.347" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/round_line_rect_red.xml" value="0.366" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/round_line_rect_white.xml" value="0.366" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/round_rectangle_geadient_red.xml" value="0.366" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/round_rectangle_white.xml" value="0.25" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/selector_round_line_rect.xml" value="0.367" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/activity_main.xml" value="0.33" />
       </map>
     </option>
   </component>

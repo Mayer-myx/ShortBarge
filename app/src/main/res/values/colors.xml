@@ -1,10 +1,275 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimary">#299EE3</color>
+    <color name="colorPrimaryDark">#299EE3</color>
+    <color name="colorAccent">#299EE3</color>
+
+    <color name="colorAccent_select">#65b0dc</color>
+
+
+    <color name="gray_btn">#9E9E9E</color>
+
+    <color name="gray_icon">#99A0AA</color>
+
+    <color name="green_btn_color_normal">#2BCFB8</color>
+    <color name="green_btn_color_disable">#CCCCCC</color>
+    <color name="green_btn_color_pressed">#05bca2</color>
+
+    <color name="menu_white_normal">#FFFFFF</color>
+    <color name="menu_white_pressed">#CFCFCF</color>
+    <color name="menu_red_normal">#FF0000</color>
+    <color name="menu_red_pressed">#FF6666</color>
+    <color name="menu_green_normal">#37C000</color>
+    <color name="menu_green_pressed">#30A070</color>
+    <color name="menu_purple_normal">#9932CC</color>
+    <color name="menu_purple_pressed">#9F79EE</color>
+
+    <color name="tint">#f44336</color>
+    <color name="tint_background">#42f44336</color>
+
+    <color name="cyan_500">#00bcd4</color>
+
+    <!-- Components 组件 -->
+    <color name="radiusImageView_border_color">#EF5362</color>
+    <color name="radiusImageView_selected_border_color">#FE6D4B</color>
+    <color name="radiusImageView_selected_mask_color">#7FEF5362</color>
+
+    <color name="color_bg_loading">#dc858585</color>
+    <color name="color_bg_success">#dc82ce32</color>
+    <color name="color_bg_error">#dcd84315</color>
+
+    <color name="scan_corner_color">#0effc2</color>
+
+    <color name="color_f4">#F4F4F4</color>
+
+    <!-- Expands 系列界面 -->
+
+    <color name="color_red">#FD2E4A</color>
+    <color name="color_green">#13D1BE</color>
+
+
+    <color name="app_color_theme_1">#EF5362</color> <!-- Grapefruit -->
+    <color name="app_color_theme_2">#FE6D4B</color> <!-- Bittersweet -->
+    <color name="app_color_theme_3">#FFCF47</color> <!-- Sunflower -->
+    <color name="app_color_theme_4">#9FD661</color> <!-- Grass -->
+    <color name="app_color_theme_5">#3FD0AD</color> <!-- Mint -->
+    <color name="app_color_theme_6">#2BBDF3</color> <!-- Aqua -->
+    <color name="app_color_theme_7">#5A9AEF</color> <!-- Blue Jeans -->
+    <color name="app_color_theme_8">#AC8FEF</color> <!-- Lavender -->
+    <color name="app_color_theme_9">#EE85C1</color> <!-- Pink Rose -->
+
+
+    <color name="web_colorPrimary">#393a3f</color>
+    <color name="web_colorPrimaryDark">#303135</color>
+    <color name="web_colorAccent">#1aad19</color>
+
+
+    <color name="light_orange">#FFC2aa</color>
+    <color name="dark_orange">#ee8a3a</color>
+    <color name="purple_start">#7117ea</color>
+    <color name="purple_end">#ea6060</color>
+    <color name="green_start">#42e695</color>
+    <color name="green_end">#3bb2b8</color>
+    <color name="blue_start">#879af2</color>
+    <color name="blue_end">#fda000</color>
+    <color name="purple_light">#e488ff</color>
+    <color name="red_start">#EE3455</color>
+    <color name="red_end">#FFaa89</color>
+
+    <color name="drop_down_selected">#7B1FA2</color>
+    <color name="drop_down_unselected">#111111</color>
+    <color name="check_bg">#f2f2f2</color>
+    <color name="un_press_color">#9C27B0</color>
+
+
+    <color name="config_color_select_bg">#FFF1F1F1</color>
+
+
+
+    <!--*********************************************
+    *              Widget Color                     *
+    **********************************************-->
+    <!-- SuperTextView -->
+    <color name="stv_color_common_pressed">#10000000</color>  <!--白色背景按下去的颜色-->
+    <color name="stv_color_common_text">#FF373737</color>  <!--默认字体的颜色-->
+
+    <!-- ShadowButton -->
+    <color name="default_shadow_button_color_pressed">#9C000000</color>
+    <color name="default_shadow_button_ripple_color">#FFEEEEEE</color>
+    <!-- GuideCaseView -->
+    <color name="default_guide_case_view_background_color">#801B2939</color>
+
+    <!-- RoundButton -->
+    <color name="btn_roundbutton_blue_border_normal">@color/deepsoft_btn_blue_normal_color</color>
+    <color name="btn_roundbutton_blue_border_pressed">#801B88EE</color>
+    <color name="btn_roundbutton_blue_border_disabled">@color/deepsoft_btn_disable_color</color>
+
+    <color name="btn_roundbutton_blue_text_normal">@color/deepsoft_btn_blue_normal_color</color>
+    <color name="btn_roundbutton_blue_text_pressed">#801B88EE</color>
+    <color name="btn_roundbutton_blue_text_disabled">@color/deepsoft_btn_disable_color</color>
+
+    <color name="radius_button_color_blue">#31BDF3</color>
+    <color name="radius_button_color_blue_pressed">#7F31BDF3</color>
+
+    <!--ProgressView-->
+    <color name="default_pv_track_color">#F3E5DD</color>
+    <color name="deepsoft_config_color_light_orange">#FFC288</color>
+    <color name="deepsoft_config_color_dark_orange">#FF8F5D</color>
+
+    <!--SwitchButton-->
+    <color name="swb_md_ripple_normal">#1E000000</color>
+    <color name="swb_md_ripple_checked">#3F299EE3</color>
+    <color name="swb_md_solid_shadow">#33000000</color>
+    <color name="swb_md_solid_normal">#ECECEC</color>
+    <color name="swb_md_solid_checked">#299EE3</color>
+    <color name="swb_md_solid_disable">#FFFFFF</color>
+    <color name="swb_md_solid_checked_disable">#AAAAAA</color>
+
+    <!-- MaterialDialog -->
+    <color name="md_btn_selected">@color/deepsoft_config_color_background_pressed</color>
+    <color name="md_btn_selected_dark">#40CBCBCB</color>
+
+    <color name="md_divider_black">#10000000</color>
+    <color name="md_divider_white">#10FFFFFF</color>
+
+    <color name="md_material_blue_600">#2196F3</color>
+    <color name="md_material_blue_800">#1565C0</color>
+
+    <color name="cookie_bar_default_bg_color">#323232</color>
+
+    <!--PickerView-->
+    <color name="picker_view_bg_topbar">#F5F5F5</color>
+    <color name="picker_view_bg_color_overlay">#60000000</color>
+
+    <!-- RulerView -->
+    <color name="default_ruler_view_bg_color">#FFFCFFFC</color>
+    <color name="default_ruler_view_small_scale_color">#FF999999</color>
+    <color name="default_ruler_view_mid_scale_color">#FF666666</color>
+    <color name="default_ruler_view_large_scale_color">#FF50B586</color>
+    <color name="default_ruler_view_scale_num_color">#FF333333</color>
+    <color name="default_ruler_view_result_num_color">#FF50B586</color>
+    <color name="default_ruler_view_unit_color">#FF50B586</color>
+
+    <!--MaterialSearchView-->
+    <color name="default_search_view_text_color">#212121</color>
+    <color name="default_search_view_text_color_hint">#727272</color>
+    <color name="default_search_view_layover_bg_color">#50000000</color>
+    <color name="default_search_view_separator_color">#10000000</color>
+
+    <!-- TabControlView -->
+    <color name="default_tcv_selected_color">@color/deepsoft_config_color_main_theme</color>
+    <color name="default_tcv_unselected_color">@color/deepsoft_config_color_white</color>
+
+    <!--Toast-->
+    <color name="toast_default_text_color">@color/deepsoft_config_color_white</color>
+    <color name="toast_error_color">@color/deepsoft_config_color_red</color>
+    <color name="toast_info_color">#3F51B5</color>
+    <color name="toast_success_color">@color/deepsoft_config_color_success</color>
+    <color name="toast_warning_color">@color/deepsoft_config_color_waring</color>
+    <color name="toast_normal_tint_color">#353A3E</color>
+
+    <color name="default_image_banner_placeholder_color">#555555</color>
+    <!--DropDownMenu-->
+    <color name="default_ddm_mask_color">#88888888</color>
+
+    <color name="default_xrs_outside_line_color">#F0F0F0</color>
+    <color name="default_sb_normal_color">#AAAAAA</color>
+
+
+    <!--*********************************************
+    *              Config Color                     *
+    **********************************************-->
+    <color name="deepsoft_config_color_main_theme">@color/deepsoft_config_color_light_blue</color>
+    <color name="deepsoft_config_color_titlebar">@color/deepsoft_config_color_main_theme</color>
+
+    <color name="deepsoft_btn_blue_normal_color">#3E99D2</color>
+    <color name="deepsoft_btn_blue_select_color">#2488C6</color>
+    <color name="deepsoft_btn_green_normal_color">#2BCFB8</color>
+    <color name="deepsoft_btn_green_select_color">#05BCA2</color>
+    <color name="deepsoft_btn_gray_normal_color">#9DA7B0</color>
+    <color name="deepsoft_btn_gray_select_color">#87919A</color>
+    <color name="deepsoft_btn_disable_color">#D6DDE1</color>
+
+    <color name="deepsoft_config_color_transparent">#00000000</color>
+    <color name="deepsoft_config_color_white">#FFFFFF</color>
+    <color name="deepsoft_config_color_75_white">#C0FFFFFF</color>
+    <color name="deepsoft_config_color_50_white">#80FFFFFF</color>
+    <color name="deepsoft_config_color_25_white">#40FFFFFF</color>
+    <color name="deepsoft_config_color_15_white">#26FFFFFF</color>
+    <color name="deepsoft_config_color_10_white">#19FFFFFF</color>
+
+    <color name="deepsoft_config_color_pure_black">#000000</color>
+    <color name="deepsoft_config_color_75_pure_black">#C0000000</color>
+    <color name="deepsoft_config_color_60_pure_black">#99000000</color>
+    <color name="deepsoft_config_color_50_pure_black">#80000000</color>
+    <color name="deepsoft_config_color_25_pure_black">#40000000</color>
+    <color name="deepsoft_config_color_15_pure_black">#26000000</color>
+    <color name="deepsoft_config_color_10_pure_black">#19000000</color>
+
+    <color name="deepsoft_config_color_gray_1">#353C46</color>
+    <color name="deepsoft_config_color_gray_2">#49505A</color>
+    <color name="deepsoft_config_color_gray_3">#5D646E</color>
+    <color name="deepsoft_config_color_gray_4">#717882</color>
+    <color name="deepsoft_config_color_gray_5">#858C96</color>
+    <color name="deepsoft_config_color_gray_6">#99A0AA</color>
+    <color name="deepsoft_config_color_gray_7">#ADB4BE</color>
+    <color name="deepsoft_config_color_gray_8">#C4C8D0</color>
+    <color name="deepsoft_config_color_gray_9">#D8DCE4</color>
+
+    <color name="deepsoft_config_color_blue">#1B88EE</color>
+    <color name="deepsoft_config_color_50_blue">#801B88EE</color>
+    <color name="deepsoft_config_color_pure_blue">#0000FF</color>
+
+    <color name="deepsoft_config_color_error">@color/deepsoft_config_color_red</color>
+    <color name="deepsoft_config_color_success">#388E3C</color>
+
+    <color name="deepsoft_config_color_waring">#FEC005</color>
+    <color name="deepsoft_config_color_pure_yellow">#FFFF00</color>
+    <color name="deepsoft_config_color_light_yellow">#FFFFC0</color>
+
+    <color name="deepsoft_config_color_red">#F15C58</color>
+    <color name="deepsoft_config_color_black">#333333</color>
+    <color name="deepsoft_config_color_link">@color/deepsoft_config_color_light_blue</color>
+    <color name="deepsoft_config_color_pressed">#F2F6F9</color>
+
+    <color name="deepsoft_config_color_dark_blue_gray">#223B53</color>
+    <color name="deepsoft_config_color_middle_blue_gray">#6A798E</color>
+    <color name="deepsoft_config_color_light_blue_gray">#9FABBC</color>
+    <color name="deepsoft_config_color_light_blue">#299EE3</color>
+
+    <!--text color-->
+    <color name="deepsoft_config_color_title_text">@color/deepsoft_config_color_dark_blue_gray</color>
+    <color name="deepsoft_config_color_content_text">@color/deepsoft_config_color_middle_blue_gray</color>
+    <color name="deepsoft_config_color_explain_text">@color/deepsoft_config_color_light_blue_gray</color>
+    <color name="deepsoft_config_color_primary_text">@color/deepsoft_config_color_dark_blue_gray</color>
+    <color name="deepsoft_config_color_control_normal">#BEC2C7</color>
+
+    <!--ListView\GridView color-->
+    <!--背景颜色-->
+    <color name="deepsoft_config_color_background_tablet">#EAEDEF</color>
+    <color name="deepsoft_config_color_background_phone">#EEF3F7</color>
+    <!-- 小的分割块使用浅色的分割线-->
+    <color name="deepsoft_config_color_separator_light_tablet">#F0F2F4</color>
+    <color name="deepsoft_config_color_separator_light_phone">#F0F2F4</color>
+    <!-- 大的分割块使用深色的分割线[像ListView、GridView之类]-->
+    <color name="deepsoft_config_color_separator_dark_tablet">#D9DDE1</color>
+    <color name="deepsoft_config_color_separator_dark_phone">#E3E6EA</color>
+    <!--条目点击后的背景颜色-->
+    <color name="deepsoft_config_color_background_pressed">@color/deepsoft_config_color_pressed</color>
+
+    <!--EditText-->
+    <!--错误文字的颜色-->
+    <color name="deepsoft_config_color_edittext_error_text">@color/deepsoft_config_color_red</color>
+    <!--输入文字的颜色-->
+    <color name="deepsoft_config_color_edittext_input_text">@color/deepsoft_config_color_black</color>
+    <!--提示文字的颜色-->
+    <color name="deepsoft_config_color_edittext_hint_text">#C5CDD9</color>
+    <!--边框颜色-->
+    <color name="deepsoft_config_color_edittext_stroke">@color/deepsoft_config_color_control_normal</color>
+    <!--不可输入的填充颜色-->
+    <color name="deepsoft_config_color_edittext_disable">#EDF2F7</color>
+
+    <color name="deepsoft_main_red">#E2000F</color>
+    <color name="deepsoft_text_red">#E60012</color>
+    <color name="deepsoft_blur_black">#1A000000</color>
 </resources>
