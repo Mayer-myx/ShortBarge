@@ -41,4 +41,7 @@ dependencies {
 
     // 阴影颜色方向可修改的CardView
     implementation 'io.github.meetsl:SCardView:1.2'
+
+    // 厉害的RecyclerViewAdapter
+    implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.10'
 }

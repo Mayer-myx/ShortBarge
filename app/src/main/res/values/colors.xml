@@ -272,4 +272,6 @@
     <color name="deepsoft_main_red">#E2000F</color>
     <color name="deepsoft_text_red">#E60012</color>
     <color name="deepsoft_blur_black">#1A000000</color>
+    <color name="deepsoft_text_black">#666666</color>
+    <color name="deepsoft_text_gray">#99666666</color>
 </resources>

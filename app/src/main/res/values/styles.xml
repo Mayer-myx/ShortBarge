@@ -18,7 +18,8 @@
         <item name="android:windowAnimationStyle">@android:style/Animation.Dialog</item>
         <!--背景是否模糊显示-->
         <item name="android:backgroundDimEnabled">true</item>
+        <!--背景 10dp的圆角-->
+        <item name="android:background">@drawable/round_rectangle_white</item>
     </style>
-
 
 </resources>

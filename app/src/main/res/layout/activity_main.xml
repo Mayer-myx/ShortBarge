@@ -59,14 +59,15 @@
             android:text="It's cloudy 24℃"
             android:layout_marginTop="23dp"
             android:layout_marginLeft="299.5dp"/>
+
         <ImageView
             android:layout_width="18dp"
             android:layout_height="18dp"
-            android:src="@mipmap/weather"
+            android:layout_marginLeft="417.5dp"
+            android:layout_marginTop="21dp"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
-            android:layout_marginTop="21dp"
-            android:layout_marginLeft="417.5dp"/>
+            android:src="@mipmap/weather" />
 
         <!-- 日期 -->
         <TextView
@@ -114,10 +115,11 @@
 
     <!-- 左上角司机驾车信息白色框 -->
     <com.meetsl.scardview.SCardView
-        android:layout_width="380dp"
-        android:layout_height="100dp"
-        android:layout_marginLeft="15dp"
-        android:layout_marginTop="77dp"
+        android:id="@+id/main_rl_info"
+        android:layout_width="394dp"
+        android:layout_height="110dp"
+        android:layout_marginLeft="13dp"
+        android:layout_marginTop="72dp"
         app:cardCornerRadius="10dp"
         app:cardShadowStartColor="@color/deepsoft_blur_black"
         app:cardElevation="8.5dp"
@@ -139,11 +141,12 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="82dp"
-                android:layout_marginTop="7dp"
-                android:layout_marginBottom="7dp"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
                 android:fontFamily="@font/archivo_bold"
+                android:includeFontPadding="false"
                 android:text="emergency contact："
-                android:textColor="#99666666"
+                android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
             <TextView
                 android:id="@+id/main_tv_ln_label"
@@ -152,8 +155,9 @@
                 android:layout_above="@id/main_tv_ec_label"
                 android:layout_alignLeft="@id/main_tv_ec_label"
                 android:fontFamily="@font/archivo_bold"
+                android:includeFontPadding="false"
                 android:text="license number: "
-                android:textColor="#99666666"
+                android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
             <TextView
                 android:id="@+id/main_tv_pn_label"
@@ -162,8 +166,9 @@
                 android:layout_below="@id/main_tv_ec_label"
                 android:layout_alignLeft="@id/main_tv_ec_label"
                 android:fontFamily="@font/archivo_bold"
+                android:includeFontPadding="false"
                 android:text="Phone number："
-                android:textColor="#99666666"
+                android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
 
             <TextView
@@ -174,9 +179,10 @@
                 android:layout_toRightOf="@id/main_tv_ec_label"
                 android:ellipsize="end"
                 android:fontFamily="@font/archivo_bold"
+                android:includeFontPadding="false"
                 android:maxLines="1"
                 android:text="WANG XIAO ASD"
-                android:textColor="#666666"
+                android:textColor="@color/deepsoft_text_black"
                 android:textSize="14sp" />
             <TextView
                 android:id="@+id/main_tv_ln"
@@ -188,9 +194,10 @@
                 android:layout_toRightOf="@id/main_tv_ln_label"
                 android:ellipsize="end"
                 android:fontFamily="@font/archivo_bold"
+                android:includeFontPadding="false"
                 android:maxLines="1"
                 android:text="Z12345"
-                android:textColor="#666666"
+                android:textColor="@color/deepsoft_text_black"
                 android:textSize="14sp" />
             <TextView
                 android:id="@+id/main_tv_pn"
@@ -200,11 +207,12 @@
                 android:layout_alignLeft="@id/main_tv_ec"
                 android:layout_alignTop="@id/main_tv_pn_label"
                 android:layout_toRightOf="@id/main_tv_pn_label"
+                android:includeFontPadding="false"
                 android:ellipsize="end"
                 android:fontFamily="@font/archivo_bold"
                 android:maxLines="1"
                 android:text="138695874567"
-                android:textColor="#666666"
+                android:textColor="@color/deepsoft_text_black"
                 android:textSize="14sp" />
         </RelativeLayout>
     </com.meetsl.scardview.SCardView>
@@ -212,35 +220,41 @@
 
     <!-- 左中当前任务红色框 -->
     <RelativeLayout
+        android:id="@+id/main_rl_ct"
         android:layout_width="380dp"
         android:layout_height="174dp"
-        android:background="@drawable/round_rectangle_geadient_red"
-        android:layout_marginTop="187dp"
-        android:layout_marginLeft="15dp">
+        android:layout_below="@id/main_rl_info"
+        android:layout_marginLeft="15dp"
+        android:layout_marginTop="5dp"
+        android:background="@drawable/round_rectangle_geadient_red">
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
             android:layout_marginTop="12dp"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="Current Task"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="17sp" />
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
             android:layout_marginTop="10dp"
             android:layout_marginRight="10dp"
-            android:layout_alignParentRight="true"
-            android:paddingTop="5dp"
-            android:paddingBottom="5dp"
+            android:background="@drawable/round_line_rect_white"
+            android:includeFontPadding="false"
             android:paddingLeft="6dp"
+            android:paddingTop="5dp"
             android:paddingRight="6dp"
+            android:paddingBottom="5dp"
             android:text="Scheduled Tasks"
-            android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="12sp"
             android:textAlignment="center"
-            android:background="@drawable/round_line_rect_white"/>
+            android:textColor="@color/deepsoft_config_color_white"
+            android:textSize="12sp" />
 
         <TextView
             android:id="@+id/main_tv_st_label"
@@ -249,6 +263,7 @@
             android:layout_marginLeft="20dp"
             android:layout_marginTop="40dp"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="start time:"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -256,46 +271,51 @@
             android:id="@+id/main_tv_at_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_alignLeft="@id/main_tv_st_label"
             android:layout_below="@id/main_tv_st_label"
+            android:layout_alignLeft="@id/main_tv_st_label"
+            android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="arrival time:"
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
+
         <TextView
             android:id="@+id/main_tv_d_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_alignLeft="@id/main_tv_at_label"
             android:layout_below="@id/main_tv_at_label"
+            android:layout_alignLeft="@id/main_tv_at_label"
+            android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="destination："
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
+
         <TextView
             android:id="@+id/main_tv_ts_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
-            android:layout_alignLeft="@id/main_tv_d_label"
             android:layout_below="@id/main_tv_d_label"
+            android:layout_alignLeft="@id/main_tv_d_label"
+            android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="Task Status："
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="14sp"/>
-
+            android:textSize="14sp" />
         <TextView
             android:id="@+id/main_tv_ts"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/main_tv_ts_label"
             android:layout_alignTop="@id/main_tv_ts_label"
+            android:layout_toRightOf="@id/main_tv_ts_label"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="delay"
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
         <TextView
             android:id="@+id/main_tv_dest"
             android:layout_width="wrap_content"
@@ -303,9 +323,10 @@
             android:layout_alignLeft="@id/main_tv_ts"
             android:layout_alignTop="@id/main_tv_d_label"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="5 minutes"
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
         <TextView
             android:id="@+id/main_tv_at"
             android:layout_width="wrap_content"
@@ -313,9 +334,10 @@
             android:layout_alignLeft="@id/main_tv_ts"
             android:layout_alignTop="@id/main_tv_at_label"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="8:00 p.m, October 1"
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
         <TextView
             android:id="@+id/main_tv_st"
             android:layout_width="wrap_content"
@@ -323,23 +345,24 @@
             android:layout_alignLeft="@id/main_tv_ts"
             android:layout_alignTop="@id/main_tv_st_label"
             android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
             android:text="delay"
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/main_btn_arrive"
             android:layout_width="115dp"
             android:layout_height="25dp"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:layout_marginBottom="10dp"
+            android:layout_alignParentBottom="true"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="10dp"
             android:background="@drawable/btn_bg_white_press"
             android:text="arrive"
             android:textAllCaps="false"
             android:textColor="@color/deepsoft_text_red"
-            android:textSize="14sp"/>
+            android:textSize="14sp" />
 
         <Button
             android:id="@+id/main_btn_vm"
@@ -354,5 +377,72 @@
             android:textColor="@color/deepsoft_text_red"
             android:textSize="14sp" />
     </RelativeLayout>
+
+
+    <!-- 右方地图 -->
+
+
+    <!-- 下方任务 -->
+
+    <com.meetsl.scardview.SCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_below="@id/main_rl_ct"
+        android:layout_marginLeft="13dp"
+        android:layout_marginRight="10.5dp"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="5dp"
+        app:contentPadding="0dp"
+        app:cardCornerRadius="10dp"
+        app:cardShadowStartColor="@color/deepsoft_blur_black"
+        app:cardElevation="8.5dp"
+        app:cardLightDirection="LT"
+        app:cardPreventCornerOverlap="false">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/main_tv_tasks"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_marginTop="5dp"
+                android:fontFamily="@font/archivo_bold"
+                android:includeFontPadding="false"
+                android:text="More Tasks"
+                android:textColor="@color/deepsoft_text_black"
+                android:textSize="17sp" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Number of tasks："
+                android:textColor="@color/deepsoft_text_black"
+                android:textSize="14sp"
+                android:includeFontPadding="false"
+                android:layout_toLeftOf="@id/main_tv_tasknum"
+                android:layout_alignTop="@id/main_tv_tasknum"/>
+            <TextView
+                android:id="@+id/main_tv_tasknum"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7.5dp"
+                android:layout_marginRight="10dp"
+                android:text="12"
+                android:includeFontPadding="false"
+                android:textColor="@color/deepsoft_text_black"
+                android:textSize="14sp"
+                android:layout_alignParentRight="true"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/main_rv_tasks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/main_tv_tasks"
+                android:layout_alignLeft="@id/main_tv_tasks"
+                android:layout_marginTop="10dp" />
+        </RelativeLayout>
+    </com.meetsl.scardview.SCardView>
 
 </RelativeLayout>
