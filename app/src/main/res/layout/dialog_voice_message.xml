@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="611dp"
+    android:layout_height="450dp"
+    android:background="@drawable/round_rectangle_white">
+    <RelativeLayout
+        android:id="@+id/dialog_vm_rl_top"
+        android:layout_width="match_parent"
+        android:layout_height="49dp"
+        android:adjustViewBounds="true"
+        android:background="@drawable/dialog_bg_gradient_top">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Voice Message"
+            android:textSize="20sp"
+            android:fontFamily="@font/archivo_bold"
+            android:layout_marginLeft="35dp"
+            android:layout_centerVertical="true"/>
+        <ImageView
+            android:id="@+id/dialog_vm_iv_close"
+            android:layout_width="34dp"
+            android:layout_height="34dp"
+            android:src="@mipmap/close"
+            android:layout_alignParentRight="true"
+            android:layout_marginRight="15dp"
+            android:layout_centerVertical="true"/>
+    </RelativeLayout>
+
+    <TextView
+        android:id="@+id/dialog_vm_tv_sent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="按住说话"
+        android:textColor="@color/deepsoft_config_color_white"
+        android:textSize="16sp"
+        android:gravity="center"
+        android:padding="15dp"
+        android:background="@drawable/dialog_btn_red"
+        android:layout_alignParentBottom="true"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/dialog_vm_rv"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/dialog_vm_rl_top"
+        android:layout_above="@id/dialog_vm_tv_sent"
+        android:layout_marginLeft="35dp"
+        android:layout_marginRight="35dp"/>
+</RelativeLayout>

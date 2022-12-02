@@ -226,8 +226,7 @@
         android:layout_below="@id/main_rl_info"
         android:layout_marginLeft="15dp"
         android:layout_marginTop="5dp"
-        android:background="@drawable/round_rectangle_geadient_red">
-
+        android:background="@drawable/round_rectangle_gradient_red">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -238,7 +237,6 @@
             android:text="Current Task"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="17sp" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -255,7 +253,6 @@
             android:textAlignment="center"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="12sp" />
-
         <TextView
             android:id="@+id/main_tv_st_label"
             android:layout_width="wrap_content"
@@ -279,7 +276,6 @@
             android:text="arrival time:"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
-
         <TextView
             android:id="@+id/main_tv_d_label"
             android:layout_width="wrap_content"
@@ -292,7 +288,6 @@
             android:text="destination："
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
-
         <TextView
             android:id="@+id/main_tv_ts_label"
             android:layout_width="wrap_content"
@@ -363,7 +358,6 @@
             android:textAllCaps="false"
             android:textColor="@color/deepsoft_text_red"
             android:textSize="14sp" />
-
         <Button
             android:id="@+id/main_btn_vm"
             android:layout_width="115dp"
@@ -376,6 +370,15 @@
             android:textAllCaps="false"
             android:textColor="@color/deepsoft_text_red"
             android:textSize="14sp" />
+        <View
+            android:id="@+id/main_v_isvm"
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:background="@drawable/hint_red"
+            android:layout_alignTop="@id/main_btn_vm"
+            android:layout_alignRight="@id/main_btn_vm"
+            android:layout_marginTop="-3dp"
+            android:layout_marginRight="-3dp"/>
     </RelativeLayout>
 
 
@@ -383,7 +386,6 @@
 
 
     <!-- 下方任务 -->
-
     <com.meetsl.scardview.SCardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
