@@ -18,7 +18,7 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:windowContentOverlay">@null</item>
-        <!-- Customize your theme here. -->
+        <item name="android:windowFullscreen">true</item>
 
         <!--应用的主要文字颜色，actionBar的标题文字默认使用该颜色-->
         <item name="android:textColorPrimary">@color/deepsoft_config_color_white</item>

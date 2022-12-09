@@ -274,4 +274,5 @@
     <color name="deepsoft_blur_black">#1A000000</color>
     <color name="deepsoft_text_black">#666666</color>
     <color name="deepsoft_text_gray">#99666666</color>
+    <color name="deepsoft_background">#EFEFEF</color>
 </resources>

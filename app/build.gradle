@@ -44,4 +44,8 @@ dependencies {
 
     // 厉害的RecyclerViewAdapter
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.10'
+
+    // 腾讯地图
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.tencent.map:tencent-map-vector-sdk:4.3.4'
 }
