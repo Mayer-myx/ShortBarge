@@ -275,4 +275,6 @@
     <color name="deepsoft_text_black">#666666</color>
     <color name="deepsoft_text_gray">#99666666</color>
     <color name="deepsoft_background">#EFEFEF</color>
+    <color name="deepsoft_text_hint_gray">#9DA7AF</color>
+    <color name="deepsoft_text_pwd_gray">#848484</color>
 </resources>

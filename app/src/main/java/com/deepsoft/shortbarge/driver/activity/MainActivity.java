@@ -29,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
         initView();
-//        showWaitConnectDialog();
+        showWaitConnectDialog();
     }
 
     private void initView(){
@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void showWaitConnectDialog(){
         View dialog_wait_connect = this.getLayoutInflater().inflate(R.layout.dialog_wait_connect, null);
-        final MyDialog dialog = new MyDialog(this, 1);
+        final MyDialog dialog = new MyDialog(this);
         dialog.setContentView(dialog_wait_connect);
         dialog.show();
         //放在show()之后，不然有些属性是没有效果的，比如height和width
