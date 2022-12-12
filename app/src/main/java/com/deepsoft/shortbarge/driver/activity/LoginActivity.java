@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.deepsoft.shortbarge.driver.R;
+import com.deepsoft.shortbarge.driver.service.MyService;
 import com.deepsoft.shortbarge.driver.utils.PressUtils;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener{
@@ -19,6 +20,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        //启动service
+//        Intent service = new Intent(LoginActivity.this, MyService.class);
+//        this.startService(service);
 
         initView();
     }
