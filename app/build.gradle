@@ -13,19 +13,33 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        flavorDimensions "default"
     }
 
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
+
+    productFlavors {
+        //测试版本
+        deepsoft_release {
+            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+        }
+        //正式版本
+        deepsoft_debug {
+            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+        }
+    }
 }
+
 
 dependencies {
 
@@ -48,4 +62,12 @@ dependencies {
     // 腾讯地图
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.tencent.map:tencent-map-vector-sdk:4.3.4'
+
+    // retrofit
+    implementation 'com.squareup.retrofit2:retrofit:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
+    implementation 'com.squareup.retrofit2:converter-scalars:2.5.0'
+
+    // okhttp
+    implementation("com.squareup.okhttp3:okhttp:4.9.1")
 }

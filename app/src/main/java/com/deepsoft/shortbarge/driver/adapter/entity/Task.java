@@ -1,53 +1,44 @@
 package com.deepsoft.shortbarge.driver.adapter.entity;
 
 public class Task {
-    private String start_time, arrival_time, destination, task_status;
-    private boolean is_emergency;
+    private int state;
+    private String id, start_time, arrival_time, duration, next_station, next_station_eng;
 
-    public Task(String start_time, String arrival_time, String destination, String task_status) {
+    public Task(String id, int state, String start_time, String arrival_time, String duration, String next_station, String next_station_eng) {
+        this.id = id;
+        this.state = state;
         this.start_time = start_time;
         this.arrival_time = arrival_time;
-        this.destination = destination;
-        this.task_status = task_status;
+        this.duration = duration;
+        this.next_station = next_station;
+        this.next_station_eng = next_station_eng;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public int getState() {
+        return state;
     }
 
     public String getStart_time() {
         return start_time;
     }
 
-    public void setStart_time(String start_time) {
-        this.start_time = start_time;
-    }
-
     public String getArrival_time() {
         return arrival_time;
     }
 
-    public void setArrival_time(String arrival_time) {
-        this.arrival_time = arrival_time;
+    public String getDuration() {
+        return duration;
     }
 
-    public String getDestination() {
-        return destination;
+    public String getNext_station() {
+        return next_station;
     }
 
-    public void setDestination(String destination) {
-        this.destination = destination;
-    }
-
-    public String getTask_status() {
-        return task_status;
-    }
-
-    public void setTask_status(String task_status) {
-        this.task_status = task_status;
-    }
-
-    public boolean getIs_emergency() {
-        return is_emergency;
-    }
-
-    public void setIs_emergency(boolean is_emergency) {
-        this.is_emergency = is_emergency;
+    public String getNext_station_eng() {
+        return next_station_eng;
     }
 }

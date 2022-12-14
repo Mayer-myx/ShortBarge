@@ -424,6 +424,7 @@
             android:textAllCaps="false"
             android:textColor="@color/deepsoft_text_red"
             android:textSize="14sp" />
+
         <TextView
             android:id="@+id/main_tv_vm"
             android:layout_width="115dp"
