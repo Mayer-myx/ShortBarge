@@ -1,4 +1,4 @@
-package com.deepsoft.shortbarge.driver.activity;
+package com.deepsoft.shortbarge.driver.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -6,11 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -59,7 +55,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         apiService = RetrofitUtils.getInstance().getRetrofit().create(ApiService.class);
 
         initView();
-        getDriverTask();
+//        getDriverTask();
     }
 
     private void initView(){
@@ -107,14 +103,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         }).start();
-    }
-
-    private void showWaitConnectDialog(){
-        View dialog_wait_connect = this.getLayoutInflater().inflate(R.layout.dialog_wait_connect, null);
-        final MyDialog dialog = new MyDialog(this);
-        dialog.setContentView(dialog_wait_connect);
-        dialog.setCanceledOnTouchOutside(false);
-        dialog.show();
     }
 
     @Override
@@ -172,6 +160,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 });
                 break;
             case R.id.main_tv_vm:
+                MessageDialog.showMessageDialog(this, getLayoutInflater());
                 break;
         }
     }

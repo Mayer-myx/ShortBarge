@@ -5,7 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.deepsoft.shortbarge.driver.activity.LoginActivity;
+import com.deepsoft.shortbarge.driver.view.LoginActivity;
 
 public class BootReceiver extends BroadcastReceiver {
 

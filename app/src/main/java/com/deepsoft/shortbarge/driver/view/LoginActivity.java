@@ -1,4 +1,4 @@
-package com.deepsoft.shortbarge.driver.activity;
+package com.deepsoft.shortbarge.driver.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -9,13 +9,10 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.gson.LoginInfoGson;
-import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.service.ApiService;
-import com.deepsoft.shortbarge.driver.service.MyService;
 import com.deepsoft.shortbarge.driver.utils.PressUtils;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtils;
 
@@ -25,7 +22,7 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener{
 
-    private final static String TAG = "MainActivity";
+    private final static String TAG = "LoginActivity";
     private ApiService apiService;
 
     private TextView login_tv_login, login_tv_forget_pwd;
@@ -69,7 +66,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     @Override
                     public void onResponse(Call<LoginInfoGson> call, Response<LoginInfoGson> response) {
                         LoginInfoGson loginInfoGson = response.body();
-                        Log.e(TAG, loginInfoGson.toString());
                         Log.e(TAG, loginInfoGson.getData().getToken());
                         LoginActivity.this.finish();
                         startActivity(new Intent(LoginActivity.this, MainActivity.class));

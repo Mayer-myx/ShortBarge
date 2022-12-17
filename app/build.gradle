@@ -70,4 +70,7 @@ dependencies {
 
     // okhttp
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
+
+    // websocket
+    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
 }
