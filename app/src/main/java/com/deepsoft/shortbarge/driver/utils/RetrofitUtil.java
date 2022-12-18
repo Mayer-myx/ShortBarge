@@ -2,23 +2,20 @@ package com.deepsoft.shortbarge.driver.utils;
 
 import com.deepsoft.shortbarge.driver.BuildConfig;
 
-import java.util.concurrent.TimeUnit;
-
-import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-public class RetrofitUtils {
+public class RetrofitUtil {
 
-    private static RetrofitUtils retrofitUtils;
+    private static RetrofitUtil retrofitUtils;
 
-    private RetrofitUtils() {}
+    private RetrofitUtil() {}
 
-    public static RetrofitUtils getInstance() {
+    public static RetrofitUtil getInstance() {
         if (retrofitUtils == null) {
-            synchronized (RetrofitUtils.class) {
+            synchronized (RetrofitUtil.class) {
                 if (retrofitUtils == null) {
-                    retrofitUtils = new RetrofitUtils();
+                    retrofitUtils = new RetrofitUtil();
                 }
             }
         }

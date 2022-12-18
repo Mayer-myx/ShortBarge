@@ -5,7 +5,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 public class PressUtils {
-    public static void  setPressChange(Context context, View... views) {
+    public static void setPressChange(Context context, View... views) {
         if (context !=null && views !=null){
             for (View view : views) {
                 view.setOnTouchListener(new View.OnTouchListener() {
@@ -26,6 +26,5 @@ public class PressUtils {
                 });
             }
         }
-
     }
 }

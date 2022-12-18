@@ -20,7 +20,8 @@
         <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/round_rectangle_white_opc.xml" value="0.357" />
         <entry key="..\:/Android/ShortBarge/app/src/main/res/drawable/selector_round_line_rect.xml" value="0.367" />
         <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/activity_login.xml" value="0.5" />
-        <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/activity_main.xml" value="0.5" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/activity_main.xml" value="0.33" />
+        <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/activity_test.xml" value="0.16534391534391535" />
         <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/dialog_voice_message.xml" value="0.33" />
         <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/dialog_wait_connect.xml" value="0.33" />
         <entry key="..\:/Android/ShortBarge/app/src/main/res/layout/item_message_me.xml" value="0.3090828924162258" />

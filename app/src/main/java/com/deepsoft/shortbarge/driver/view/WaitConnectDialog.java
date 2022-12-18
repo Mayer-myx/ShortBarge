@@ -9,12 +9,25 @@ import com.deepsoft.shortbarge.driver.widget.MyDialog;
 
 public class WaitConnectDialog {
 
-    public static void showWaitConnectDialog(Context context, LayoutInflater layoutInflater){
+    private static WaitConnectDialog waitConnectDialog;
+
+    private WaitConnectDialog() {}
+
+    public static WaitConnectDialog getInstance(){
+        if(waitConnectDialog == null){
+            synchronized (WaitConnectDialog.class){
+                if(waitConnectDialog == null)
+                    waitConnectDialog = new WaitConnectDialog();
+            }
+        }
+        return waitConnectDialog;
+    }
+
+    public void showWaitConnectDialog(Context context, LayoutInflater layoutInflater){
         View dialog_wait_connect = layoutInflater.inflate(R.layout.dialog_wait_connect, null);
         final MyDialog dialog = new MyDialog(context);
         dialog.setContentView(dialog_wait_connect);
         dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
-
 }

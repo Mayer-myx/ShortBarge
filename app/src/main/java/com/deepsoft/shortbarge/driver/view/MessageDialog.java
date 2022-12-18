@@ -14,10 +14,11 @@ import java.net.URI;
 public class MessageDialog {
 
     private static URI uri;
+    private static MessageDialog messageDialog;
     private static JWebSocketClient client;
 
-    public MessageDialog(){
-        uri = URI.create("ws://websocket/wsDriver/{token}");
+    private MessageDialog(){
+        uri = URI.create("ws://192.168.31.167");
         client = new JWebSocketClient(uri) {
             @Override
             public void onMessage(String message) {
@@ -27,7 +28,17 @@ public class MessageDialog {
         };
     }
 
-    public static void showMessageDialog(Context context, LayoutInflater layoutInflater){
+    public static MessageDialog getInstance(){
+        if(messageDialog == null){
+            synchronized (MessageDialog.class){
+                if(messageDialog == null)
+                    messageDialog = new MessageDialog();
+            }
+        }
+        return messageDialog;
+    }
+
+    public void showMessageDialog(Context context, LayoutInflater layoutInflater){
         try {
             client.connectBlocking();
         } catch (InterruptedException e) {
@@ -37,7 +48,6 @@ public class MessageDialog {
         if (client != null && client.isOpen()) {
             client.send("你好");
         }
-
 
         View dialog_wait_connect = layoutInflater.inflate(R.layout.dialog_voice_message, null);
         final MyDialog dialog = new MyDialog(context);
