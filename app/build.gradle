@@ -70,14 +70,11 @@ dependencies {
     implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
     implementation 'com.squareup.retrofit2:converter-scalars:2.5.0'
 
-    // okhttp
+    // okhttp3
     implementation("com.squareup.okhttp3:okhttp:4.9.1")
 
     // rxjava
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.5.0'
-
-    // websocket
-    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
 
     // 权限
     implementation 'pub.devrel:easypermissions:3.0.0'

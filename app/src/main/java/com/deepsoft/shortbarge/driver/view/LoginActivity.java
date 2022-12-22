@@ -148,7 +148,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             }
                             editor.commit();;
                             LoginActivity.this.finish();
-                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                            Intent intent = new Intent(LoginActivity.this, TestActivity.class);
+                            intent.putExtra("token", loginInfoGson.getToken());
+                            startActivity(intent);
                         }else{
                             Toast.makeText(LoginActivity.this, "getLogin连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                         }

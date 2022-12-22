@@ -55,9 +55,10 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     private final static String TAG = "MainActivity";
+
     private ApiInterface apiInterface;
     private TencentMap mTencentMap;
-
+    private Marker mCustomMarker = null;
     private LocationManager mLocationMgr;
     private Criteria mCriteria = new Criteria();
     private Handler mHandler = new Handler();
@@ -197,7 +198,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         //第一次渲染成功的回调
         mTencentMap.setOnMapLoadedCallback(new TencentMap.OnMapLoadedCallback() {
             public void onMapLoaded() {
-                //地图正常显示
                 Log.e(TAG, "map ok");
             }
         });
@@ -358,15 +358,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void setMaker(double lat, double lon){
-        //创建Marker对象之前，设置属性
         LatLng position = new LatLng(lat, lon);
         BitmapDescriptor custom = BitmapDescriptorFactory.fromResource(R.mipmap.scatter_car);
-        Marker mCustomMarker = mTencentMap.addMarker(new MarkerOptions(position)
-                .icon(custom)
-                .alpha(0.7f)
-                .flat(true)
-                .clockwise(false)
-                .rotation(0));
+        if(mCustomMarker == null) {
+            mCustomMarker = mTencentMap.addMarker(new MarkerOptions(position)
+                    .icon(custom)
+                    .flat(true));
+        }else {
+            mCustomMarker.setPosition(position);
+        }
     }
 
 
@@ -412,9 +412,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        mCustomMarker.remove();
         main_mv_map.onDestroy();
         if (mLocationMgr != null) {
-            // 移除定位管理器的位置变更监听器
             mLocationMgr.removeUpdates(mLocationListener);
         }
 
@@ -422,11 +422,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 ResultGson resultGson = response.body();
-                Log.i(TAG, "onResponse: "+resultGson.getMsg());
+                Log.i(TAG, "getLogout onResponse: "+resultGson.getMsg());
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
-                Log.i(TAG, "onFailure: "+t);
+                Log.i(TAG, "getLogout onFailure: "+t);
             }
         });
     }
