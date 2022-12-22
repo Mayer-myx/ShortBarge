@@ -23,12 +23,11 @@
         <!-- logo -->
         <ImageView
             android:id="@+id/main_iv_group"
-            android:layout_width="126dp"
-            android:layout_height="47.5dp"
-            android:layout_marginLeft="24dp"
-            android:layout_marginTop="9dp"
+            android:layout_width="130dp"
+            android:layout_height="70dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginTop="5dp"
             android:adjustViewBounds="true"
-            android:scaleType="fitXY"
             android:src="@mipmap/group" />
 
         <TextView
@@ -94,11 +93,11 @@
         <!-- 右边用户和设置 -->
         <ImageView
             android:id="@+id/main_iv_setting"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
             android:layout_alignParentRight="true"
-            android:layout_marginTop="20dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginTop="18dp"
+            android:layout_marginRight="20dp"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
             android:src="@mipmap/setting" />
@@ -109,7 +108,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
             android:layout_marginTop="25dp"
-            android:layout_marginRight="56dp"
+            android:layout_marginRight="64dp"
             android:gravity="right"
             android:text="Wang Dong"
             android:textColor="@color/deepsoft_config_color_white"
@@ -535,7 +534,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="10dp"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
                 android:text="More Tasks"
@@ -555,7 +554,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="7.5dp"
-                android:layout_marginRight="15dp"
+                android:layout_marginRight="20dp"
                 android:text="12"
                 android:includeFontPadding="false"
                 android:textColor="@color/deepsoft_text_black"

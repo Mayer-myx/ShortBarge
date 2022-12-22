@@ -109,6 +109,16 @@ public interface ApiInterface {
     Call<ResultGson> getWeatherInfo(@Query("lang") String lang);
 
     /**
+     * 修改任务状态
+     * @param transportTaskId
+     * @param state
+     * @return
+     */
+    @GET("transport/changeTaskState")
+    Call<ResultGson> changeTaskState(@Query("transportTaskId") String transportTaskId,
+                              @Query("state") String state);
+
+    /**
      * 上传文件 录音
      * @param part
      * @return

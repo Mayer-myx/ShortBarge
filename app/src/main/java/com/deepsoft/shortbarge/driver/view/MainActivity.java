@@ -1,14 +1,21 @@
 package com.deepsoft.shortbarge.driver.view;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.location.Criteria;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -18,18 +25,15 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
+import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.TaskGson;
-import com.deepsoft.shortbarge.driver.gson.TaskList;
 import com.deepsoft.shortbarge.driver.gson.WeatherGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
-import com.deepsoft.shortbarge.driver.utils.LocationUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
-import com.deepsoft.shortbarge.driver.utils.GPS.GPSLocationManager;
-import com.google.gson.Gson;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdate;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
 import com.tencent.tencentmap.mapsdk.maps.MapView;
@@ -41,7 +45,6 @@ import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
 import com.tencent.tencentmap.mapsdk.maps.model.Marker;
 import com.tencent.tencentmap.mapsdk.maps.model.MarkerOptions;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,13 +56,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private final static String TAG = "MainActivity";
     private ApiInterface apiInterface;
-    private GPSLocationManager gpsLocationManager;
-    private static Location myLocation;
     private TencentMap mTencentMap;
-    private LocationUtil locationUtils;
-    private SharedPreferences sp;
-    private SharedPreferences.Editor editor;
-    private String driverId, truckId, licensePlate, emergencyContact, emergencyContactEng, emergencyPhone;
+
+    private LocationManager mLocationMgr;
+    private Criteria mCriteria = new Criteria();
+    private Handler mHandler = new Handler();
+    private boolean isLocationEnable = false;
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -83,34 +85,106 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
         initView();
+        getDriverInfo();
         getUserName();
-        getIntentData();
         getDriverTask();
         getWeatherInfo();
-
-        sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
-        initMap(Double.valueOf(sp.getString("Latitude", "")), Double.valueOf(sp.getString("Longitude", "")));
-
-        locationUtils = LocationUtil.getInstance(MainActivity.this);
-        locationUtils.getLocation(new LocationUtil.LocationCallBack() {
-            @Override
-            public void setLocation(Location location) {
-                if (location != null){
-                    Log.e(TAG, "经度:" + location.getLongitude());
-                    Log.e(TAG, "纬度:" + location.getLatitude());
-                    editor = sp.edit();
-                    editor.putString("Longitude",String.valueOf(location.getLongitude()));
-                    editor.putString("Latitude",String.valueOf(location.getLatitude()));
-                    editor.commit();    // 更新经纬度
-                    myLocation = location;
-                    initMap(myLocation.getLatitude(), myLocation.getLongitude());
-                }
-            }
-        }, 1);
-        setMaker(30.306225,120.36931666666666);
-//        gpsLocationManager = GPSLocationManager.getInstances(MainActivity.this);
-//        gpsLocationManagersLocationManager.start(new MyListener());
     }
+
+
+    /**
+     * 初始化定位服务
+     */
+    private void initLocation() {
+        // 从系统服务中获取定位管理器
+        mLocationMgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        // 设置定位精确度。Criteria.ACCURACY_COARSE表示粗略，Criteria.ACCURACY_FIN表示精细
+        mCriteria.setAccuracy(Criteria.ACCURACY_FINE);
+        // 设置是否需要海拔信息
+        mCriteria.setAltitudeRequired(true);
+        // 设置是否需要方位信息
+        mCriteria.setBearingRequired(true);
+        // 设置是否允许运营商收费
+        mCriteria.setCostAllowed(true);
+        // 设置对电源的需求
+        mCriteria.setPowerRequirement(Criteria.POWER_LOW);
+        // 获取定位管理器的最佳定位提供者
+        String bestProvider = mLocationMgr.getBestProvider(mCriteria, true);
+        if (mLocationMgr.isProviderEnabled(bestProvider)) { // 定位提供者当前可用
+            Toast.makeText(this, "正在获取" + bestProvider + "定位对象", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, String.format("定位类型=%s", bestProvider));
+            beginLocation(bestProvider);
+            isLocationEnable = true;
+        } else { // 定位提供者暂不可用
+            Toast.makeText(MainActivity.this, ""+bestProvider+"定位不可用", Toast.LENGTH_SHORT).show();
+            isLocationEnable = false;
+        }
+    }
+
+    /**
+     * 设置定位结果文本
+     */
+    private void setLocationText(Location location) {
+        if (location != null) {
+            Log.e(TAG, String.format("定位对象经度：%f，纬度：%f，速度：%f米，精度：%d米",
+                    location.getLongitude(), location.getLatitude(),
+                    location.getSpeed(), Math.round(location.getAccuracy())));
+
+            initMap(location.getLatitude(), location.getLongitude());
+            setMaker(location.getLatitude(), location.getLongitude());
+        } else {
+            Toast.makeText(this, "暂未获取到定位对象", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /**
+     * 开始定位
+     */
+    private void beginLocation(String method) {
+        // 检查当前设备是否已经开启了定位功能
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            Toast.makeText(this, "请授予定位权限并开启定位功能", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        // 设置定位管理器的位置变更监听器
+        mLocationMgr.requestLocationUpdates(method, 300, 0, mLocationListener);
+        // 获取最后一次成功定位的位置信息
+        Location location = mLocationMgr.getLastKnownLocation(method);
+        setLocationText(location);
+    }
+
+    /**
+     * 定义一个位置变更监听器
+     */
+    private LocationListener mLocationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            setLocationText(location);
+        }
+
+        @Override
+        public void onProviderDisabled(String arg0) {}
+
+        @Override
+        public void onProviderEnabled(String arg0) {}
+
+        @Override
+        public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
+    };
+
+    /**
+     * 定义一个刷新任务，若无法定位则每隔一秒就尝试定位
+     */
+    private Runnable mRefresh = new Runnable() {
+        @Override
+        public void run() {
+            if (!isLocationEnable) {
+                initLocation();
+                mHandler.postDelayed(this, 1000);
+            }
+        }
+    };
 
 
     private void initMap(double lat, double lon){
@@ -178,20 +252,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void getIntentData(){
-        Intent intent = getIntent();
-        driverId = intent.getStringExtra("driverId");
-        truckId = intent.getStringExtra("truckId");
-        licensePlate = intent.getStringExtra("licensePlate");
-        emergencyContact = intent.getStringExtra("emergencyContact");
-        emergencyContactEng = intent.getStringExtra("emergencyContactEng");
-        emergencyPhone = intent.getStringExtra("emergencyPhone");
-
-        main_tv_ln.setText(licensePlate);
-        main_tv_ec.setText(emergencyContact + emergencyContactEng);
-        main_tv_pn.setText(emergencyPhone);
-        if(truckId.length() == 1) truckId = "0"+truckId;
-        main_tv_truck.setText(truckId);
+    private void getDriverInfo(){
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface.getDriverInfo().enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.i(TAG, "getDriverInfo run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if(resultGson.getSuccess()){
+                    List<DriverInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), DriverInfoGson.class);
+                    DriverInfoGson driverInfoGson = list.get(0);
+                    main_tv_ln.setText(driverInfoGson.getLicensePlate());
+                    main_tv_ec.setText(driverInfoGson.getEmergencyContactEng());
+                    main_tv_pn.setText(driverInfoGson.getEmergencyPhone());
+                    String truckId = driverInfoGson.getTruckId();
+                    if(truckId.length() == 1) truckId = "0"+truckId;
+                    main_tv_truck.setText(truckId);
+                }else{
+                    Toast.makeText(MainActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getDriverInfo onFailure:"+t);
+            }
+        });
     }
 
 
@@ -296,6 +381,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         main_mv_map.onResume();
+
+        mHandler.removeCallbacks(mRefresh); // 移除定位刷新任务
+        initLocation();
+        mHandler.postDelayed(mRefresh, 100); // 延迟100毫秒启动定位刷新任务
     }
 
 
@@ -303,7 +392,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onPause() {
         super.onPause();
         main_mv_map.onPause();
-//        gpsLocationManager.stop();
     }
 
 
@@ -317,7 +405,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onRestart() {
         super.onRestart();
-        locationUtils.stop();
         main_mv_map.onRestart();
     }
 
@@ -326,8 +413,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onDestroy() {
         super.onDestroy();
         main_mv_map.onDestroy();
-        locationUtils.stop();
-//        gpsLocationManager.stop();
+        if (mLocationMgr != null) {
+            // 移除定位管理器的位置变更监听器
+            mLocationMgr.removeUpdates(mLocationListener);
+        }
+
         apiInterface.getLogout().enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {

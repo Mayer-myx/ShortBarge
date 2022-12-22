@@ -19,10 +19,7 @@ import java.net.URI;
 
 public class MessageDialog implements View.OnClickListener{
 
-    private static URI uri;
     private static MessageDialog messageDialog;
-    private static JWebSocketClient client;
-
     private MyDialog dialog;
     private View dialog_voice_message;
     private ImageView dialog_vm_iv_close;
@@ -31,14 +28,6 @@ public class MessageDialog implements View.OnClickListener{
 
 
     private MessageDialog(){
-        uri = URI.create("ws://192.168.31.167");
-        client = new JWebSocketClient(uri) {
-            @Override
-            public void onMessage(String message) {
-                // message就是接收到的消息
-                Log.e("JWebSClientService", message);
-            }
-        };
     }
 
 
@@ -54,26 +43,6 @@ public class MessageDialog implements View.OnClickListener{
 
 
     public void showMessageDialog(Context context, LayoutInflater layoutInflater){
-        if (client != null && !client.isOpen()){
-            if (client.getReadyState().equals(ReadyState.NOT_YET_CONNECTED)){
-                try {
-                    client.connectBlocking();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            } else if (client.getReadyState().equals(ReadyState.CLOSING) || client.getReadyState().equals(ReadyState.CLOSED)){
-                try {
-                    client.reconnectBlocking();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        if (client != null && client.isOpen()) {
-            client.send("你好");
-        }
-
         dialog_voice_message = layoutInflater.inflate(R.layout.dialog_voice_message, null);
         dialog_vm_iv_close = dialog_voice_message.findViewById(R.id.dialog_vm_iv_close);
         dialog_vm_iv_close.setOnClickListener(this);
@@ -90,27 +59,10 @@ public class MessageDialog implements View.OnClickListener{
     }
 
 
-    /**
-     * 断开连接
-     */
-    private void closeConnect() {
-        try {
-            if (null != client) {
-                client.close();
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            client = null;
-        }
-    }
-
-
     @Override
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.dialog_vm_iv_close:
-                closeConnect();
                 dialog.dismiss();
                 break;
             case R.id.dialog_vm_tv_sent:

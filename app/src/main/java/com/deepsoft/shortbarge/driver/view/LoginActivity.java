@@ -7,6 +7,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
@@ -22,14 +23,12 @@ import com.deepsoft.shortbarge.driver.gson.LoginInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
-import com.deepsoft.shortbarge.driver.utils.LocationUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
+import com.deepsoft.shortbarge.driver.utils.SwitchUtil;
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
 
-import java.io.IOException;
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
@@ -46,13 +45,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private int PERMISSION_STORAGE_CODE = 10001;
     private String[] PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
-    private ApiInterface apiInterface;
 
+    private ApiInterface apiInterface;
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
+
     private boolean is_rem_pwd = false;
     private String username, password;
-    private LocationUtil locationUtils;
 
     private TextView login_tv_login, login_tv_forget_pwd;
     private EditText login_et_username, login_et_pwd;
@@ -70,28 +69,22 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         //启动service
         //Intent service = new Intent(LoginActivity.this, MyService.class);
         //this.startService(service);
+
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         editor = sp.edit();
+
         is_rem_pwd = sp.getBoolean("is_rem", false);
         username = sp.getString("username", "");
         password = sp.getString("password", "");
+
         initView();
 
+        login_tv_login.setClickable(false);
+        login_tv_forget_pwd.setClickable(false);
         if (EasyPermissions.hasPermissions(this, PERMS)) {
-            locationUtils = LocationUtil.getInstance(LoginActivity.this);
-            locationUtils.getLocation(new LocationUtil.LocationCallBack() {
-                @Override
-                public void setLocation(Location location) {
-                    if (location != null){
-                        Log.e(TAG, "经度:" + location.getLongitude());
-                        Log.e(TAG, "纬度:" + location.getLatitude());
-                        editor.putString("Longitude",String.valueOf(location.getLongitude()));
-                        editor.putString("Latitude",String.valueOf(location.getLatitude()));
-                        editor.commit();
-                    }
-                }
-            }, 2);
+            login_tv_login.setClickable(true);
+            login_tv_forget_pwd.setClickable(true);
         } else {
             // 没有申请过权限，现在去申请
             /**
@@ -100,6 +93,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
              *@param requestCode 请求权限的唯一标识码
              *@param perms 一系列权限
              */
+            SwitchUtil.checkGpsIsOpen(this, "需要打开定位功能才能使用本系统");
             EasyPermissions.requestPermissions(this, PERMISSION_STORAGE_MSG, PERMISSION_STORAGE_CODE, PERMS);
         }
     }
@@ -108,7 +102,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        locationUtils.stop();
     }
 
 
@@ -132,35 +125,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
 
-    private void getDriverInfo(){
-        apiInterface.getDriverInfo().enqueue(new Callback<ResultGson>() {
-            @Override
-            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                Log.i(TAG, "getDriverInfo run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
-                ResultGson resultGson = response.body();
-                if(resultGson.getSuccess()){
-                    List<DriverInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), DriverInfoGson.class);
-                    DriverInfoGson driverInfoGson = list.get(0);
-                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                    intent.putExtra("driverId", driverInfoGson.getDriverId());
-                    intent.putExtra("truckId", Integer.toString((int)Double.parseDouble(driverInfoGson.getTruckId())));
-                    intent.putExtra("licensePlate", driverInfoGson.getLicensePlate());
-                    intent.putExtra("emergencyContact", driverInfoGson.getEmergencyContact());
-                    intent.putExtra("emergencyContactEng", driverInfoGson.getEmergencyContactEng());
-                    intent.putExtra("emergencyPhone", driverInfoGson.getEmergencyPhone());
-                    startActivity(intent);
-                    LoginActivity.this.finish();
-                }else{
-                    Toast.makeText(LoginActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
-                }
-            }
-            @Override
-            public void onFailure(Call<ResultGson> call, Throwable t) {
-                Log.e(TAG, "getDriverInfo onFailure:"+t);
-            }
-        });
-    }
-
 
     @Override
     public void onClick(View view) {
@@ -182,11 +146,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 editor.putString("username", username);
                                 editor.putString("password", password);
                             }
-                            editor.commit();
+                            editor.commit();;
+                            LoginActivity.this.finish();
+                            startActivity(new Intent(LoginActivity.this, MainActivity.class));
                         }else{
                             Toast.makeText(LoginActivity.this, "getLogin连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                         }
-                        getDriverInfo();
                     }
                     @Override
                     public void onFailure(Call<ResultGson> call, Throwable t) {
