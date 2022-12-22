@@ -31,11 +31,13 @@ android {
     productFlavors {
         //测试版本
         deepsoft_release {
-            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+//            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+            buildConfigField("String", "SERVICE_HOST", "\"http://221.12.170.99:8081/\"")
         }
         //正式版本
         deepsoft_debug {
-            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+//            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+            buildConfigField("String", "SERVICE_HOST", "\"http://221.12.170.99:8081/\"")
         }
     }
 }

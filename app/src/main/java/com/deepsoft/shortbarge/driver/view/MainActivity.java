@@ -69,7 +69,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             main_tv_ts_label, main_tv_wt_label, main_tv_ns_label, main_tv_wt, main_tv_ns,
             main_tv_ts, main_tv_dest, main_tv_at, main_tv_st, main_tv_at2_label, main_tv_at2,
             main_tv_ec, main_tv_ln, main_tv_pn, main_tv_truck, main_tv_driver, main_tv_tasknum,
-            main_tv_wea;
+            main_tv_wea, main_tv_date;
     private ImageView main_iv_wea;
     private RecyclerView main_rv_tasks;
 
@@ -86,6 +86,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         getUserName();
         getIntentData();
         getDriverTask();
+        getWeatherInfo();
 
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         initMap(Double.valueOf(sp.getString("Latitude", "")), Double.valueOf(sp.getString("Longitude", "")));
@@ -143,6 +144,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         mTencentMap = main_mv_map.getMap();
 
         main_rv_tasks = findViewById(R.id.main_rv_tasks);
+        main_tv_tasknum = findViewById(R.id.main_tv_tasknum);
 
         // 有voice message
         main_tv_st_label = findViewById(R.id.main_tv_st_label);
@@ -170,11 +172,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // 顶部信息
         main_tv_driver = findViewById(R.id.main_tv_driver);
-
-        main_tv_tasknum = findViewById(R.id.main_tv_tasknum);
+        main_tv_date = findViewById(R.id.main_tv_date);
         main_tv_wea = findViewById(R.id.main_tv_wea);
         main_iv_wea = findViewById(R.id.main_iv_wea);
-;    }
+    }
 
 
     private void getIntentData(){
@@ -196,16 +197,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void getWeatherInfo(){
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
-        apiInterface.getUserName().enqueue(new Callback<ResultGson>() {
+        apiInterface.getWeatherInfo("2").enqueue(new Callback<ResultGson>() {
+            // todo: 这里我直接写了1-中文，2-英文，但是这个实际上要根据系统的！
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 Log.e(TAG, "getWeatherInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
-                    List<WeatherGson> weatherGsons =
-                    main_tv_wea.setText("");
+                    List<WeatherGson> list = GsonConvertUtil.performTransform(resultGson.getData(), WeatherGson.class);
+                    WeatherGson weatherGson = list.get(0);
+                    main_tv_wea.setText(weatherGson.getWeather() + " " + weatherGson.getTemperature());
+                    main_tv_date.setText(weatherGson.getDate());
                     Glide.with(MainActivity.this)
-                            .load("")
+                            .load(weatherGson.getIcon())
                             .into(main_iv_wea);
                 }else{
                     Toast.makeText(MainActivity.this, "getWeatherInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
