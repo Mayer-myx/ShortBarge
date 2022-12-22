@@ -11,14 +11,17 @@ import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.TaskGson;
 import com.deepsoft.shortbarge.driver.gson.TaskList;
+import com.deepsoft.shortbarge.driver.gson.WeatherGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.LocationUtil;
@@ -65,7 +68,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView main_tv_arrive, main_tv_vm, main_tv_st_label, main_tv_at_label, main_tv_d_label,
             main_tv_ts_label, main_tv_wt_label, main_tv_ns_label, main_tv_wt, main_tv_ns,
             main_tv_ts, main_tv_dest, main_tv_at, main_tv_st, main_tv_at2_label, main_tv_at2,
-            main_tv_ec, main_tv_ln, main_tv_pn, main_tv_truck, main_tv_driver, main_tv_tasknum;
+            main_tv_ec, main_tv_ln, main_tv_pn, main_tv_truck, main_tv_driver, main_tv_tasknum,
+            main_tv_wea;
+    private ImageView main_iv_wea;
     private RecyclerView main_rv_tasks;
 
 
@@ -167,6 +172,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_tv_driver = findViewById(R.id.main_tv_driver);
 
         main_tv_tasknum = findViewById(R.id.main_tv_tasknum);
+        main_tv_wea = findViewById(R.id.main_tv_wea);
+        main_iv_wea = findViewById(R.id.main_iv_wea);
 ;    }
 
 
@@ -184,6 +191,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_tv_pn.setText(emergencyPhone);
         if(truckId.length() == 1) truckId = "0"+truckId;
         main_tv_truck.setText(truckId);
+    }
+
+
+    private void getWeatherInfo(){
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface.getUserName().enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.e(TAG, "getWeatherInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    List<WeatherGson> weatherGsons =
+                    main_tv_wea.setText("");
+                    Glide.with(MainActivity.this)
+                            .load("")
+                            .into(main_iv_wea);
+                }else{
+                    Toast.makeText(MainActivity.this, "getWeatherInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getWeatherInfo onFailure:"+t);
+            }
+        });
     }
 
 

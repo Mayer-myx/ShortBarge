@@ -8,12 +8,15 @@ import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
 
 import org.json.JSONArray;
 
+import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.Field;
 import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Query;
 
 public interface ApiInterface {
@@ -97,6 +100,23 @@ public interface ApiInterface {
      */
     @GET("transport/getDriverTask")
     Call<ResultGson> getDriverTask();
+
+    /**
+     * 天气
+     * @return
+     */
+    @GET("weather/getWeatherInfo")
+    Call<ResultGson> getWeatherInfo(@Query("lang") String lang);
+
+    /**
+     * 上传文件 录音
+     * @param part
+     * @return
+     */
+    @Multipart
+    @POST("file/uploadFile")
+    Call<ResultGson> uploadFile(@Part MultipartBody.Part part);
+
 
 //    /*无参POST请求 */
 //    @POST("postNoParamUser")
