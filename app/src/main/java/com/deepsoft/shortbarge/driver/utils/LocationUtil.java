@@ -3,8 +3,6 @@ package com.deepsoft.shortbarge.driver.utils;
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Address;
-import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -13,15 +11,11 @@ import android.os.Bundle;
 
 import androidx.core.app.ActivityCompat;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Locale;
-
 /**
  * @className: LocationUtils
  * @classDescription: 定位工具类
  */
-public class LocationUtils {
+public class LocationUtil {
 
     // GPS定位
     private final static String GPS_LOCATION = LocationManager.GPS_PROVIDER;
@@ -34,7 +28,7 @@ public class LocationUtils {
     // 位置刷新距离，单位：m
     private final static float MIN_DISTANCE = (float) 0.01;
     // singleton
-    private static LocationUtils instance;
+    private static LocationUtil instance;
     // 定位回调
     private LocationCallBack mLocationCallBack;
     // 定位管理实例
@@ -46,16 +40,16 @@ public class LocationUtils {
      * 构造函数
      * @author leibing
      */
-    private LocationUtils(Context mContext) {
+    private LocationUtil(Context mContext) {
         this.mContext = mContext;
     }
 
     /**
      * singleton
      */
-    public static LocationUtils getInstance(Context mContext) {
+    public static LocationUtil getInstance(Context mContext) {
         if (instance == null) {
-            instance = new LocationUtils(mContext);
+            instance = new LocationUtil(mContext);
         }
         return instance;
     }

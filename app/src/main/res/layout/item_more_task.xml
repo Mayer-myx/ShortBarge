@@ -3,21 +3,21 @@
     android:id="@+id/item_bg"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="300dp"
-    android:layout_height="95dp"
+    android:layout_height="108dp"
     android:background="@drawable/round_line_rect_gray"
-    android:layout_marginRight="10dp">
+    android:layout_marginRight="12dp">
 
     <TextView
         android:id="@+id/item_tv_isemer"
         android:layout_width="70dp"
         android:layout_height="15dp"
-        android:visibility="gone"
+        android:visibility="invisible"
         android:textAlignment="center"
         android:text="emergency"
         android:textSize="12sp"
         android:textColor="@color/deepsoft_config_color_white"
         android:includeFontPadding="false"
-        android:background="@drawable/round_rectangle_red"
+        android:background="@drawable/corner_rect_red"
         android:layout_alignParentRight="true"/>
 
     <TextView
@@ -36,6 +36,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/item_tv_st_label"
         android:layout_alignLeft="@id/item_tv_st_label"
+        android:layout_marginTop="2dp"
         android:text="arrival time:"
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_gray"/>
@@ -45,6 +46,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/item_tv_at_label"
         android:layout_alignLeft="@id/item_tv_st_label"
+        android:layout_marginTop="2dp"
         android:text="destination："
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_gray"/>
@@ -54,6 +56,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/item_tv_dest_label"
         android:layout_alignLeft="@id/item_tv_st_label"
+        android:layout_marginTop="2dp"
         android:text="Task Status："
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_gray"/>
@@ -74,6 +77,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/item_tv_st"
         android:layout_alignLeft="@id/item_tv_st"
+        android:layout_marginTop="2dp"
         android:text="8:00 Pm"
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_black"/>
@@ -83,6 +87,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/item_tv_at"
         android:layout_alignLeft="@id/item_tv_st"
+        android:layout_marginTop="2dp"
         android:text="5 Minutes"
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_black"/>
@@ -93,6 +98,7 @@
         android:layout_below="@id/item_tv_dest"
         android:layout_alignTop="@id/item_tv_ts_label"
         android:layout_toRightOf="@id/item_tv_ts_label"
+        android:layout_marginTop="2dp"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="14dp"
         android:text="To be implemented"

@@ -1,63 +1,25 @@
 package com.deepsoft.shortbarge.driver.gson;
 
-public class LoginInfoGson {
+public class LoginInfoGson extends ResultGson{
 
-    //登录返回信息gson
-    private Integer code;
-    private String msg;
-    private DataDTO data;
-    private Boolean success;
+    //登录返回信息data
+    private String username;
+    private String token;
 
-    public Integer getCode() {
-        return code;
+    public String getUsername() {
+        return username;
     }
 
-    public void setCode(Integer code) {
-        this.code = code;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getToken() {
+        return token;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public void setToken(String token) {
+        this.token = token;
     }
 
-    public DataDTO getData() {
-        return data;
-    }
-
-    public void setData(DataDTO data) {
-        this.data = data;
-    }
-
-    public Boolean getSuccess() {
-        return success;
-    }
-
-    public void setSuccess(Boolean success) {
-        this.success = success;
-    }
-
-    public static class DataDTO {
-        private String username;
-        private String token;
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public String getToken() {
-            return token;
-        }
-
-        public void setToken(String token) {
-            this.token = token;
-        }
-    }
 }

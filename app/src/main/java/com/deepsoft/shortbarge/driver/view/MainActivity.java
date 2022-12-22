@@ -1,41 +1,36 @@
 package com.deepsoft.shortbarge.driver.view;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.Manifest;
-import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.location.Address;
 import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
-import com.deepsoft.shortbarge.driver.adapter.entity.Task;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.TaskGson;
-import com.deepsoft.shortbarge.driver.service.ApiService;
-import com.deepsoft.shortbarge.driver.utils.LocationUtils;
+import com.deepsoft.shortbarge.driver.gson.TaskList;
+import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
+import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
+import com.deepsoft.shortbarge.driver.utils.LocationUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
-import com.deepsoft.shortbarge.driver.utils.PressUtils;
+import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
-import com.deepsoft.shortbarge.driver.utils.GPS.GPSLocationListener;
 import com.deepsoft.shortbarge.driver.utils.GPS.GPSLocationManager;
-import com.deepsoft.shortbarge.driver.utils.GPS.GPSProviderStatus;
+import com.google.gson.Gson;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdate;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
 import com.tencent.tencentmap.mapsdk.maps.MapView;
 import com.tencent.tencentmap.mapsdk.maps.TencentMap;
-import com.tencent.tencentmap.mapsdk.maps.model.AlphaAnimation;
-import com.tencent.tencentmap.mapsdk.maps.model.Animation;
 import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptor;
 import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptorFactory;
 import com.tencent.tencentmap.mapsdk.maps.model.CameraPosition;
@@ -47,9 +42,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import pub.devrel.easypermissions.AfterPermissionGranted;
-import pub.devrel.easypermissions.AppSettingsDialog;
-import pub.devrel.easypermissions.EasyPermissions;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -57,19 +49,23 @@ import retrofit2.Response;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
     private final static String TAG = "MainActivity";
-    private ApiService apiService;
+    private ApiInterface apiInterface;
     private GPSLocationManager gpsLocationManager;
     private static Location myLocation;
     private TencentMap mTencentMap;
-    private LocationUtils locationUtils;
+    private LocationUtil locationUtils;
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
+    private String driverId, truckId, licensePlate, emergencyContact, emergencyContactEng, emergencyPhone;
 
-    private List<Task> taskList = new ArrayList<>();
+    private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
 
     private MapView main_mv_map;
-    private TextView main_tv_arrive, main_tv_vm;
+    private TextView main_tv_arrive, main_tv_vm, main_tv_st_label, main_tv_at_label, main_tv_d_label,
+            main_tv_ts_label, main_tv_wt_label, main_tv_ns_label, main_tv_wt, main_tv_ns,
+            main_tv_ts, main_tv_dest, main_tv_at, main_tv_st, main_tv_at2_label, main_tv_at2,
+            main_tv_ec, main_tv_ln, main_tv_pn, main_tv_truck, main_tv_driver, main_tv_tasknum;
     private RecyclerView main_rv_tasks;
 
 
@@ -82,17 +78,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
         initView();
-//        getDriverTask();
+        getUserName();
+        getIntentData();
+        getDriverTask();
 
-
-        // 已经申请过权限，做想做的事
-        Log.e(TAG, "已获得权限");
-        apiService = RetrofitUtil.getInstance().getRetrofit().create(ApiService.class);
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         initMap(Double.valueOf(sp.getString("Latitude", "")), Double.valueOf(sp.getString("Longitude", "")));
 
-        locationUtils = LocationUtils.getInstance(MainActivity.this);
-        locationUtils.getLocation(new LocationUtils.LocationCallBack() {
+        locationUtils = LocationUtil.getInstance(MainActivity.this);
+        locationUtils.getLocation(new LocationUtil.LocationCallBack() {
             @Override
             public void setLocation(Location location) {
                 if (location != null){
@@ -134,41 +128,110 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void initView(){
         main_tv_arrive = findViewById(R.id.main_tv_arrive);
         main_tv_arrive.setOnClickListener(this);
-        PressUtils.setPressChange(this, main_tv_arrive);
+        PressUtil.setPressChange(this, main_tv_arrive);
 
         main_tv_vm = findViewById(R.id.main_tv_vm);
         main_tv_vm.setOnClickListener(this);
-        PressUtils.setPressChange(this, main_tv_vm);
+        PressUtil.setPressChange(this, main_tv_vm);
 
         main_mv_map = findViewById(R.id.main_mv_map);
         mTencentMap = main_mv_map.getMap();
 
         main_rv_tasks = findViewById(R.id.main_rv_tasks);
-        moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskList);
-        main_rv_tasks.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        main_rv_tasks.setAdapter(moreTaskAdapter);
+
+        // 有voice message
+        main_tv_st_label = findViewById(R.id.main_tv_st_label);
+        main_tv_at_label = findViewById(R.id.main_tv_at_label);
+        main_tv_d_label = findViewById(R.id.main_tv_d_label);
+        main_tv_ts_label = findViewById(R.id.main_tv_ts_label);
+        main_tv_st = findViewById(R.id.main_tv_st);
+        main_tv_at = findViewById(R.id.main_tv_at);
+        main_tv_dest = findViewById(R.id.main_tv_dest);
+        main_tv_ts = findViewById(R.id.main_tv_ts);
+
+        // 无voice message
+        main_tv_at2_label = findViewById(R.id.main_tv_at2_label);
+        main_tv_wt_label = findViewById(R.id.main_tv_wt_label);
+        main_tv_ns_label = findViewById(R.id.main_tv_ns_label);
+        main_tv_wt = findViewById(R.id.main_tv_wt);
+        main_tv_ns = findViewById(R.id.main_tv_ns);
+        main_tv_at2 = findViewById(R.id.main_tv_at2);
+
+        // 汽车信息
+        main_tv_ec = findViewById(R.id.main_tv_ec);
+        main_tv_ln = findViewById(R.id.main_tv_ln);
+        main_tv_pn = findViewById(R.id.main_tv_pn);
+        main_tv_truck = findViewById(R.id.main_tv_truck);
+
+        // 顶部信息
+        main_tv_driver = findViewById(R.id.main_tv_driver);
+
+        main_tv_tasknum = findViewById(R.id.main_tv_tasknum);
+;    }
+
+
+    private void getIntentData(){
+        Intent intent = getIntent();
+        driverId = intent.getStringExtra("driverId");
+        truckId = intent.getStringExtra("truckId");
+        licensePlate = intent.getStringExtra("licensePlate");
+        emergencyContact = intent.getStringExtra("emergencyContact");
+        emergencyContactEng = intent.getStringExtra("emergencyContactEng");
+        emergencyPhone = intent.getStringExtra("emergencyPhone");
+
+        main_tv_ln.setText(licensePlate);
+        main_tv_ec.setText(emergencyContact + emergencyContactEng);
+        main_tv_pn.setText(emergencyPhone);
+        if(truckId.length() == 1) truckId = "0"+truckId;
+        main_tv_truck.setText(truckId);
+    }
+
+
+    private void getUserName(){
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface.getUserName().enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.e(TAG, "getUserName run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    main_tv_driver.setText(resultGson.getData().toString());
+                }else{
+                    Toast.makeText(MainActivity.this, "getUserName连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getUserName onFailure:"+t);
+            }
+        });
     }
 
 
     private void getDriverTask(){
-        new Thread(new Runnable() {
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface.getDriverTask().enqueue(new Callback<ResultGson>() {
             @Override
-            public void run() {
-                try {
-                    Response<TaskGson>response = apiService.getDriverTask().execute();
-                    Log.i(TAG, "run: get同步请求 "+ "code --- > "+response.body().getCode()+"msg  --- >"+response.body().getMsg());
-                    TaskGson taskGson = response.body();
-                    for(int i = 0; i < taskGson.getData().size(); i++){
-                        TaskGson.DataDTO dataDTO = taskGson.getData().get(i);
-                        taskList.add(new Task(dataDTO.getTransportTaskId(), dataDTO.getState(), dataDTO.getStartTime(),
-                                dataDTO.getArrivalTime(), dataDTO.getDuration(), dataDTO.getNextStation(), dataDTO.getNextStationEng()));
-                    }
-                    moreTaskAdapter.notifyDataSetChanged();
-                } catch (IOException e) {
-                    e.printStackTrace();
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.e(TAG, "getDriverTask run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                    moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList);
+                    main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+                    main_rv_tasks.setAdapter(moreTaskAdapter);
+                    main_tv_tasknum.setText(""+taskGsonList.size());
+                }else{
+                    Toast.makeText(MainActivity.this, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
             }
-        }).start();
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getDriverTask onFailure:"+t);
+            }
+        });
     }
 
 
@@ -202,7 +265,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onPause() {
         super.onPause();
-        locationUtils.stop();
         main_mv_map.onPause();
 //        gpsLocationManager.stop();
     }
@@ -229,7 +291,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_mv_map.onDestroy();
         locationUtils.stop();
 //        gpsLocationManager.stop();
-        apiService.getLogout().enqueue(new Callback<ResultGson>() {
+        apiInterface.getLogout().enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 ResultGson resultGson = response.body();

@@ -14,15 +14,22 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
+import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.LoginInfoGson;
-import com.deepsoft.shortbarge.driver.service.ApiService;
-import com.deepsoft.shortbarge.driver.utils.LocationUtils;
+import com.deepsoft.shortbarge.driver.gson.ResultGson;
+import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
+import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
+import com.deepsoft.shortbarge.driver.utils.LocationUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
-import com.deepsoft.shortbarge.driver.utils.PressUtils;
+import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
+import java.io.IOException;
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
@@ -39,13 +46,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private int PERMISSION_STORAGE_CODE = 10001;
     private String[] PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
-    private ApiService apiService;
+    private ApiInterface apiInterface;
 
     private SharedPreferences sp;
     private SharedPreferences.Editor editor;
     private boolean is_rem_pwd = false;
     private String username, password;
-    private LocationUtils locationUtils;
+    private LocationUtil locationUtils;
 
     private TextView login_tv_login, login_tv_forget_pwd;
     private EditText login_et_username, login_et_pwd;
@@ -63,7 +70,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         //启动service
         //Intent service = new Intent(LoginActivity.this, MyService.class);
         //this.startService(service);
-        apiService = RetrofitUtil.getInstance().getRetrofit().create(ApiService.class);
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         editor = sp.edit();
         is_rem_pwd = sp.getBoolean("is_rem", false);
@@ -72,8 +79,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         initView();
 
         if (EasyPermissions.hasPermissions(this, PERMS)) {
-            locationUtils = LocationUtils.getInstance(LoginActivity.this);
-            locationUtils.getLocation(new LocationUtils.LocationCallBack() {
+            locationUtils = LocationUtil.getInstance(LoginActivity.this);
+            locationUtils.getLocation(new LocationUtil.LocationCallBack() {
                 @Override
                 public void setLocation(Location location) {
                     if (location != null){
@@ -108,11 +115,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void initView(){
         login_tv_login = findViewById(R.id.login_tv_login);
         login_tv_login.setOnClickListener(this);
-        PressUtils.setPressChange(this, login_tv_login);
+        PressUtil.setPressChange(this, login_tv_login);
 
         login_tv_forget_pwd = findViewById(R.id.login_tv_forget_pwd);
         login_tv_forget_pwd.setOnClickListener(this);
-        PressUtils.setPressChange(this, login_tv_forget_pwd);
+        PressUtil.setPressChange(this, login_tv_forget_pwd);
 
         login_et_username = findViewById(R.id.login_et_username);
         login_et_username.setText(username);
@@ -125,29 +132,65 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
 
+    private void getDriverInfo(){
+        apiInterface.getDriverInfo().enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.i(TAG, "getDriverInfo run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if(resultGson.getSuccess()){
+                    List<DriverInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), DriverInfoGson.class);
+                    DriverInfoGson driverInfoGson = list.get(0);
+                    Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+                    intent.putExtra("driverId", driverInfoGson.getDriverId());
+                    intent.putExtra("truckId", Integer.toString((int)Double.parseDouble(driverInfoGson.getTruckId())));
+                    intent.putExtra("licensePlate", driverInfoGson.getLicensePlate());
+                    intent.putExtra("emergencyContact", driverInfoGson.getEmergencyContact());
+                    intent.putExtra("emergencyContactEng", driverInfoGson.getEmergencyContactEng());
+                    intent.putExtra("emergencyPhone", driverInfoGson.getEmergencyPhone());
+                    startActivity(intent);
+                    LoginActivity.this.finish();
+                }else{
+                    Toast.makeText(LoginActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getDriverInfo onFailure:"+t);
+            }
+        });
+    }
+
+
     @Override
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.login_tv_login:
+                // 登录后获取司机信息+跳转
                 username = login_et_username.getText().toString().trim();
                 password = login_et_pwd.getText().toString().trim();
-                apiService.getLogin(username, password).enqueue(new Callback<LoginInfoGson>() {
+                apiInterface.getLogin(username, password).enqueue(new Callback<ResultGson>() {
                     @Override
-                    public void onResponse(Call<LoginInfoGson> call, Response<LoginInfoGson> response) {
-                        LoginInfoGson loginInfoGson = response.body();
-                        Log.i(TAG, loginInfoGson.getData().getToken());
-                        editor.putString("token", loginInfoGson.getData().getToken());
-                        if(is_rem_pwd){
-                            editor.putString("username", username);
-                            editor.putString("password", password);
+                    public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                        Log.i(TAG, "getDriverInfo run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
+                        ResultGson resultGson = response.body();
+                        Gson gson = new Gson();
+                        if(resultGson.getSuccess()){
+                            LoginInfoGson loginInfoGson = gson.fromJson(resultGson.getData().toString(), LoginInfoGson.class);
+                            editor.putString("token", loginInfoGson.getToken());
+                            if(is_rem_pwd){
+                                editor.putString("username", username);
+                                editor.putString("password", password);
+                            }
+                            editor.commit();
+                        }else{
+                            Toast.makeText(LoginActivity.this, "getLogin连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                         }
-                        editor.commit();
-                        LoginActivity.this.finish();
-                        startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                        getDriverInfo();
                     }
                     @Override
-                    public void onFailure(Call<LoginInfoGson> call, Throwable t) {
-                        Log.e(TAG, "onFailure:"+t);
+                    public void onFailure(Call<ResultGson> call, Throwable t) {
+                        Log.e(TAG, "getLogin onFailure:"+t);
                     }
                 });
                 break;

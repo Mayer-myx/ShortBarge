@@ -2,17 +2,23 @@ package com.deepsoft.shortbarge.driver.gson;
 
 public class ResultGson {
 
-    //通用结果gson
-    private Integer code;
+    //通用结果gson 在获取司机姓名api中data=司机name
+
+    /**
+     * 1.不管是jsonArray还是jsonObject,统一用Object data接收
+     * 2.使用Gson对CanLoanBook字段统一换成List，反射赋值CanLoanBook
+     * 3.最后对CanLoanBook强转成对应类型
+     */
+    private String code;
     private String msg;
-    private String data;
+    private Object data;
     private Boolean success;
 
-    public Integer getCode() {
+    public String getCode() {
         return code;
     }
 
-    public void setCode(Integer code) {
+    public void setCode(String code) {
         this.code = code;
     }
 
@@ -24,7 +30,7 @@ public class ResultGson {
         this.msg = msg;
     }
 
-    public String getData() {
+    public Object getData() {
         return data;
     }
 

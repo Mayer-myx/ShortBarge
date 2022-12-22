@@ -10,11 +10,11 @@
     <!-- 顶部红色 -->
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="62dp"
+        android:layout_height="70dp"
         android:background="@color/deepsoft_main_red">
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="62dp"
+            android:layout_height="70dp"
             android:layout_alignParentRight="true"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
@@ -35,7 +35,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="150dp"
-            android:layout_marginTop="17dp"
+            android:layout_marginTop="20dp"
             android:text="ENGINEERING"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="12sp" />
@@ -44,7 +44,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="150dp"
-            android:layout_marginTop="28dp"
+            android:layout_marginTop="32dp"
             android:fontFamily="@font/archivo_bold"
             android:letterSpacing="0.1"
             android:text="TOMORROW"
@@ -56,7 +56,7 @@
             android:layout_width="0.5dp"
             android:layout_height="37.5dp"
             android:layout_marginLeft="259.5dp"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="17dp"
             android:background="@color/deepsoft_config_color_white" />
 
         <!-- 天气 -->
@@ -64,7 +64,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="299.5dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="25dp"
             android:text="It's cloudy 24℃"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -73,7 +73,7 @@
             android:layout_width="18dp"
             android:layout_height="18dp"
             android:layout_marginLeft="417.5dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="25dp"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
             android:src="@mipmap/weather" />
@@ -83,7 +83,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="454.5dp"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="25dp"
             android:text="October 29,200"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="15sp" />
@@ -94,7 +94,7 @@
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_alignParentRight="true"
-            android:layout_marginTop="16.5dp"
+            android:layout_marginTop="20dp"
             android:layout_marginRight="16dp"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
@@ -105,7 +105,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="25dp"
             android:layout_marginRight="56dp"
             android:gravity="right"
             android:text="Wang Dong"
@@ -128,9 +128,9 @@
     <com.meetsl.scardview.SCardView
         android:id="@+id/main_scv_info"
         android:layout_width="394dp"
-        android:layout_height="110dp"
+        android:layout_height="130dp"
         android:layout_marginLeft="13dp"
-        android:layout_marginTop="67dp"
+        android:layout_marginTop="75dp"
         app:cardCornerRadius="10dp"
         app:cardShadowStartColor="@color/deepsoft_blur_black"
         app:cardElevation="8.5dp"
@@ -140,20 +140,28 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
             <ImageView
-                android:layout_width="52dp"
-                android:layout_height="52dp"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
                 android:layout_centerVertical="true"
-                android:layout_marginLeft="15dp"
+                android:layout_marginLeft="12dp"
                 android:src="@mipmap/ic_car" />
-
+            <TextView
+                android:id="@+id/main_tv_truck"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/deepsoft_config_color_white"
+                android:text="99"
+                android:textSize="10sp"
+                android:layout_marginTop="40dp"
+                android:layout_marginLeft="40dp"/>
             <TextView
                 android:id="@+id/main_tv_ec_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_marginLeft="82dp"
-                android:layout_marginTop="10dp"
-                android:layout_marginBottom="10dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
                 android:text="emergency contact："
@@ -188,6 +196,7 @@
                 android:layout_height="wrap_content"
                 android:layout_centerVertical="true"
                 android:layout_toRightOf="@id/main_tv_ec_label"
+                android:layout_marginRight="5dp"
                 android:ellipsize="end"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
@@ -233,7 +242,7 @@
     <RelativeLayout
         android:id="@+id/main_rl_ct"
         android:layout_width="380dp"
-        android:layout_height="174dp"
+        android:layout_height="185dp"
         android:layout_below="@id/main_scv_info"
         android:layout_marginLeft="15dp"
         android:layout_marginTop="5dp"
@@ -247,7 +256,7 @@
             android:includeFontPadding="false"
             android:text="Current Task"
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="17sp" />
+            android:textSize="19sp" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -264,14 +273,14 @@
             android:text="Scheduled Tasks"
             android:textAlignment="center"
             android:textColor="@color/deepsoft_config_color_white"
-            android:textSize="12sp" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/main_tv_st_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginLeft="20dp"
-            android:layout_marginTop="38dp"
+            android:layout_marginTop="42dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
             android:text="start time:"
@@ -315,6 +324,18 @@
             android:textSize="14sp" />
 
         <TextView
+            android:id="@+id/main_tv_at2_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/main_tv_st_label"
+            android:layout_alignLeft="@id/main_tv_st_label"
+            android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
+            android:text="arrival time:"
+            android:textColor="@color/deepsoft_config_color_white"
+            android:textSize="14sp"
+            android:visibility="invisible" />
+        <TextView
             android:id="@+id/main_tv_wt_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -340,6 +361,18 @@
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp"
             android:visibility="invisible" />
+        <TextView
+            android:id="@+id/main_tv_at2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@id/main_tv_ts"
+            android:layout_alignTop="@id/main_tv_at2_label"
+            android:fontFamily="@font/archivo_bold"
+            android:includeFontPadding="false"
+            android:text="8:00 p.m, October 1"
+            android:textColor="@color/deepsoft_config_color_white"
+            android:textSize="14sp"
+            android:visibility="invisible"/>
         <TextView
             android:id="@+id/main_tv_wt"
             android:layout_width="wrap_content"
@@ -424,7 +457,6 @@
             android:textAllCaps="false"
             android:textColor="@color/deepsoft_text_red"
             android:textSize="14sp" />
-
         <TextView
             android:id="@+id/main_tv_vm"
             android:layout_width="115dp"
@@ -453,8 +485,8 @@
     <!-- 右方地图 -->
     <androidx.cardview.widget.CardView
         android:layout_width="530dp"
-        android:layout_height="278dp"
-        android:layout_marginTop="78dp"
+        android:layout_height="308dp"
+        android:layout_marginTop="86dp"
         android:layout_toRightOf="@id/main_scv_info"
         android:elevation="0dp"
         app:cardElevation="0dp"
@@ -505,13 +537,13 @@
                 android:includeFontPadding="false"
                 android:text="More Tasks"
                 android:textColor="@color/deepsoft_text_black"
-                android:textSize="17sp" />
+                android:textSize="19sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Number of tasks："
                 android:textColor="@color/deepsoft_text_black"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:includeFontPadding="false"
                 android:layout_toLeftOf="@id/main_tv_tasknum"
                 android:layout_alignTop="@id/main_tv_tasknum"/>
@@ -524,7 +556,7 @@
                 android:text="12"
                 android:includeFontPadding="false"
                 android:textColor="@color/deepsoft_text_black"
-                android:textSize="14sp"
+                android:textSize="16sp"
                 android:layout_alignParentRight="true"/>
 
             <androidx.recyclerview.widget.RecyclerView

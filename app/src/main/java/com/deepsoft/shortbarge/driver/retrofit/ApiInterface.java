@@ -1,4 +1,4 @@
-package com.deepsoft.shortbarge.driver.service;
+package com.deepsoft.shortbarge.driver.retrofit;
 
 import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.LoginInfoGson;
@@ -16,7 +16,7 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Query;
 
-public interface ApiService {
+public interface ApiInterface {
 
     /**
      * 登陆
@@ -25,7 +25,7 @@ public interface ApiService {
      * @return
      */
     @GET("account/login")
-    Call<LoginInfoGson> getLogin(@Query("username") String username,
+    Call<ResultGson> getLogin(@Query("username") String username,
                                  @Query("password") String password);
 
     /**
@@ -75,7 +75,7 @@ public interface ApiService {
      * @return
      */
     @GET("account/getUserDetail")
-    Call<UserInfoGson> getUserDetail(@Query("id") String id);
+    Call<ResultGson> getUserDetail(@Query("id") String id);
 
     /**
      * 获取用户名
@@ -89,14 +89,14 @@ public interface ApiService {
      * @return
      */
     @GET("driver/getDriverInfo")
-    Call<DriverInfoGson> getDriverInfo();
+    Call<ResultGson> getDriverInfo();
 
     /**
      * 获取任务列表
      * @return
      */
     @GET("transport/getDriverTask")
-    Call<TaskGson> getDriverTask();
+    Call<ResultGson> getDriverTask();
 
 //    /*无参POST请求 */
 //    @POST("postNoParamUser")

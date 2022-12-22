@@ -2,72 +2,33 @@ package com.deepsoft.shortbarge.driver.gson;
 
 import java.util.List;
 
-public class UserInfoGson {
-    // 获取用户详情gson
-    private Integer code;
-    private String msg;
-    private DataDTO data;
-    private Boolean success;
+public class UserInfoGson extends ResultGson {
+    // 获取用户详情data
+    private String id;
+    private String username;
+    private List<Integer> roleIdList;
 
-    public Integer getCode() {
-        return code;
+    public String getId() {
+        return id;
     }
 
-    public void setCode(Integer code) {
-        this.code = code;
+    public void setId(String id) {
+        this.id = id;
     }
 
-    public String getMsg() {
-        return msg;
+    public String getUsername() {
+        return username;
     }
 
-    public void setMsg(String msg) {
-        this.msg = msg;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
-    public DataDTO getData() {
-        return data;
+    public List<Integer> getRoleIdList() {
+        return roleIdList;
     }
 
-    public void setData(DataDTO data) {
-        this.data = data;
-    }
-
-    public Boolean getSuccess() {
-        return success;
-    }
-
-    public void setSuccess(Boolean success) {
-        this.success = success;
-    }
-
-    public static class DataDTO {
-        private Integer id;
-        private String username;
-        private List<Integer> roleIdList;
-
-        public Integer getId() {
-            return id;
-        }
-
-        public void setId(Integer id) {
-            this.id = id;
-        }
-
-        public String getUsername() {
-            return username;
-        }
-
-        public void setUsername(String username) {
-            this.username = username;
-        }
-
-        public List<Integer> getRoleIdList() {
-            return roleIdList;
-        }
-
-        public void setRoleIdList(List<Integer> roleIdList) {
-            this.roleIdList = roleIdList;
-        }
+    public void setRoleIdList(List<Integer> roleIdList) {
+        this.roleIdList = roleIdList;
     }
 }
