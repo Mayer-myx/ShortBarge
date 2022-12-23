@@ -5,7 +5,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
@@ -25,22 +24,19 @@ public class TestActivity extends AppCompatActivity {
     private final static String TAG = "TestActivity";
 
     private WebSocketClient webSocketClient;
+    private HsjWebSocketListener listener = new HsjWebSocketListener();
+    private StringBuilder stringBuilder = new StringBuilder();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-//        URI uri = URI.create("ws://221.12.170.99:8081/websocket/wsDriver/{token}");
         URI uri = URI.create("ws://echo.websocket.org");
 
         initSocket();
         webSocket();
     }
-
-
-    HsjWebSocketListener listener = new HsjWebSocketListener();
-    StringBuilder stringBuilder = new StringBuilder();
 
     public void initSocket() {
         String token = getIntent().getStringExtra("token");
@@ -53,7 +49,7 @@ public class TestActivity extends AppCompatActivity {
             return;
         }
         stringBuilder.setLength(0);
-        stringBuilder.append(System.currentTimeMillis() + "-onClick\n");
+        stringBuilder.append(System.currentTimeMillis() + "-onClick ");
         output();
         webSocketClient.start(listener);
     }
@@ -65,41 +61,45 @@ public class TestActivity extends AppCompatActivity {
     private class HsjWebSocketListener extends WebSocketListener {
         @Override
         public void onOpen(@NotNull WebSocket webSocket, @NotNull Response response) {
-            stringBuilder.append(System.currentTimeMillis() + "\n");
-            webSocket.send("hello world");
-//            webSocket.send("welcome");
+            stringBuilder.append(System.currentTimeMillis() + " ");
+            String json = "{\n" +
+                    "     \"message\": \"{\\\"msg\\\":\\\"hello111112222!!!\\\",\\\"msgType\\\":1}\",\n" +
+                    "     \"type\": 2\n" +
+                    " }";
+            webSocket.send(json);
+//            webSocket.send("hello world");
 //            webSocket.send(ByteString.decodeHex("adef"));
-            webSocket.close(1000, "byebye");
+            webSocket.close(1000, "");
         }
 
         @Override
         public void onMessage(@NotNull WebSocket webSocket, @NotNull String text) {
-            stringBuilder.append(System.currentTimeMillis() + "-onMessage: " + text + "\n");
+            stringBuilder.append(System.currentTimeMillis() + "-onMessage: " + text + " ");
             output();
         }
 
         @Override
         public void onMessage(@NotNull WebSocket webSocket, @NotNull ByteString bytes) {
-            stringBuilder.append(System.currentTimeMillis() + "-onMessage byteString: " + bytes + "\n");
+            stringBuilder.append(System.currentTimeMillis() + "-onMessage byteString: " + bytes + " ");
             output();
         }
 
         @Override
         public void onFailure(@NotNull WebSocket webSocket, @NotNull Throwable t, @Nullable Response response) {
             Log.d(TAG, "onFailure: " + t.getMessage());
-            stringBuilder.append(System.currentTimeMillis() + "-onFailure: " + t.getMessage() + "\n");
+            stringBuilder.append(System.currentTimeMillis() + "-onFailure: " + t.getMessage() + " ");
             output();
         }
 
         @Override
         public void onClosing(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
-            stringBuilder.append(System.currentTimeMillis() + "-onClosing: " + code + "/" + reason + "\n");
+            stringBuilder.append(System.currentTimeMillis() + "-onClosing: " + code + "/" + reason + " ");
             output();
         }
 
         @Override
         public void onClosed(@NotNull WebSocket webSocket, int code, @NotNull String reason) {
-            stringBuilder.append(System.currentTimeMillis() + "-onClosed: " + code + "/" + reason + "\n");
+            stringBuilder.append(System.currentTimeMillis() + "-onClosed: " + code + "/" + reason + " ");
             output();
         }
     }
@@ -109,7 +109,6 @@ public class TestActivity extends AppCompatActivity {
             @Override
             public void run() {
                 Log.e(TAG, stringBuilder.toString());
-                Toast.makeText(TestActivity.this, stringBuilder.toString(), Toast.LENGTH_SHORT).show();
             }
         });
     }

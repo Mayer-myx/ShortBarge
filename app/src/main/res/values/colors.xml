@@ -277,4 +277,5 @@
     <color name="deepsoft_background">#EFEFEF</color>
     <color name="deepsoft_text_hint_gray">#9DA7AF</color>
     <color name="deepsoft_text_pwd_gray">#848484</color>
+    <color name="deepsoft_dialog_text_black">#373737</color>
 </resources>

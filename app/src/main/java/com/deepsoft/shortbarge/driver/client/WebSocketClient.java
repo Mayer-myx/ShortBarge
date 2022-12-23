@@ -2,6 +2,8 @@ package com.deepsoft.shortbarge.driver.client;
 
 import android.util.Log;
 
+import java.util.concurrent.TimeUnit;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.WebSocket;
@@ -14,10 +16,15 @@ public class WebSocketClient {
     private WebSocket webSocket;
 
     public WebSocketClient(String token) {
-        client = new OkHttpClient();
+        client = new OkHttpClient.Builder()
+                .writeTimeout(5, TimeUnit.SECONDS)
+                .readTimeout(5, TimeUnit.SECONDS)
+                .connectTimeout(10, TimeUnit.SECONDS)
+                .build();
+        // 连接地址：/websocket/wsDriver/{token}  ws://221.12.170.99:8081/websocket/wsDriver/
         request = new Request.Builder()
-                .url("ws://221.12.170.99:8081/websocket/wsDriver/")
-                .addHeader("token", token)
+                .url("ws://echo.websocket.org")
+//                .addHeader("token", token)
                 .build();
     }
 

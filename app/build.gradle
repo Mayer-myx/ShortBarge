@@ -76,6 +76,9 @@ dependencies {
     // rxjava
     implementation 'com.squareup.retrofit2:adapter-rxjava2:2.5.0'
 
+    // Java-websocket
+//    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
+
     // 权限
     implementation 'pub.devrel:easypermissions:3.0.0'
 

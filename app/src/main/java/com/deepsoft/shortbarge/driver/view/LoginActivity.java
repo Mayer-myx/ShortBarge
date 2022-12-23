@@ -148,8 +148,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             }
                             editor.commit();;
                             LoginActivity.this.finish();
-                            Intent intent = new Intent(LoginActivity.this, TestActivity.class);
-                            intent.putExtra("token", loginInfoGson.getToken());
+                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+//                            intent.putExtra("token", loginInfoGson.getToken());
                             startActivity(intent);
                         }else{
                             Toast.makeText(LoginActivity.this, "getLogin连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
@@ -165,6 +165,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 is_rem_pwd = login_cb_rem_pwd.isChecked();
                 editor.putBoolean("is_rem", is_rem_pwd);
                 editor.commit();
+                break;
+            case R.id.login_tv_forget_pwd:
+                startActivity(new Intent(LoginActivity.this, ForgetPwdActivity.class));
                 break;
         }
     }
