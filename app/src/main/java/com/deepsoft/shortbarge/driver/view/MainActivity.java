@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ApiInterface apiInterface;
     private TencentMap mTencentMap;
     private Marker mCustomMarker = null;
-    private LocationManager mLocationMgr;
+    private LocationManager mLocationMgr = null;
     private Criteria mCriteria = new Criteria();
     private Handler mHandler = new Handler();
     private boolean isLocationEnable = false;
@@ -73,7 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             main_tv_ts, main_tv_dest, main_tv_at, main_tv_st, main_tv_at2_label, main_tv_at2,
             main_tv_ec, main_tv_ln, main_tv_pn, main_tv_truck, main_tv_driver, main_tv_tasknum,
             main_tv_wea, main_tv_date;
-    private ImageView main_iv_wea;
+    private ImageView main_iv_wea, main_iv_setting;
     private RecyclerView main_rv_tasks;
 
 
@@ -249,6 +249,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_tv_date = findViewById(R.id.main_tv_date);
         main_tv_wea = findViewById(R.id.main_tv_wea);
         main_iv_wea = findViewById(R.id.main_iv_wea);
+        main_iv_setting = findViewById(R.id.main_iv_setting);
+        main_iv_setting.setOnClickListener(this);
+        PressUtil.setPressChange(this, main_iv_setting);
     }
 
 
@@ -381,7 +384,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         main_mv_map.onResume();
-
         mHandler.removeCallbacks(mRefresh); // 移除定位刷新任务
         initLocation();
         mHandler.postDelayed(mRefresh, 100); // 延迟100毫秒启动定位刷新任务
@@ -417,18 +419,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mLocationMgr != null) {
             mLocationMgr.removeUpdates(mLocationListener);
         }
-
-        apiInterface.getLogout().enqueue(new Callback<ResultGson>() {
-            @Override
-            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                ResultGson resultGson = response.body();
-                Log.i(TAG, "getLogout onResponse: "+resultGson.getMsg());
-            }
-            @Override
-            public void onFailure(Call<ResultGson> call, Throwable t) {
-                Log.i(TAG, "getLogout onFailure: "+t);
-            }
-        });
     }
 
 
@@ -440,6 +430,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.main_tv_vm:
                 MessageDialog.getInstance().showMessageDialog(this, getLayoutInflater());
+                break;
+            case R.id.main_iv_setting:
+                SettingDialog settingDialog = new SettingDialog(MainActivity.this);
+                settingDialog.showSettingDialog(this, getLayoutInflater());
                 break;
         }
     }

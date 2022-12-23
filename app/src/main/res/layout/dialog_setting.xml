@@ -212,17 +212,17 @@
             android:id="@+id/dialog_set_tv_serset"
             android:layout_width="wrap_content"
             android:layout_height="30dp"
-            android:layout_marginBottom="20dp"
+            android:layout_alignParentBottom="true"
             android:layout_marginRight="10dp"
+            android:layout_marginBottom="20dp"
+            android:layout_toLeftOf="@id/dialog_set_tv_logout"
+            android:background="@drawable/round_rectangle_red"
+            android:gravity="center"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:layout_alignParentBottom="true"
-            android:layout_toLeftOf="@id/dialog_set_tv_logout"
-            android:gravity="center"
             android:text="Server setting"
-            android:textSize="15sp"
             android:textColor="@color/deepsoft_config_color_white"
-            android:background="@drawable/round_rectangle_red"/>
+            android:textSize="15sp" />
 
     </RelativeLayout>
 </RelativeLayout>
