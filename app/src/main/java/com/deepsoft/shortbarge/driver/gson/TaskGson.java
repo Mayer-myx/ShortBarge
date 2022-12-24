@@ -1,5 +1,10 @@
 package com.deepsoft.shortbarge.driver.gson;
 
+import android.util.Log;
+
+import java.util.HashMap;
+import java.util.Map;
+
 public class TaskGson extends ResultGson {
 
     //任务信息data
@@ -14,6 +19,31 @@ public class TaskGson extends ResultGson {
     private String duration;
     private String nextStation;
     private String nextStationEng;
+
+    public String getTaskState(int type){
+        Map<Integer, String> res_zh = new HashMap<>();
+        res_zh.put(1, "待运输");
+        res_zh.put(2, "到达起始点(装货)");
+        res_zh.put(3, "运输中");
+        res_zh.put(4, "延迟");
+        res_zh.put(5, "到达经停站");
+        res_zh.put(6, "继续运输");
+        res_zh.put(7, "到达目的地(卸货)");
+        res_zh.put(8, "完成");
+        res_zh.put(9, "异常换车");
+        return res_zh.get(getState());
+    }
+
+    public String getTaskDura(int type){
+        String str = getDuration();
+        int h = 0, min = 0, sub = str.indexOf(',');
+        if(sub != -1){
+            h = Integer.parseInt(str.substring(0, sub));
+            min = Integer.parseInt(str.substring(sub));;
+        }
+        if(type == 1) return String.valueOf(h*60+min)+" "+"minutes";
+        else return String.valueOf(h*60+min)+" "+"分钟";
+    }
 
     public String getTransportTaskId() {
         return transportTaskId;

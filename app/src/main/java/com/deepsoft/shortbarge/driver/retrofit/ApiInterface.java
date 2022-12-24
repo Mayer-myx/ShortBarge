@@ -1,18 +1,11 @@
 package com.deepsoft.shortbarge.driver.retrofit;
 
-import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
-import com.deepsoft.shortbarge.driver.gson.LoginInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
-import com.deepsoft.shortbarge.driver.gson.TaskGson;
-import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
 
 import org.json.JSONArray;
 
 import okhttp3.MultipartBody;
 import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.Field;
-import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;

@@ -22,9 +22,9 @@ public class MoreTaskAdapter extends BaseQuickAdapter<TaskGson, BaseViewHolder> 
     protected void convert(@NonNull BaseViewHolder baseViewHolder, TaskGson task) {
         baseViewHolder.setText(R.id.item_tv_st, task.getStartTime())
                 .setText(R.id.item_tv_at, task.getArrivalTime())
-                .setText(R.id.item_tv_dest, task.getDuration())
+                .setText(R.id.item_tv_dest, task.getTaskDura(2))
                 .setText(R.id.item_tv_ts, ""+task.getState());
-        if(task.getState() == 1){
+        if(getItemPosition(task) == 0){
             baseViewHolder.findView(R.id.item_tv_isemer).setVisibility(View.VISIBLE);
             baseViewHolder.findView(R.id.item_bg).setBackgroundResource(R.drawable.round_line_rect_red);
         }else{

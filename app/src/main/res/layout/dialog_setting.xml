@@ -12,7 +12,8 @@
         <ImageView
             android:layout_width="110dp"
             android:layout_height="110dp"
-            android:layout_margin="20dp"/>
+            android:layout_margin="20dp"
+            android:src="@mipmap/usericon_setting"/>
 
         <TextView
             android:id="@+id/dialog_set_tv_dn"
@@ -155,14 +156,15 @@
             android:text="Connected/Lost/Reconnecting"
             android:textColor="@color/deepsoft_text_black"
             android:textSize="14sp" />
+
         <TextView
             android:id="@+id/dialog_set_tv_cn_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="48dp"
             android:layout_alignTop="@id/dialog_set_tv_cn"
+            android:layout_marginLeft="48dp"
             android:includeFontPadding="false"
-            android:text="Driver name"
+            android:text="Car name"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -180,7 +182,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_cn_label"
             android:layout_alignTop="@id/dialog_set_tv_gps"
             android:includeFontPadding="false"
-            android:text="License Number"
+            android:text="GPS Link Status"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -189,7 +191,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_cn_label"
             android:layout_alignTop="@id/dialog_set_tv_server"
             android:includeFontPadding="false"
-            android:text="License Number"
+            android:text="Server Link Status"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
 

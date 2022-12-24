@@ -27,7 +27,6 @@ public class ConnectFailDialog {
         View dialog_wait_connect = layoutInflater.inflate(R.layout.dialog_connect_fail, null);
         final MyDialog dialog = new MyDialog(context);
         dialog.setContentView(dialog_wait_connect);
-        dialog.setCanceledOnTouchOutside(false);
         dialog.show();
     }
 }

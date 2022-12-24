@@ -28,6 +28,7 @@ import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
 import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.TaskGson;
+import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
 import com.deepsoft.shortbarge.driver.gson.WeatherGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
@@ -46,6 +47,8 @@ import com.tencent.tencentmap.mapsdk.maps.model.Marker;
 import com.tencent.tencentmap.mapsdk.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import retrofit2.Call;
@@ -63,6 +66,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Criteria mCriteria = new Criteria();
     private Handler mHandler = new Handler();
     private boolean isLocationEnable = false;
+
+    private SettingDialog settingDialog;
+    private DriverInfoGson currentDriverInfo;
+    private TaskGson currentTask;
+    private String currentName;
+    private UserInfoGson currentUserInfoGson;
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -265,6 +274,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(resultGson.getSuccess()){
                     List<DriverInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), DriverInfoGson.class);
                     DriverInfoGson driverInfoGson = list.get(0);
+                    currentDriverInfo = driverInfoGson;
+                    // todo:系统错误？
+                    getUserDetail(driverInfoGson.getDriverId());
                     main_tv_ln.setText(driverInfoGson.getLicensePlate());
                     main_tv_ec.setText(driverInfoGson.getEmergencyContactEng());
                     main_tv_pn.setText(driverInfoGson.getEmergencyPhone());
@@ -320,6 +332,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.e(TAG, "getUserName run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
+                    currentName = resultGson.getData().toString();
                     main_tv_driver.setText(resultGson.getData().toString());
                 }else{
                     Toast.makeText(MainActivity.this, "getUserName连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
@@ -343,6 +356,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
                     taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                    currentTask = taskGsonList.get(0);
+                    main_tv_st.setText(currentTask.getStartTime());
+                    main_tv_at.setText(currentTask.getArrivalTime());
+                    main_tv_dest.setText(currentTask.getTaskDura(2));
+                    main_tv_ts.setText(""+currentTask.getState());
                     moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList);
                     main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
                     main_rv_tasks.setAdapter(moreTaskAdapter);
@@ -359,6 +377,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         });
     }
 
+
+    private void getUserDetail(String id){
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface.getUserDetail(id).enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.e(TAG, "getUserDetail run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    List<UserInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), UserInfoGson.class);
+                    currentUserInfoGson = list.get(0);
+                }else{
+                    Toast.makeText(MainActivity.this, "getUserDetail连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getUserDetail onFailure:"+t);
+            }
+        });
+    }
 
     private void setMaker(double lat, double lon){
         LatLng position = new LatLng(lat, lon);
@@ -419,6 +459,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if (mLocationMgr != null) {
             mLocationMgr.removeUpdates(mLocationListener);
         }
+        mLocationListener = null;
+        if(settingDialog != null){
+            settingDialog.dismiss();
+        }
     }
 
 
@@ -432,7 +476,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 MessageDialog.getInstance().showMessageDialog(this, getLayoutInflater());
                 break;
             case R.id.main_iv_setting:
-                SettingDialog settingDialog = new SettingDialog(MainActivity.this);
+                settingDialog = new SettingDialog(MainActivity.this, currentDriverInfo,
+                        currentUserInfoGson, currentName);
                 settingDialog.showSettingDialog(this, getLayoutInflater());
                 break;
         }

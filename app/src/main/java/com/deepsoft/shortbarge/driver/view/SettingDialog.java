@@ -11,7 +11,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.deepsoft.shortbarge.driver.R;
+import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
+import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
@@ -26,8 +28,13 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     private final static String TAG = "SettingDialog";
     private ApiInterface apiInterface;
     private Context context;
+    private DriverInfoGson driverInfoGson;
+    private String name;
+    private UserInfoGson userInfoGson;
 
-    private TextView dialog_set_tv_serset, dialog_set_tv_logout, dialog_set_tv_lang;
+    private TextView dialog_set_tv_serset, dialog_set_tv_logout, dialog_set_tv_lang,
+            dialog_set_tv_dn, dialog_set_tv_pn, dialog_set_tv_ln, dialog_set_tv_cn,
+            dialog_set_tv_ln2, dialog_set_tv_gps, dialog_set_tv_server;
 
     public SettingDialog(@NonNull Context context) {
         super(context);
@@ -35,6 +42,14 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
 
     public SettingDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
+    }
+
+    public SettingDialog(@NonNull Context context, DriverInfoGson driverInfoGson,
+                         UserInfoGson userInfoGson, String name) {
+        super(context);
+        this.driverInfoGson = driverInfoGson;
+        this.name = name;
+        this.userInfoGson = userInfoGson;
     }
 
 
@@ -53,7 +68,6 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     public void showSettingDialog(Context context, LayoutInflater layoutInflater){
         View dialog_setting = layoutInflater.inflate(R.layout.dialog_setting, null);
         this.setContentView(dialog_setting);
-        this.setCanceledOnTouchOutside(false);
         this.show();
 
         this.context = context;
@@ -66,6 +80,22 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         PressUtil.setPressChange(context, dialog_set_tv_logout);
         dialog_set_tv_lang = dialog_setting.findViewById(R.id.dialog_set_tv_lang);
         dialog_set_tv_lang.setOnClickListener(this);
+
+        dialog_set_tv_dn = dialog_setting.findViewById(R.id.dialog_set_tv_dn);
+        dialog_set_tv_dn.setText(name);
+        dialog_set_tv_pn = dialog_setting.findViewById(R.id.dialog_set_tv_pn);
+        dialog_set_tv_pn.setText(driverInfoGson.getEmergencyPhone());
+        dialog_set_tv_ln = dialog_setting.findViewById(R.id.dialog_set_tv_ln);
+        dialog_set_tv_ln.setText(driverInfoGson.getLicensePlate());
+
+        dialog_set_tv_cn = dialog_setting.findViewById(R.id.dialog_set_tv_cn);
+        dialog_set_tv_cn.setText(driverInfoGson.getDriverId());
+        dialog_set_tv_ln2 = dialog_setting.findViewById(R.id.dialog_set_tv_ln2);
+        dialog_set_tv_ln2.setText(driverInfoGson.getLicensePlate());
+        dialog_set_tv_gps = dialog_setting.findViewById(R.id.dialog_set_tv_gps);
+        dialog_set_tv_gps.setText("Connected");
+        dialog_set_tv_server = dialog_setting.findViewById(R.id.dialog_set_tv_server);
+        dialog_set_tv_server.setText("Connected");
     }
 
     private void getLogout(){

@@ -52,6 +52,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private boolean is_rem_pwd = false;
     private String username, password;
+    private int login_chances;
 
     private TextView login_tv_login, login_tv_forget_pwd;
     private EditText login_et_username, login_et_pwd;
@@ -77,6 +78,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         is_rem_pwd = sp.getBoolean("is_rem", false);
         username = sp.getString("username", "");
         password = sp.getString("password", "");
+        login_chances = sp.getInt("login_chances", 10);
 
         initView();
 
@@ -139,20 +141,28 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         Log.i(TAG, "getDriverInfo run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
                         ResultGson resultGson = response.body();
                         Gson gson = new Gson();
-                        if(resultGson.getSuccess()){
+                        if(resultGson.getSuccess() && login_chances >= 0){
                             LoginInfoGson loginInfoGson = gson.fromJson(resultGson.getData().toString(), LoginInfoGson.class);
                             editor.putString("token", loginInfoGson.getToken());
                             if(is_rem_pwd){
                                 editor.putString("username", username);
                                 editor.putString("password", password);
                             }
+                            editor.putInt("login_chances", 10);
                             editor.commit();;
                             LoginActivity.this.finish();
                             Intent intent = new Intent(LoginActivity.this, MainActivity.class);
 //                            intent.putExtra("token", loginInfoGson.getToken());
                             startActivity(intent);
                         }else{
-                            Toast.makeText(LoginActivity.this, "getLogin连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                            if(login_chances == 0){
+                                Toast.makeText(LoginActivity.this, "已锁定，请联系管理员。", Toast.LENGTH_SHORT).show();
+                            }else {
+                                login_chances--;
+                                editor.putInt("login_chances", login_chances);
+                                editor.commit();
+                                Toast.makeText(LoginActivity.this, resultGson.getMsg() + "，您还有" + login_chances + "次机会", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     }
                     @Override
