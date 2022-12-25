@@ -2,6 +2,7 @@ package com.deepsoft.shortbarge.driver.view;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +19,8 @@ import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
+
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;

@@ -22,7 +22,7 @@
             android:layout_centerHorizontal="true"
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="72dp"
-            android:text="Please wait while connecting to the server~"
+            android:text="@string/connecting"
             android:textColor="#869098"
             android:textSize="15sp"/>
     </RelativeLayout>

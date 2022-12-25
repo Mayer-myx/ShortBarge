@@ -13,7 +13,7 @@
         android:layout_height="15dp"
         android:visibility="invisible"
         android:textAlignment="center"
-        android:text="emergency"
+        android:text="@string/emergency"
         android:textSize="12sp"
         android:textColor="@color/deepsoft_config_color_white"
         android:includeFontPadding="false"
@@ -27,7 +27,7 @@
         android:layout_marginTop="12.5dp"
         android:layout_marginLeft="16.5dp"
         android:includeFontPadding="false"
-        android:text="start time:"
+        android:text="@string/start_time"
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_gray"/>
     <TextView
@@ -37,7 +37,7 @@
         android:layout_below="@id/item_tv_st_label"
         android:layout_alignLeft="@id/item_tv_st_label"
         android:layout_marginTop="2dp"
-        android:text="arrival time:"
+        android:text="@string/arrival_time"
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_gray"/>
     <TextView
@@ -47,7 +47,7 @@
         android:layout_below="@id/item_tv_at_label"
         android:layout_alignLeft="@id/item_tv_st_label"
         android:layout_marginTop="2dp"
-        android:text="destination："
+        android:text="@string/destination"
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_gray"/>
     <TextView
@@ -57,7 +57,7 @@
         android:layout_below="@id/item_tv_dest_label"
         android:layout_alignLeft="@id/item_tv_st_label"
         android:layout_marginTop="2dp"
-        android:text="Task Status："
+        android:text="@string/task_status"
         android:textSize="14sp"
         android:textColor="@color/deepsoft_text_gray"/>
 

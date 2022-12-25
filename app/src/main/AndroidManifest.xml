@@ -34,15 +34,19 @@
         tools:targetApi="31">
         <activity
             android:name=".view.ServerConfigActivity"
+            android:screenOrientation="landscape"
             android:exported="false"/>
         <activity
             android:name=".view.ForgetPwdActivity"
+            android:screenOrientation="landscape"
             android:exported="false" />
         <activity
             android:name=".view.TestActivity"
+            android:screenOrientation="landscape"
             android:exported="false" />
         <activity
             android:name=".view.LoginActivity"
+            android:screenOrientation="landscape"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -52,6 +56,7 @@
         </activity>
         <activity
             android:name=".view.MainActivity"
+            android:screenOrientation="landscape"
             android:exported="true" />
 
         <service android:name=".service.MyService" />

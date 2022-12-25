@@ -119,8 +119,19 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/main_tv_driver"
             android:layout_toLeftOf="@id/main_tv_driver"
+            android:layout_marginRight="10dp"
             android:gravity="right"
-            android:text="Driver："
+            android:text="@string/driver"
+            android:textColor="@color/deepsoft_config_color_white"
+            android:textSize="15sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@id/main_tv_driver"
+            android:layout_toLeftOf="@id/main_tv_driver"
+            android:layout_marginRight="5dp"
+            android:gravity="right"
+            android:text=":"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="15sp" />
     </RelativeLayout>
@@ -166,7 +177,7 @@
                 android:layout_marginBottom="12dp"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
-                android:text="emergency contact："
+                android:text="@string/emergency_contact"
                 android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
             <TextView
@@ -177,7 +188,7 @@
                 android:layout_alignLeft="@id/main_tv_ec_label"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
-                android:text="license number: "
+                android:text="@string/license_number"
                 android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
             <TextView
@@ -188,7 +199,7 @@
                 android:layout_alignLeft="@id/main_tv_ec_label"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
-                android:text="Phone number："
+                android:text="@string/phone_number"
                 android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
 
@@ -199,6 +210,7 @@
                 android:layout_centerVertical="true"
                 android:layout_toRightOf="@id/main_tv_ec_label"
                 android:layout_marginRight="5dp"
+                android:layout_marginLeft="10dp"
                 android:ellipsize="end"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
@@ -256,7 +268,7 @@
             android:layout_marginTop="12dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="Current Task"
+            android:text="@string/current_task"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="19sp" />
 
@@ -272,7 +284,7 @@
             android:paddingTop="5dp"
             android:paddingRight="6dp"
             android:paddingBottom="5dp"
-            android:text="Scheduled Tasks"
+            android:text="@string/scheduled_tasks"
             android:textAlignment="center"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -285,7 +297,7 @@
             android:layout_marginTop="42dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="start time:"
+            android:text="@string/start_time"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
         <TextView
@@ -297,7 +309,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="arrival time:"
+            android:text="@string/arrival_time"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
         <TextView
@@ -309,7 +321,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="destination："
+            android:text="@string/destination"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
         <TextView
@@ -321,7 +333,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="Task Status："
+            android:text="@string/task_status"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
 
@@ -333,7 +345,7 @@
             android:layout_alignLeft="@id/main_tv_st_label"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="arrival time:"
+            android:text="@string/arrival_time"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp"
             android:visibility="invisible" />
@@ -346,7 +358,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="waiting time:"
+            android:text="@string/waiting_time"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp"
             android:visibility="invisible"/>
@@ -359,7 +371,7 @@
             android:layout_marginTop="10dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
-            android:text="Next Station："
+            android:text="@string/next_station"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp"
             android:visibility="invisible" />
@@ -406,6 +418,7 @@
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/main_tv_ts_label"
             android:layout_toRightOf="@id/main_tv_ts_label"
+            android:layout_marginLeft="15dp"
             android:fontFamily="@font/archivo_bold"
             android:includeFontPadding="false"
             android:text="delay"
@@ -455,7 +468,7 @@
             android:layout_marginBottom="10dp"
             android:background="@drawable/btn_bg_white_press"
             android:gravity="center"
-            android:text="arrive"
+            android:text="@string/arrive"
             android:textAllCaps="false"
             android:textColor="@color/deepsoft_text_red"
             android:textSize="14sp" />
@@ -468,7 +481,7 @@
             android:layout_toLeftOf="@id/main_tv_arrive"
             android:background="@drawable/btn_bg_white_opc"
             android:gravity="center"
-            android:text="Voice Message"
+            android:text="@string/voice_message"
             android:textAllCaps="false"
             android:textColor="@color/deepsoft_text_red"
             android:textSize="14sp" />
@@ -537,13 +550,14 @@
                 android:layout_marginTop="10dp"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
-                android:text="More Tasks"
+                android:text="@string/more_tasks"
                 android:textColor="@color/deepsoft_text_black"
                 android:textSize="19sp" />
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Number of tasks："
+                android:layout_marginRight="5dp"
+                android:text="@string/number_of_tasks"
                 android:textColor="@color/deepsoft_text_black"
                 android:textSize="16sp"
                 android:includeFontPadding="false"

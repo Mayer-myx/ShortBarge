@@ -44,7 +44,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Server Configuration"
+            android:text="@string/server_configuration"
             android:textSize="20sp"
             android:textColor="@color/deepsoft_config_color_pure_black"
             android:includeFontPadding="false"
@@ -54,7 +54,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Server Address"
+            android:text="@string/server_address"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="12sp"
             android:layout_marginTop="86dp"
@@ -62,7 +62,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Server Port"
+            android:text="@string/server_port"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="12sp"
             android:layout_marginTop="140dp"
@@ -108,7 +108,7 @@
             android:layout_marginLeft="108dp"
             android:background="@drawable/round_rectangle_red"
             android:gravity="center"
-            android:text="取消"
+            android:text="@string/cancel"
             android:textSize="12sp"
             android:textColor="@color/deepsoft_config_color_white" />
         <TextView
@@ -121,7 +121,7 @@
             android:layout_marginRight="108dp"
             android:background="@drawable/round_rectangle_red"
             android:gravity="center"
-            android:text="确定"
+            android:text="@string/confirm"
             android:textSize="12sp"
             android:textColor="@color/deepsoft_config_color_white" />
     </RelativeLayout>

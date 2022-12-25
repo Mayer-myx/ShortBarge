@@ -16,7 +16,9 @@
             android:layout_centerHorizontal="true"
             android:layout_marginTop="54dp"
             android:includeFontPadding="false"
-            android:text="服务器连接失败，请联系管理员"
+            android:layout_marginLeft="150dp"
+            android:gravity="center"
+            android:text="@string/fail_connect"
             android:textColor="@color/deepsoft_dialog_text_black"
             android:textSize="24sp" />
 
@@ -29,7 +31,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:gravity="center"
-            android:text="退出"
+            android:text="@string/exit"
             android:textSize="14sp"
             android:textColor="@color/deepsoft_config_color_white"
             android:background="@drawable/round_rectangle_gra_red2"/>
@@ -45,7 +47,7 @@
             android:layout_alignParentBottom="true"
             android:layout_toLeftOf="@id/dialog_fail_tv_exit"
             android:gravity="center"
-            android:text="重试"
+            android:text="@string/retry"
             android:textSize="14sp"
             android:textColor="@color/deepsoft_text_red"
             android:background="@drawable/round_line_rect_red"/>

@@ -54,7 +54,7 @@
             android:layout_marginLeft="150dp"
             android:layout_alignTop="@id/dialog_set_tv_dn"
             android:includeFontPadding="false"
-            android:text="Driver name"
+            android:text="@string/driver_name"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -63,7 +63,7 @@
             android:layout_alignTop="@id/dialog_set_tv_pn"
             android:layout_alignLeft="@id/dialog_set_tv_dn_label"
             android:includeFontPadding="false"
-            android:text="Phone number"
+            android:text="@string/phone_number"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -72,7 +72,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_dn_label"
             android:layout_alignTop="@id/dialog_set_tv_ln"
             android:includeFontPadding="false"
-            android:text="License Number"
+            android:text="@string/license_number"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
 
@@ -108,7 +108,7 @@
             android:layout_alignTop="@id/dialog_set_tv_lang"
             android:background="@drawable/line_round_white_bg"
             android:includeFontPadding="false"
-            android:text="Language"
+            android:text="@string/language"
             android:textColor="@color/deepsoft_config_color_black"
             android:textSize="14sp" />
 
@@ -164,7 +164,7 @@
             android:layout_alignTop="@id/dialog_set_tv_cn"
             android:layout_marginLeft="48dp"
             android:includeFontPadding="false"
-            android:text="Car name"
+            android:text="@string/car_name"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -173,7 +173,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_cn_label"
             android:layout_alignTop="@id/dialog_set_tv_ln2"
             android:includeFontPadding="false"
-            android:text="License Number"
+            android:text="@string/license_number"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -182,7 +182,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_cn_label"
             android:layout_alignTop="@id/dialog_set_tv_gps"
             android:includeFontPadding="false"
-            android:text="GPS Link Status"
+            android:text="@string/gps_link_status"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -191,7 +191,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_cn_label"
             android:layout_alignTop="@id/dialog_set_tv_server"
             android:includeFontPadding="false"
-            android:text="Server Link Status"
+            android:text="@string/server_link_status"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
 
@@ -205,7 +205,7 @@
             android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:gravity="center"
-            android:text="Log out"
+            android:text="@string/log_out"
             android:textSize="15sp"
             android:textColor="@color/deepsoft_config_color_white"
             android:background="@drawable/round_rectangle_red"/>
@@ -222,7 +222,7 @@
             android:gravity="center"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:text="Server setting"
+            android:text="@string/server_configuration"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="15sp" />
 

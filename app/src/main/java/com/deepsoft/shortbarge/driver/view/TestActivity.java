@@ -8,7 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
-import com.deepsoft.shortbarge.driver.client.WebSocketClient;
+import com.deepsoft.shortbarge.driver.client.BaseWebSocketClient;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -23,7 +23,7 @@ public class TestActivity extends AppCompatActivity {
 
     private final static String TAG = "TestActivity";
 
-    private WebSocketClient webSocketClient;
+    private BaseWebSocketClient webSocketClient;
     private HsjWebSocketListener listener = new HsjWebSocketListener();
     private StringBuilder stringBuilder = new StringBuilder();
 
@@ -33,14 +33,13 @@ public class TestActivity extends AppCompatActivity {
         setContentView(R.layout.activity_test);
 
         URI uri = URI.create("ws://echo.websocket.org");
-
         initSocket();
         webSocket();
     }
 
     public void initSocket() {
         String token = getIntent().getStringExtra("token");
-        webSocketClient = new WebSocketClient(token);
+        webSocketClient = new BaseWebSocketClient(token);
     }
 
     public void webSocket() {
