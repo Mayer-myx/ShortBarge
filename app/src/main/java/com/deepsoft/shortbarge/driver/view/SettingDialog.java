@@ -3,6 +3,9 @@ package com.deepsoft.shortbarge.driver.view;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.Handler;
+import android.os.Message;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,12 +15,16 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.deepsoft.shortbarge.driver.R;
+import com.deepsoft.shortbarge.driver.constant.ConstantGlobal;
 import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
+import com.deepsoft.shortbarge.driver.utils.MultiLanguageUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
+import com.deepsoft.shortbarge.driver.utils.SpUtil;
+import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
 
 import java.util.Locale;
@@ -37,7 +44,7 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
 
     private TextView dialog_set_tv_serset, dialog_set_tv_logout, dialog_set_tv_lang,
             dialog_set_tv_dn, dialog_set_tv_pn, dialog_set_tv_ln, dialog_set_tv_cn,
-            dialog_set_tv_ln2, dialog_set_tv_gps, dialog_set_tv_server;
+            dialog_set_tv_ln2, dialog_set_tv_gps, dialog_set_tv_server, dialog_set_tv_lang_label;
 
     public SettingDialog(@NonNull Context context) {
         super(context);
@@ -99,6 +106,14 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         dialog_set_tv_gps.setText("Connected");
         dialog_set_tv_server = dialog_setting.findViewById(R.id.dialog_set_tv_server);
         dialog_set_tv_server.setText("Connected");
+
+        dialog_set_tv_lang_label = findViewById(R.id.dialog_set_tv_lang_label);
+        String lang = dialog_set_tv_lang_label.getText().toString();
+        if(lang.equals("Language")){
+            dialog_set_tv_lang.setText("English");
+        }else{
+            dialog_set_tv_lang.setText("中文");
+        }
     }
 
     private void getLogout(){
@@ -134,10 +149,33 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
                 String lang = dialog_set_tv_lang.getText().toString();
                 if(lang.equals("English")){
                     dialog_set_tv_lang.setText("中文");
+                    changeLanguage("zh", "CN");
                 }else if(lang.equals("中文")){
                     dialog_set_tv_lang.setText("English");
+                    changeLanguage("en", "US");
                 }
                 break;
         }
+    }
+
+    /**
+     * 修改应用内语言设置
+     */
+    private void changeLanguage(String language, String area) {
+        if (TextUtils.isEmpty(language) && TextUtils.isEmpty(area)) {
+            //如果语言和地区都是空，那么跟随系统
+            SpUtil.saveString(ConstantGlobal.LOCALE_LANGUAGE, "");
+            SpUtil.saveString(ConstantGlobal.LOCALE_COUNTRY, "");
+        } else {
+            //不为空，那么修改app语言，并true是把语言信息保存到sp中，false是不保存到sp中
+            Locale newLocale = new Locale(language, area);
+            MultiLanguageUtil.changeAppLanguage(context, newLocale, true);
+            MultiLanguageUtil.changeAppLanguage(BaseApplication.getContext(), newLocale, true);
+        }
+        //重启app,这一步一定要加上，如果不重启app，可能打开新的页面显示的语言会不正确
+        Intent intent = new Intent(BaseApplication.getContext(), MainActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        BaseApplication.getContext().startActivity(intent);
+        android.os.Process.killProcess(android.os.Process.myPid());
     }
 }
