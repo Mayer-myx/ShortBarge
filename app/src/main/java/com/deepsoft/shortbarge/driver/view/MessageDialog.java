@@ -54,9 +54,11 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
     private File mFile;
     private String filename, name, uploadUrl;
     private int fileTime;
+    private long startTime, endTime;
     private List<MessageGson> messageGsons = new ArrayList<>();
 
     private MessageAdapter messageAdapter;
+    private LinearLayoutManager layoutManager;
     private ImageView dialog_vm_iv_close;
     private TextView dialog_vm_tv_sent;
     private RecyclerView dialog_vm_rv;
@@ -93,6 +95,8 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         this.show();
 
         this.context = context;
+        startTime = System.currentTimeMillis();
+        endTime = System.currentTimeMillis();
         mFile = new File(BaseApplication.getApplication().getExternalFilesDir(Environment.DIRECTORY_MUSIC), "record");
         if(mFile.exists()){
             Log.i(TAG, "Directory exist");
@@ -107,7 +111,6 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         dialog_vm_tv_sent.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
-                long startTime = System.currentTimeMillis(), endTime;
                 switch (motionEvent.getAction()){
                     case MotionEvent.ACTION_DOWN:
                         view.setAlpha(0.6f);
@@ -120,23 +123,37 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                         fileTime = (int) (endTime - startTime) / 1000;
                         stopSound();
                         uploadFile();
+
+                        Log.e(TAG, "start="+startTime+"\nendtime="+endTime + "\nfiletime="+fileTime);
+                        MessageGson messageGson2 = new MessageGson();
+                        StringBuilder sbjyj = new StringBuilder("");
+                        int len = fileTime > 60 ? 60 : fileTime;
+                        for(int j = 0; j < len; j++)
+                            sbjyj.append(" ");
+                        messageGson2.setMsg(sbjyj.toString()+fileTime+"″");
+                        messageGson2.setType(1);
+                        messageGsons.add(messageGson2);
+                        messageAdapter.notifyItemChanged(messageGsons.size()-1);
+                        layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
                         break;
                 }
                 return true;
             }
         });
 
-        for(int i = 0;i < 5; i++){
-            MessageGson messageGson = new MessageGson();
-            messageGson.setMsg("hhhhhh");
-            messageGson.setType(1);
-            messageGsons.add(messageGson);
+        // test rv_mes datalist
+        for(int i = 0;i < 3; i++){
+            MessageGson messageGson1 = new MessageGson();
+            messageGson1.setMsg("hhh\nhhh\nhhhh\nhhh");
+            messageGson1.setType(1);
+            messageGsons.add(messageGson1);
         }
         dialog_vm_rv = dialog_message.findViewById(R.id.dialog_vm_rv);
-        LinearLayoutManager layoutManager = new LinearLayoutManager(context);
+        layoutManager = new LinearLayoutManager(context);
         dialog_vm_rv.setLayoutManager(layoutManager);
         messageAdapter = new MessageAdapter(R.layout.item_message, messageGsons, "03", "02");
         dialog_vm_rv.setAdapter(messageAdapter);
+        layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
     }
 
 
@@ -153,7 +170,6 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
     private void uploadFile(){
         File file = new File(filename);
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
-        Log.e(TAG, "filename="+filename+" file="+file.getPath()+" "+file.getName());
         MultipartBody.Part body = MultipartBody.Part.createFormData("file", filename, requestFile);
 
         ApiInterface apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
@@ -209,7 +225,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             mMediaRecorder.release();
             File[] files = mFile.listFiles();
             for(File f : files){
-                Log.e(TAG, "initPath: "+f.getName()+"\n");
+                Log.i(TAG, "initPath: "+f.getName()+"\n");
             }
             mMediaRecorder = null;
         }

@@ -23,6 +23,7 @@ public class MessageAdapter extends BaseQuickAdapter<MessageGson, BaseViewHolder
     @Override
     protected void convert(@NonNull BaseViewHolder baseViewHolder, MessageGson messageGson) {
         baseViewHolder.setText(R.id.it_tv_y, messageGson.getMsg())
+                .setText(R.id.it_tv_m, messageGson.getMsg())
                 .setText(R.id.item_tv_resp, resp)
                 .setText(R.id.item_tv_car, driver);
     }
