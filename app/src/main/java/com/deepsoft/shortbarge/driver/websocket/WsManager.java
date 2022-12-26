@@ -61,11 +61,11 @@ public class WsManager {
              */
             String configUrl = "";
             url = TextUtils.isEmpty(configUrl) ? DEF_URL : configUrl;
+            url += token;
             ws = new WebSocketFactory().createSocket(url, CONNECT_TIMEOUT)
                     .setFrameQueueSize(FRAME_QUEUE_SIZE)//设置帧队列最大值为5
                     .setMissingCloseFrameAllowed(false)//设置不允许服务端关闭连接却未发送关闭帧
                     .addListener(mListener = new WsListener())//添加回调监听
-                    .addHeader("token", token)
                     .connectAsynchronously();//异步连接
             setStatus(WsStatus.CONNECTING);
             Log.d(TAG, "第一次连接");
