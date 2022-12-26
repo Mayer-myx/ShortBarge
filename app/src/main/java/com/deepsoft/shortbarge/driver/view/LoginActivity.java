@@ -153,8 +153,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 editor.commit();
                                 ;
                                 LoginActivity.this.finish();
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-//                            intent.putExtra("token", loginInfoGson.getToken());
+                                Intent intent = new Intent(LoginActivity.this, TestActivity.class);
+                                intent.putExtra("token", loginInfoGson.getToken());
                                 startActivity(intent);
                             } else {
                                 if (login_chances == 0) {

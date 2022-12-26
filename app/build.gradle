@@ -78,6 +78,7 @@ dependencies {
 
     // Java-websocket
 //    implementation 'org.java-websocket:Java-WebSocket:1.5.3'
+    implementation 'com.neovisionaries:nv-websocket-client:2.14'
 
     // 权限
     implementation 'pub.devrel:easypermissions:3.0.0'

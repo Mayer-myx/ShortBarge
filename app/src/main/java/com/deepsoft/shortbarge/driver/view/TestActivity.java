@@ -9,10 +9,9 @@ import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.client.BaseWebSocketClient;
+import com.deepsoft.shortbarge.driver.websocket.WsManager;
 
 import org.jetbrains.annotations.NotNull;
-
-import java.net.URI;
 
 import okhttp3.Response;
 import okhttp3.WebSocket;
@@ -32,9 +31,18 @@ public class TestActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
 
-        URI uri = URI.create("ws://echo.websocket.org");
-        initSocket();
-        webSocket();
+        String token = getIntent().getStringExtra("token");
+        WsManager.getInstance().init(token);
+
+//        initSocket();
+//        webSocket();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        closeSocket();
+        WsManager.getInstance().disconnect();
     }
 
     public void initSocket() {

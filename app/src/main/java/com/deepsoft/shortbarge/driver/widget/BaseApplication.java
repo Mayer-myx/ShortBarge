@@ -6,6 +6,8 @@ import android.content.Context;
 import com.deepsoft.shortbarge.driver.constant.ConstantGlobal;
 import com.deepsoft.shortbarge.driver.utils.MultiLanguageUtil;
 import com.deepsoft.shortbarge.driver.utils.SpUtil;
+import com.deepsoft.shortbarge.driver.websocket.ForegroundCallbacks;
+import com.deepsoft.shortbarge.driver.websocket.WsManager;
 
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
@@ -21,6 +23,8 @@ import android.app.Activity;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
+
 import java.util.Locale;
 
 public class BaseApplication extends Application {
@@ -65,6 +69,8 @@ public class BaseApplication extends Application {
 
         //注册Activity生命周期监听回调，此部分一定加上，因为有些版本不加的话多语言切换不回来
         registerActivityLifecycleCallbacks(callbacks);
+
+        initAppStatusListener();
     }
 
     /**
@@ -163,4 +169,19 @@ public class BaseApplication extends Application {
         }
         //Activity 其它生命周期的回调
     };
+
+    private void initAppStatusListener() {
+        ForegroundCallbacks.init(this).addListener(new ForegroundCallbacks.Listener() {
+            @Override
+            public void onBecameForeground() {
+                Log.d("WsManager", "应用回到前台调用重连方法");
+                WsManager.getInstance().reconnect();
+            }
+
+            @Override
+            public void onBecameBackground() {
+
+            }
+        });
+    }
 }

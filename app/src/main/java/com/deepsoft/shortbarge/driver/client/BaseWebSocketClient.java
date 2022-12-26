@@ -23,8 +23,10 @@ public class BaseWebSocketClient {
                 .build();
         // 连接地址：/websocket/wsDriver/{token}  ws://221.12.170.99:8081/websocket/wsDriver/
         request = new Request.Builder()
-                .url("ws://echo.websocket.org/")
+                .url("ws://121.40.165.18:8800")
                 .addHeader("token", token)
+                .addHeader("Upgrade", "websocket")
+                .addHeader("Connection", "Upgrade")
                 .build();
     }
 
