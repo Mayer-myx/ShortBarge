@@ -13,9 +13,11 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
     <application
         android:name=".widget.BaseApplication"
@@ -33,21 +35,27 @@
         android:usesCleartextTraffic="true"
         tools:targetApi="31">
         <activity
+            android:name=".view.MediaRecorderActivity"
+            android:exported="false" />
+        <activity
+            android:name=".view.RecordActivity"
+            android:exported="false" />
+        <activity
             android:name=".view.ServerConfigActivity"
-            android:screenOrientation="landscape"
-            android:exported="false"/>
+            android:exported="false"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".view.ForgetPwdActivity"
-            android:screenOrientation="landscape"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".view.TestActivity"
-            android:screenOrientation="landscape"
-            android:exported="false" />
+            android:exported="false"
+            android:screenOrientation="landscape" />
         <activity
             android:name=".view.LoginActivity"
-            android:screenOrientation="landscape"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -56,8 +64,8 @@
         </activity>
         <activity
             android:name=".view.MainActivity"
-            android:screenOrientation="landscape"
-            android:exported="true" />
+            android:exported="true"
+            android:screenOrientation="landscape" />
 
         <service android:name=".service.MyService" />
 

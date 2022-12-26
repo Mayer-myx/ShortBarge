@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".view.RecordActivity">
+
+    <ImageButton
+        android:id="@+id/imageButton4"
+        android:onClick="PlayCurrent"
+        android:layout_width="347px"
+        android:layout_height="506px"
+        android:background="#00000000"
+        android:scaleType="fitXY"
+        android:src="@mipmap/setting"
+        android:layout_marginTop="10dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/i_btn_share" />
+
+    <ImageButton
+        android:onClick="Recording"
+        android:layout_width="403px"
+        android:layout_height="570px"
+        android:background="#00000000"
+        android:scaleType="fitXY"
+        android:src="@mipmap/scatter_car"
+        android:layout_marginStart="10dp"
+        app:layout_constraintStart_toEndOf="@+id/imageButton4"
+        app:layout_constraintTop_toBottomOf="@+id/i_btn_share" />
+
+
+</LinearLayout>

@@ -67,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Handler mHandler = new Handler();
     private boolean isLocationEnable = false;
 
+    private MessageDialog messageDialog;
     private SettingDialog settingDialog;
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
@@ -463,6 +464,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(settingDialog != null){
             settingDialog.dismiss();
         }
+        if(messageDialog != null){
+            messageDialog.dismiss();
+        }
     }
 
 
@@ -473,7 +477,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 WaitConnectDialog.getInstance().showWaitConnectDialog(this, getLayoutInflater());
                 break;
             case R.id.main_tv_vm:
-                MessageDialog.getInstance().showMessageDialog(this, getLayoutInflater());
+                messageDialog = new MessageDialog(MainActivity.this);
+                messageDialog.showMessageDialog(this, getLayoutInflater());
                 break;
             case R.id.main_iv_setting:
                 settingDialog = new SettingDialog(MainActivity.this, currentDriverInfo,

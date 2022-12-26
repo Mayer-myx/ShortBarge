@@ -44,7 +44,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private String PERMISSION_STORAGE_MSG = "请授予权限，否则影响部分使用功能";
     private int PERMISSION_STORAGE_CODE = 10001;
     private String[] PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE};
+            Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.RECORD_AUDIO, Manifest.permission.WAKE_LOCK};
 
     private ApiInterface apiInterface;
     private SharedPreferences sp;
@@ -127,7 +128,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
 
-
     @Override
     public void onClick(View view) {
         switch (view.getId()){
@@ -135,41 +135,51 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 // 登录后获取司机信息+跳转
                 username = login_et_username.getText().toString().trim();
                 password = login_et_pwd.getText().toString().trim();
-                apiInterface.getLogin(username, password).enqueue(new Callback<ResultGson>() {
-                    @Override
-                    public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                        Log.i(TAG, "getDriverInfo run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
-                        ResultGson resultGson = response.body();
-                        Gson gson = new Gson();
-                        if(resultGson.getSuccess() && login_chances >= 0){
-                            LoginInfoGson loginInfoGson = gson.fromJson(resultGson.getData().toString(), LoginInfoGson.class);
-                            editor.putString("token", loginInfoGson.getToken());
-                            if(is_rem_pwd){
-                                editor.putString("username", username);
-                                editor.putString("password", password);
-                            }
-                            editor.putInt("login_chances", 10);
-                            editor.commit();;
-                            LoginActivity.this.finish();
-                            Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-//                            intent.putExtra("token", loginInfoGson.getToken());
-                            startActivity(intent);
-                        }else{
-                            if(login_chances == 0){
-                                Toast.makeText(LoginActivity.this, "已锁定，请联系管理员。", Toast.LENGTH_SHORT).show();
-                            }else {
-                                login_chances--;
-                                editor.putInt("login_chances", login_chances);
+                if(username.length() != 0 && password.length() != 0) {
+                    apiInterface.getLogin(username, password).enqueue(new Callback<ResultGson>() {
+                        @Override
+                        public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                            Log.i(TAG, "getDriverInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                            ResultGson resultGson = response.body();
+                            Gson gson = new Gson();
+                            if (resultGson.getSuccess() && login_chances >= 0) {
+                                LoginInfoGson loginInfoGson = gson.fromJson(resultGson.getData().toString(), LoginInfoGson.class);
+                                editor.putString("token", loginInfoGson.getToken());
+                                if (is_rem_pwd) {
+                                    editor.putString("username", username);
+                                    editor.putString("password", password);
+                                }
+                                editor.putInt("login_chances", 10);
                                 editor.commit();
-                                Toast.makeText(LoginActivity.this, resultGson.getMsg() + "，您还有" + login_chances + "次机会", Toast.LENGTH_SHORT).show();
+                                ;
+                                LoginActivity.this.finish();
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
+//                            intent.putExtra("token", loginInfoGson.getToken());
+                                startActivity(intent);
+                            } else {
+                                if (login_chances == 0) {
+                                    Toast.makeText(LoginActivity.this, "已锁定，请联系管理员。", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    login_chances--;
+                                    editor.putInt("login_chances", login_chances);
+                                    editor.commit();
+                                    Toast.makeText(LoginActivity.this, resultGson.getMsg() + "，您还有" + login_chances + "次机会", Toast.LENGTH_SHORT).show();
+                                }
                             }
                         }
+
+                        @Override
+                        public void onFailure(Call<ResultGson> call, Throwable t) {
+                            Log.e(TAG, "getLogin onFailure:" + t);
+                        }
+                    });
+                }else{
+                    if(login_tv_login.getText().equals("Log in")) {
+                        Toast.makeText(this, "Please enter a username or password", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(this, "请输入用户名或密码", Toast.LENGTH_SHORT).show();
                     }
-                    @Override
-                    public void onFailure(Call<ResultGson> call, Throwable t) {
-                        Log.e(TAG, "getLogin onFailure:"+t);
-                    }
-                });
+                }
                 break;
             case R.id.login_cb_rem_pwd:
                 is_rem_pwd = login_cb_rem_pwd.isChecked();

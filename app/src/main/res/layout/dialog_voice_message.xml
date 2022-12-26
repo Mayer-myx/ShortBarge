@@ -51,8 +51,10 @@
             android:layout_height="match_parent"
             android:layout_below="@id/dialog_vm_rl_top"
             android:layout_above="@id/dialog_vm_tv_sent"
-            android:layout_marginLeft="35dp"
-            android:layout_marginRight="35dp"/>
+            android:overScrollMode="never"
+            android:scrollbars="none"
+            android:layout_marginLeft="25dp"
+            android:layout_marginRight="25dp"/>
 
     </RelativeLayout>
 </RelativeLayout>
