@@ -4,11 +4,24 @@ import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.deepsoft.shortbarge.driver.callback.CallbackDataWrapper;
+import com.deepsoft.shortbarge.driver.callback.CallbackWrapper;
+import com.deepsoft.shortbarge.driver.callback.ICallback;
+import com.deepsoft.shortbarge.driver.callback.IWsCallback;
+import com.deepsoft.shortbarge.driver.constant.Action;
+import com.deepsoft.shortbarge.driver.constant.ErrorCode;
 import com.deepsoft.shortbarge.driver.constant.WsStatus;
+import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
+import com.deepsoft.shortbarge.driver.gson.message.receive.UserReceiveMessage;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
@@ -16,8 +29,14 @@ import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class WsManager {
     private static WsManager mInstance;
@@ -32,6 +51,16 @@ public class WsManager {
 //    private static final String DEF_RELEASE_URL = "正式服地址";//正式服默认地址
 //private static final String DEF_URL = BuildConfig.DEBUG ? DEF_TEST_URL : DEF_RELEASE_URL;
     private static final String DEF_URL = "ws://221.12.170.99:8081/websocket/wsDriver/";
+    private static final long HEARTBEAT_INTERVAL = 30000;//心跳间隔
+    private static final int REQUEST_TIMEOUT = 10000;//请求超时时间
+    private final int SUCCESS_HANDLE = 0x01;
+    private final int ERROR_HANDLE = 0x02;
+
+    private ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
+    private Map<String, CallbackWrapper> callbacks = new HashMap<>();
+
+//    private AtomicLong seqId = new AtomicLong(SystemClock.uptimeMillis());//每个请求的唯一标识
+
     private String url;
 
     private WsStatus mStatus;
@@ -51,6 +80,7 @@ public class WsManager {
         }
         return mInstance;
     }
+
 
     public void init(String token){
         try {
@@ -75,52 +105,6 @@ public class WsManager {
     }
 
 
-    /**
-     * 继承默认的监听空实现WebSocketAdapter,重写我们需要的方法
-     * onTextMessage 收到文字信息
-     * onConnected 连接成功
-     * onConnectError 连接失败
-     * onDisconnected 连接关闭
-     */
-    class WsListener extends WebSocketAdapter {
-        @Override
-        public void onTextMessage(WebSocket websocket, String text) throws Exception {
-            super.onTextMessage(websocket, text);
-            Log.d(TAG, text);
-        }
-
-
-        @Override
-        public void onConnected(WebSocket websocket, Map<String, List<String>> headers)
-                throws Exception {
-            super.onConnected(websocket, headers);
-            Log.d(TAG,"连接成功");
-            setStatus(WsStatus.CONNECT_SUCCESS);
-            cancelReconnect();//连接成功的时候取消重连,初始化连接次数
-        }
-
-
-        @Override
-        public void onConnectError(WebSocket websocket, WebSocketException exception)
-                throws Exception {
-            super.onConnectError(websocket, exception);
-            Log.d(TAG,"连接错误");
-            setStatus(WsStatus.CONNECT_FAIL);
-            reconnect();//连接错误的时候调用重连方法
-        }
-
-
-        @Override
-        public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer)
-                throws Exception {
-            super.onDisconnected(websocket, serverCloseFrame, clientCloseFrame, closedByServer);
-            Log.d(TAG,"断开连接");
-            setStatus(WsStatus.CONNECT_FAIL);
-            reconnect();//连接断开的时候调用重连方法
-        }
-    }
-
-
     private void setStatus(WsStatus status) {
         this.mStatus = status;
     }
@@ -138,7 +122,21 @@ public class WsManager {
     }
 
 
-    private Handler mHandler = new Handler();
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case SUCCESS_HANDLE:
+                    CallbackDataWrapper successWrapper = (CallbackDataWrapper) msg.obj;
+                    successWrapper.getCallback().onSuccess(successWrapper.getData());
+                    break;
+                case ERROR_HANDLE:
+                    CallbackDataWrapper errorWrapper = (CallbackDataWrapper) msg.obj;
+                    errorWrapper.getCallback().onFail((String) errorWrapper.getData());
+                    break;
+            }
+        }
+    };
 
     private int reconnectCount = 0;//重连次数
     private long minInterval = 3000;//重连最小时间间隔
@@ -160,6 +158,7 @@ public class WsManager {
 
             reconnectCount++;
             setStatus(WsStatus.CONNECTING);
+            cancelHeartbeat();//取消心跳
 
             long reconnectTime = minInterval;
             if (reconnectCount > 3) {
@@ -212,4 +211,272 @@ public class WsManager {
         }
         return false;
     }
+
+
+    public void sendReq(Action action, ICallback callback) {
+        sendReq(action, callback, REQUEST_TIMEOUT);
+    }
+
+
+    public void sendReq(Action action, ICallback callback, long timeout) {
+        sendReq(action, callback, timeout, 1);
+    }
+
+    /**
+     * @param action Action
+     * @param callback 回调
+     * @param timeout 超时时间
+     * @param reqCount 请求次数
+     */
+    @SuppressWarnings("unchecked")
+    private <T> void sendReq(Action action, ICallback callback, long timeout, int reqCount) {
+        if (!isNetConnect()) {
+            callback.onFail("网络不可用");
+            return;
+        }
+
+        Request request = new Request.Builder<T>()
+                .message(action.getMessage())
+                .type(action.getType())
+                .reqCount(reqCount)
+                .build();
+
+        ScheduledFuture timeoutTask = enqueueTimeout(request.getMessage(), timeout);//添加超时任务
+
+        IWsCallback tempCallback = new IWsCallback() {
+            @Override
+            public void onSuccess(Object o) {
+                mHandler.obtainMessage(SUCCESS_HANDLE, new CallbackDataWrapper(callback, o))
+                        .sendToTarget();
+            }
+
+            @Override
+            public void onError(String msg, Request request, Action action) {
+                mHandler.obtainMessage(ERROR_HANDLE, new CallbackDataWrapper(callback, msg))
+                        .sendToTarget();
+            }
+
+            @Override
+            public void onTimeout(Request request, Action action) {
+                timeoutHandle(request, action, callback, timeout);
+            }
+        };
+
+        callbacks.put(request.getMessage(), new CallbackWrapper(tempCallback, timeoutTask, action, request));
+
+        Log.d(TAG, "send text :"+new Gson().toJson(request));
+        ws.sendText(new Gson().toJson(request));
+    }
+
+    /**
+     * 超时处理
+     */
+    private void timeoutHandle(Request request, Action action, ICallback callback, long timeout) {
+        if (request.getReqCount() > 3) {
+            Log.d(TAG, "(action:"+action.getMessage()+")连续3次请求超时 执行http请求");
+            //走http请求
+        } else {
+            sendReq(action, callback, timeout, request.getReqCount() + 1);
+            Log.d(TAG, "(action:"+action.getMessage()+")发起第"+request.getReqCount()+"次请求");
+        }
+    }
+
+    /**
+     * 添加超时任务
+     */
+    private ScheduledFuture enqueueTimeout(final String message, long timeout) {
+        return executor.schedule(new Runnable() {
+            @Override
+            public void run() {
+                CallbackWrapper wrapper = callbacks.remove(message);
+                if (wrapper != null) {
+                    Log.d(TAG, "(action:"+wrapper.getAction().getMessage()+")第"+wrapper.getRequest().getReqCount()+"次请求超时");
+                    wrapper.getTempCallback().onTimeout(wrapper.getRequest(), wrapper.getAction());
+                }
+            }
+        }, timeout, TimeUnit.MILLISECONDS);
+    }
+
+
+    /**
+     * 继承默认的监听空实现WebSocketAdapter,重写我们需要的方法
+     * onTextMessage 收到文字信息
+     * onConnected 连接成功
+     * onConnectError 连接失败
+     * onDisconnected 连接关闭
+     */
+    class WsListener extends WebSocketAdapter {
+        @Override
+        public void onTextMessage(WebSocket websocket, String text) throws Exception {
+            super.onTextMessage(websocket, text);
+            Log.d(TAG, "receiverMsg:"+text);
+
+            MessageResponse messageResponse = Codec.decoder(text);//解析出第一层bean
+            if (messageResponse.getType() == 0) {//连接成功，响应
+                CallbackWrapper wrapper = callbacks.remove(Long.parseLong(messageResponse.getMessage()));//找到对应callback
+                if (wrapper == null) {
+                    Log.d(TAG, "(action:"+ messageResponse.getMessage()+") not found callback");
+                    return;
+                }
+
+                try {
+                    wrapper.getTimeoutTask().cancel(true);//取消超时任务
+                    UserReceiveMessage childResponse = Codec.decoderUserReceiveMessage(messageResponse.getMessage());//解析第二层bean
+                    if (childResponse.getMsg()!=null) {
+                        Object o = new Gson().fromJson(childResponse.getMsg(), wrapper.getAction().getRespClazz());
+                        wrapper.getTempCallback().onSuccess(o);
+                    } else {
+                        wrapper.getTempCallback().onError(ErrorCode.BUSINESS_EXCEPTION.getMsg(), wrapper.getRequest(), wrapper.getAction());
+                    }
+                } catch (JsonSyntaxException e) {
+                    e.printStackTrace();
+                    wrapper.getTempCallback()
+                            .onError(ErrorCode.PARSE_EXCEPTION.getMsg(), wrapper.getRequest(), wrapper.getAction());
+                }
+            } else if (messageResponse.getType() == 1) {//返回经纬度
+                sendReq(Action.LOCATION, new ICallback() {
+                    @Override
+                    public void onSuccess(Object o) {
+                        Log.d(TAG, "授权成功 LOCATION");
+                        setStatus(WsStatus.AUTH_SUCCESS);
+                        startHeartbeat();
+                        delaySyncData();
+                    }
+
+                    @Override
+                    public void onFail(String msg) {
+                    }
+                });
+            } else if (messageResponse.getType() == 2) {//聊天消息
+                sendReq(Action.LOCATION, new ICallback() {
+                    @Override
+                    public void onSuccess(Object o) {
+                        Log.d(TAG, "授权成功 LOCATION");
+                        setStatus(WsStatus.AUTH_SUCCESS);
+                        startHeartbeat();
+                        delaySyncData();
+                    }
+
+                    @Override
+                    public void onFail(String msg) {
+                    }
+                });
+            } else if (messageResponse.getType() == 3) {//通知
+                sendReq(Action.LOCATION, new ICallback() {
+                    @Override
+                    public void onSuccess(Object o) {
+                        Log.d(TAG, "授权成功 LOCATION");
+                        setStatus(WsStatus.AUTH_SUCCESS);
+                        startHeartbeat();
+                        delaySyncData();
+                    }
+
+                    @Override
+                    public void onFail(String msg) {
+                    }
+                });
+            }
+        }
+
+        @Override
+        public void onConnected(WebSocket websocket, Map<String, List<String>> headers)
+                throws Exception {
+            super.onConnected(websocket, headers);
+            Log.d(TAG, "连接成功");
+            setStatus(WsStatus.CONNECT_SUCCESS);
+            cancelReconnect();//连接成功的时候取消重连,初始化连接次数
+            doAuth();
+        }
+
+        @Override
+        public void onConnectError(WebSocket websocket, WebSocketException exception)
+                throws Exception {
+            super.onConnectError(websocket, exception);
+            Log.d(TAG, "连接错误");
+            setStatus(WsStatus.CONNECT_FAIL);
+            reconnect();//连接错误的时候调用重连方法
+        }
+
+
+        @Override
+        public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer)
+                throws Exception {
+            super.onDisconnected(websocket, serverCloseFrame, clientCloseFrame, closedByServer);
+            Log.d(TAG, "断开连接");
+            setStatus(WsStatus.CONNECT_FAIL);
+            reconnect();//连接断开的时候调用重连方法
+        }
+    }
+
+
+    private void doAuth() {
+        sendReq(Action.LOGIN, new ICallback() {
+            @Override
+            public void onSuccess(Object o) {
+                Log.d(TAG, "授权成功");
+                setStatus(WsStatus.AUTH_SUCCESS);
+                startHeartbeat();
+                delaySyncData();
+            }
+
+            @Override
+            public void onFail(String msg) {
+            }
+        });
+    }
+
+    //同步数据
+    private void delaySyncData() {
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                sendReq(Action.SYNC, new ICallback() {
+                    @Override
+                    public void onSuccess(Object o) {
+
+                    }
+
+                    @Override
+                    public void onFail(String msg) {
+
+                    }
+                });
+            }
+        }, 300);
+    }
+
+
+    private void startHeartbeat() {
+        mHandler.postDelayed(heartbeatTask, HEARTBEAT_INTERVAL);
+    }
+
+
+    private void cancelHeartbeat() {
+        heartbeatFailCount = 0;
+        mHandler.removeCallbacks(heartbeatTask);
+    }
+
+
+    private int heartbeatFailCount = 0;
+    private Runnable heartbeatTask = new Runnable() {
+        @Override
+        public void run() {
+            sendReq(Action.HEARTBEAT, new ICallback() {
+                @Override
+                public void onSuccess(Object o) {
+                    heartbeatFailCount = 0;
+                }
+
+                @Override
+                public void onFail(String msg) {
+                    heartbeatFailCount++;
+                    if (heartbeatFailCount >= 3) {
+                        reconnect();
+                    }
+                }
+            });
+
+            mHandler.postDelayed(this, HEARTBEAT_INTERVAL);
+        }
+    };
 }

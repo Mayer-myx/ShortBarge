@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ShortBarge</string>
-    <string name="license_number">驾照号码：</string>
+    <string name="license_number_driver">驾照号码：</string>
     <string name="emergency_contact">紧急联系人：</string>
     <string name="phone_number">电话号码：</string>
     <string name="current_task">当前任务</string>
@@ -50,4 +50,5 @@
     <string name="log_out">登出</string>
     <string name="press_speak">按住说话</string>
     <string name="connecting">正在连接服务器，请稍后~</string>
+    <string name="license_number_truck">车牌号码：</string>
 </resources>

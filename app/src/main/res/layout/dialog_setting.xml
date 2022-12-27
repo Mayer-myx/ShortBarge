@@ -72,7 +72,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_dn_label"
             android:layout_alignTop="@id/dialog_set_tv_ln"
             android:includeFontPadding="false"
-            android:text="@string/license_number"
+            android:text="@string/license_number_driver"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
 
@@ -174,7 +174,7 @@
             android:layout_alignLeft="@id/dialog_set_tv_cn_label"
             android:layout_alignTop="@id/dialog_set_tv_ln2"
             android:includeFontPadding="false"
-            android:text="@string/license_number"
+            android:text="@string/license_number_truck"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView

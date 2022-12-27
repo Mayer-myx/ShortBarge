@@ -52,7 +52,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private SharedPreferences.Editor editor;
 
     private boolean is_rem_pwd = false;
-    private String username, password;
+    private String username, password, lang;
     private int login_chances;
 
     private TextView login_tv_login, login_tv_forget_pwd;
@@ -80,6 +80,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         username = sp.getString("username", "");
         password = sp.getString("password", "");
         login_chances = sp.getInt("login_chances", 10);
+        lang = sp.getString("locale_language", "en");
+        if(lang.equals("en")){
+            lang = "1";
+        }else{
+            lang = "2";
+        }
 
         initView();
 
@@ -151,9 +157,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                                 }
                                 editor.putInt("login_chances", 10);
                                 editor.commit();
-                                ;
                                 LoginActivity.this.finish();
-                                Intent intent = new Intent(LoginActivity.this, TestActivity.class);
+                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
                                 intent.putExtra("token", loginInfoGson.getToken());
                                 startActivity(intent);
                             } else {

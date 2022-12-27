@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ShortBarge</string>
-    <string name="license_number">License NO.:</string>
+    <string name="license_number_driver">Driver\'s License NO.:</string>
     <string name="emergency_contact">Emergency Contact:</string>
     <string name="phone_number">Phone NO.:</string>
     <string name="current_task">Current Task</string>
@@ -49,4 +49,5 @@
     <string name="log_out">Log out</string>
     <string name="press_speak">Press and hold to speak</string>
     <string name="connecting">Please wait while connecting to the server~</string>
+    <string name="license_number_truck">License NO.:</string>
 </resources>

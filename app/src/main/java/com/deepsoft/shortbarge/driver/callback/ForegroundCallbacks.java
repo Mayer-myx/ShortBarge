@@ -1,4 +1,4 @@
-package com.deepsoft.shortbarge.driver.websocket;
+package com.deepsoft.shortbarge.driver.callback;
 
 import android.app.Activity;
 import android.app.Application;

@@ -6,7 +6,7 @@ import android.content.Context;
 import com.deepsoft.shortbarge.driver.constant.ConstantGlobal;
 import com.deepsoft.shortbarge.driver.utils.MultiLanguageUtil;
 import com.deepsoft.shortbarge.driver.utils.SpUtil;
-import com.deepsoft.shortbarge.driver.websocket.ForegroundCallbacks;
+import com.deepsoft.shortbarge.driver.callback.ForegroundCallbacks;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 
 import java.security.SecureRandom;
@@ -20,7 +20,6 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
 import android.app.Activity;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;

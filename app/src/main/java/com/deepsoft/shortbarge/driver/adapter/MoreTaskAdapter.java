@@ -14,16 +14,19 @@ import java.util.List;
 
 public class MoreTaskAdapter extends BaseQuickAdapter<TaskGson, BaseViewHolder> {
 
-    public MoreTaskAdapter(int layoutResId, @Nullable List<TaskGson> data) {
+    private String lang;
+
+    public MoreTaskAdapter(int layoutResId, @Nullable List<TaskGson> data, String lang) {
         super(layoutResId, data);
+        this.lang = lang;
     }
 
     @Override
     protected void convert(@NonNull BaseViewHolder baseViewHolder, TaskGson task) {
         baseViewHolder.setText(R.id.item_tv_st, task.getStartTime())
                 .setText(R.id.item_tv_at, task.getArrivalTime())
-                .setText(R.id.item_tv_dest, task.getTaskDura(2))
-                .setText(R.id.item_tv_ts, ""+task.getState());
+                .setText(R.id.item_tv_dest, task.getTaskDura(lang))
+                .setText(R.id.item_tv_ts, task.getTaskState(lang));
         if(getItemPosition(task) == 0){
             baseViewHolder.findView(R.id.item_tv_isemer).setVisibility(View.VISIBLE);
             baseViewHolder.findView(R.id.item_bg).setBackgroundResource(R.drawable.round_line_rect_red);

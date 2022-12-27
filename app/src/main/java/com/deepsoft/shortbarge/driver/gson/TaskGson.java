@@ -20,7 +20,7 @@ public class TaskGson extends ResultGson {
     private String nextStation;
     private String nextStationEng;
 
-    public String getTaskState(int type){
+    public String getTaskState(String type){
         Map<Integer, String> res_zh = new HashMap<>();
         res_zh.put(1, "待运输");
         res_zh.put(2, "到达起始点(装货)");
@@ -31,17 +31,30 @@ public class TaskGson extends ResultGson {
         res_zh.put(7, "到达目的地(卸货)");
         res_zh.put(8, "完成");
         res_zh.put(9, "异常换车");
-        return res_zh.get(getState());
+
+        Map<Integer, String> res_en = new HashMap<>();
+        res_en.put(1, "To be transported");
+        res_en.put(2, "Arrival at the starting point (loading)");
+        res_en.put(3, "In transit");
+        res_en.put(4, "Delay");
+        res_en.put(5, "Arrive at the stop");
+        res_en.put(6, "Continue shipping");
+        res_en.put(7, "Arrival at destination (unloading)");
+        res_en.put(8, "Finish");
+        res_en.put(9, "Abnormal car change");
+
+        if(type.equals("2")) return res_zh.get(getState());
+        else return res_en.get(getState());
     }
 
-    public String getTaskDura(int type){
+    public String getTaskDura(String type){
         String str = getDuration();
         int h = 0, min = 0, sub = str.indexOf(',');
         if(sub != -1){
             h = Integer.parseInt(str.substring(0, sub));
             min = Integer.parseInt(str.substring(sub));;
         }
-        if(type == 1) return String.valueOf(h*60+min)+" "+"minutes";
+        if(type.equals("1")) return String.valueOf(h*60+min)+" "+"minutes";
         else return String.valueOf(h*60+min)+" "+"分钟";
     }
 

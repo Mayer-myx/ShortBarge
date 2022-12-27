@@ -39,7 +39,6 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     private ApiInterface apiInterface;
     private Context context;
     private DriverInfoGson driverInfoGson;
-    private String name;
     private UserInfoGson userInfoGson;
 
     private TextView dialog_set_tv_serset, dialog_set_tv_logout, dialog_set_tv_lang,
@@ -55,10 +54,9 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     }
 
     public SettingDialog(@NonNull Context context, DriverInfoGson driverInfoGson,
-                         UserInfoGson userInfoGson, String name) {
+                         UserInfoGson userInfoGson) {
         super(context);
         this.driverInfoGson = driverInfoGson;
-        this.name = name;
         this.userInfoGson = userInfoGson;
     }
 
@@ -92,14 +90,15 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         dialog_set_tv_lang.setOnClickListener(this);
 
         dialog_set_tv_dn = dialog_setting.findViewById(R.id.dialog_set_tv_dn);
-        dialog_set_tv_dn.setText(name);
         dialog_set_tv_pn = dialog_setting.findViewById(R.id.dialog_set_tv_pn);
-        dialog_set_tv_pn.setText(driverInfoGson.getEmergencyPhone());
+        dialog_set_tv_pn.setText(driverInfoGson.getPhone());
         dialog_set_tv_ln = dialog_setting.findViewById(R.id.dialog_set_tv_ln);
-        dialog_set_tv_ln.setText(driverInfoGson.getLicensePlate());
+        dialog_set_tv_ln.setText(driverInfoGson.getLicense());
 
+        String driverId = ""+driverInfoGson.getDriverId();
+        if(driverId.length() == 1) driverId = "0"+driverId;
         dialog_set_tv_cn = dialog_setting.findViewById(R.id.dialog_set_tv_cn);
-        dialog_set_tv_cn.setText(driverInfoGson.getDriverId());
+        dialog_set_tv_cn.setText(driverId);
         dialog_set_tv_ln2 = dialog_setting.findViewById(R.id.dialog_set_tv_ln2);
         dialog_set_tv_ln2.setText(driverInfoGson.getLicensePlate());
         dialog_set_tv_gps = dialog_setting.findViewById(R.id.dialog_set_tv_gps);
@@ -111,8 +110,10 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         String lang = dialog_set_tv_lang_label.getText().toString();
         if(lang.equals("Language")){
             dialog_set_tv_lang.setText("English");
+            dialog_set_tv_dn.setText(driverInfoGson.getNameEng());
         }else{
             dialog_set_tv_lang.setText("中文");
+            dialog_set_tv_dn.setText(driverInfoGson.getName());
         }
     }
 

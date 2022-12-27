@@ -35,6 +35,7 @@ import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
+import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdate;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
 import com.tencent.tencentmap.mapsdk.maps.MapView;
@@ -71,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SettingDialog settingDialog;
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
-    private String currentName;
+    private String truckId, driverId, lang;
     private UserInfoGson currentUserInfoGson;
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
@@ -95,9 +96,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NavigationBarUtil.hideNavigationBar(getWindow());
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
+        String token = getIntent().getStringExtra("token");
+        SharedPreferences sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
+        lang = sp.getString("locale_language", "en");
+        if(lang.equals("en")){
+            lang = "1";
+        }else{
+            lang = "2";
+        }
+//        WsManager.getInstance().init(token);
         initView();
         getDriverInfo();
-        getUserName();
         getDriverTask();
         getWeatherInfo();
     }
@@ -276,13 +285,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     List<DriverInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), DriverInfoGson.class);
                     DriverInfoGson driverInfoGson = list.get(0);
                     currentDriverInfo = driverInfoGson;
-                    // todo:系统错误？
-                    getUserDetail(driverInfoGson.getDriverId());
                     main_tv_ln.setText(driverInfoGson.getLicensePlate());
-                    main_tv_ec.setText(driverInfoGson.getEmergencyContactEng());
-                    main_tv_pn.setText(driverInfoGson.getEmergencyPhone());
-                    String truckId = driverInfoGson.getTruckId();
+                    if(lang.equals("1")){
+                        main_tv_ec.setText(driverInfoGson.getEmergencyContactEng());
+                        main_tv_driver.setText(driverInfoGson.getNameEng());
+                    }else {
+                        main_tv_ec.setText(driverInfoGson.getEmergencyContact());
+                        main_tv_driver.setText(driverInfoGson.getName());
+                    }
+                    main_tv_pn.setText(driverInfoGson.getPhone());
+                    truckId = ""+driverInfoGson.getTruckId();
                     if(truckId.length() == 1) truckId = "0"+truckId;
+                    driverId = ""+driverInfoGson.getDriverId();
+                    if(driverId.length() == 1) driverId = "0"+driverId;
                     main_tv_truck.setText(truckId);
                 }else{
                     Toast.makeText(MainActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
@@ -298,8 +313,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void getWeatherInfo(){
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
-        apiInterface.getWeatherInfo("2").enqueue(new Callback<ResultGson>() {
-            // todo: 这里我直接写了1-中文，2-英文，但是这个实际上要根据系统的！
+        String wea = lang.equals("1") ? "2" : "1";
+        apiInterface.getWeatherInfo(wea).enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 Log.e(TAG, "getWeatherInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
@@ -333,7 +348,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.e(TAG, "getUserName run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
-                    currentName = resultGson.getData().toString();
+//                    currentName = resultGson.getData().toString();
                     main_tv_driver.setText(resultGson.getData().toString());
                 }else{
                     Toast.makeText(MainActivity.this, "getUserName连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
@@ -360,9 +375,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     currentTask = taskGsonList.get(0);
                     main_tv_st.setText(currentTask.getStartTime());
                     main_tv_at.setText(currentTask.getArrivalTime());
-                    main_tv_dest.setText(currentTask.getTaskDura(2));
-                    main_tv_ts.setText(""+currentTask.getState());
-                    moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList);
+                    main_tv_dest.setText(currentTask.getTaskDura(lang));
+                    main_tv_ts.setText(""+currentTask.getTaskState(lang));
+                    moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
                     main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
                     main_rv_tasks.setAdapter(moreTaskAdapter);
                     main_tv_tasknum.setText(""+taskGsonList.size());
@@ -400,6 +415,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
     }
+
 
     private void setMaker(double lat, double lon){
         LatLng position = new LatLng(lat, lon);
@@ -467,6 +483,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(messageDialog != null){
             messageDialog.dismiss();
         }
+//        WsManager.getInstance().disconnect();
     }
 
 
@@ -477,12 +494,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 WaitConnectDialog.getInstance().showWaitConnectDialog(this, getLayoutInflater());
                 break;
             case R.id.main_tv_vm:
-                messageDialog = new MessageDialog(MainActivity.this);
+                messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);
                 messageDialog.showMessageDialog(this, getLayoutInflater());
                 break;
             case R.id.main_iv_setting:
-                settingDialog = new SettingDialog(MainActivity.this, currentDriverInfo,
-                        currentUserInfoGson, currentName);
+                settingDialog = new SettingDialog(MainActivity.this, currentDriverInfo, currentUserInfoGson);
                 settingDialog.showSettingDialog(this, getLayoutInflater());
                 break;
         }

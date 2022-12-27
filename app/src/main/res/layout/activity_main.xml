@@ -188,7 +188,7 @@
                 android:layout_alignLeft="@id/main_tv_ec_label"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
-                android:text="@string/license_number"
+                android:text="@string/license_number_driver"
                 android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
             <TextView

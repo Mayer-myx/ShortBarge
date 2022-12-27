@@ -1,7 +1,6 @@
 package com.deepsoft.shortbarge.driver.view;
 
 import android.content.Context;
-import android.content.Intent;
 import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Environment;
@@ -14,13 +13,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MessageAdapter;
-import com.deepsoft.shortbarge.driver.gson.MessageGson;
+import com.deepsoft.shortbarge.driver.gson.MessageBean;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
@@ -52,10 +50,10 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
     private MediaRecorder mMediaRecorder;
     private MediaPlayer mMediaPlayer;
     private File mFile;
-    private String filename, name, uploadUrl;
+    private String filename, name, uploadUrl, resp, driver;
     private int fileTime;
     private long startTime, endTime;
-    private List<MessageGson> messageGsons = new ArrayList<>();
+    private List<MessageBean> messageBeans = new ArrayList<>();
 
     private MessageAdapter messageAdapter;
     private LinearLayoutManager layoutManager;
@@ -72,6 +70,12 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         super(context, themeResId);
     }
 
+
+    public MessageDialog(@NonNull Context context, String resp, String driver){
+        super(context);
+        this.resp = resp;
+        this.driver = driver;
+    }
 
 //    private MessageDialog(){
 //    }
@@ -124,16 +128,14 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                         stopSound();
                         uploadFile();
 
-                        Log.e(TAG, "start="+startTime+"\nendtime="+endTime + "\nfiletime="+fileTime);
-                        MessageGson messageGson2 = new MessageGson();
                         StringBuilder sbjyj = new StringBuilder("");
                         int len = fileTime > 60 ? 60 : fileTime;
                         for(int j = 0; j < len; j++)
                             sbjyj.append(" ");
-                        messageGson2.setMsg(sbjyj.toString()+fileTime+"″");
-                        messageGson2.setType(1);
-                        messageGsons.add(messageGson2);
-                        messageAdapter.notifyItemChanged(messageGsons.size()-1);
+                        MessageBean messageBean2 = new MessageBean(sbjyj.toString()+fileTime+"″", true);
+                        messageBean2.setUrl(filename);
+                        messageBeans.add(messageBean2);
+                        messageAdapter.notifyItemChanged(messageBeans.size()-1);
                         layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
                         break;
                 }
@@ -141,17 +143,14 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             }
         });
 
-        // test rv_mes datalist
         for(int i = 0;i < 3; i++){
-            MessageGson messageGson1 = new MessageGson();
-            messageGson1.setMsg("hhh\nhhh\nhhhh\nhhh");
-            messageGson1.setType(1);
-            messageGsons.add(messageGson1);
+            MessageBean messageBean1 = new MessageBean("hhh\nhhh\nhhhh\nhhh", false);
+            messageBeans.add(messageBean1);
         }
         dialog_vm_rv = dialog_message.findViewById(R.id.dialog_vm_rv);
         layoutManager = new LinearLayoutManager(context);
         dialog_vm_rv.setLayoutManager(layoutManager);
-        messageAdapter = new MessageAdapter(R.layout.item_message, messageGsons, "03", "02");
+        messageAdapter = new MessageAdapter(R.layout.item_message, messageBeans, context, resp, driver);
         dialog_vm_rv.setAdapter(messageAdapter);
         layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
     }
@@ -228,40 +227,6 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                 Log.i(TAG, "initPath: "+f.getName()+"\n");
             }
             mMediaRecorder = null;
-        }
-    }
-
-
-    /**
-     * 播放
-     */
-    private void playSound() {
-        mMediaPlayer = new MediaPlayer();
-        if(filename != null && !filename.equals("")) {
-            try {
-                mMediaPlayer.setDataSource(filename);
-                mMediaPlayer.prepare();
-                mMediaPlayer.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-                    @Override
-                    public void onPrepared(MediaPlayer mediaPlayer) {
-                        mMediaPlayer.start();
-                    }
-                });
-                mMediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-                    @Override
-                    public void onCompletion(MediaPlayer mediaPlayer) {
-                        if (mMediaPlayer.isPlaying()) {
-                            Log.i(TAG, "onCompletion:正在播放");
-                        } else {
-                            mMediaPlayer.release();
-                        }
-                    }
-                });
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }else{
-            Toast.makeText(context, "当前没有音频",Toast.LENGTH_SHORT).show();
         }
     }
 }
