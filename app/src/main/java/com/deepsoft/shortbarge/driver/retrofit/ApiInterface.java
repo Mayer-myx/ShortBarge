@@ -109,7 +109,7 @@ public interface ApiInterface {
      */
     @GET("transport/changeTaskState")
     Call<ResultGson> changeTaskState(@Query("transportTaskId") String transportTaskId,
-                              @Query("state") String state);
+                              @Query("state") Integer state);
 
     /**
      * 上传文件 录音

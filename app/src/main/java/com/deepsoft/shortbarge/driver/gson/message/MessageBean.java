@@ -1,4 +1,4 @@
-package com.deepsoft.shortbarge.driver.gson;
+package com.deepsoft.shortbarge.driver.gson.message;
 
 public class MessageBean {
     // websocket消息

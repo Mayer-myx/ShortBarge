@@ -10,7 +10,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -18,7 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MessageAdapter;
-import com.deepsoft.shortbarge.driver.gson.MessageBean;
+import com.deepsoft.shortbarge.driver.gson.message.MessageBean;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;

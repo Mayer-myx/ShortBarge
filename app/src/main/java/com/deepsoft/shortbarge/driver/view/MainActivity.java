@@ -417,6 +417,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    private void changeTaskState(String transportTaskId, Integer state){
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface.changeTaskState(transportTaskId, state).enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.e(TAG, "changeTaskState run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    currentTask.setState(state);
+                    main_tv_ts.setText(currentTask.getTaskState(lang));
+                    moreTaskAdapter.notifyItemChanged(0);
+                }else{
+                    Toast.makeText(MainActivity.this, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "changeTaskState onFailure:"+t);
+            }
+        });
+    }
+
+
     private void setMaker(double lat, double lon){
         LatLng position = new LatLng(lat, lon);
         BitmapDescriptor custom = BitmapDescriptorFactory.fromResource(R.mipmap.scatter_car);
@@ -491,7 +515,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.main_tv_arrive:
-                WaitConnectDialog.getInstance().showWaitConnectDialog(this, getLayoutInflater());
+//                WaitConnectDialog.getInstance().showWaitConnectDialog(this, getLayoutInflater());
+                changeTaskState(currentTask.getTransportTaskId(), 8);
                 break;
             case R.id.main_tv_vm:
                 messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);

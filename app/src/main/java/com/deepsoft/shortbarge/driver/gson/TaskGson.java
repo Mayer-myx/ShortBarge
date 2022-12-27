@@ -2,6 +2,7 @@ package com.deepsoft.shortbarge.driver.gson;
 
 import android.util.Log;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,7 +60,8 @@ public class TaskGson extends ResultGson {
     }
 
     public String getTransportTaskId() {
-        return transportTaskId;
+        BigDecimal bigDecimal = new BigDecimal(Double.parseDouble(transportTaskId));
+        return bigDecimal.toPlainString();
     }
 
     public void setTransportTaskId(String transportTaskId) {
