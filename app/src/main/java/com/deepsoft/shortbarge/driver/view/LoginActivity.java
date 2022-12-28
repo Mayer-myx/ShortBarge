@@ -50,7 +50,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private int PERMISSION_STORAGE_CODE = 10001;
     private String[] PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.RECORD_AUDIO, Manifest.permission.WAKE_LOCK};
+            Manifest.permission.RECORD_AUDIO, Manifest.permission.WAKE_LOCK, Manifest.permission.CHANGE_NETWORK_STATE,
+            Manifest.permission.BLUETOOTH, Manifest.permission.FOREGROUND_SERVICE, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS};
 
     private ApiInterface apiInterface;
     private SharedPreferences sp;
@@ -94,6 +96,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (EasyPermissions.hasPermissions(this, PERMS)) {
             login_tv_login.setClickable(true);
             login_tv_forget_pwd.setClickable(true);
+            MainActivity.setUserAgreePrivacy(true);
         } else {
             // 没有申请过权限，现在去申请
             /**
@@ -115,18 +118,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
 
     private void initView(){
-        login_tv_login = findViewById(R.id.login_tv_login);
-        login_tv_login.setOnClickListener(this);
-        PressUtil.setPressChange(this, login_tv_login);
-
-        login_tv_forget_pwd = findViewById(R.id.login_tv_forget_pwd);
-        login_tv_forget_pwd.setOnClickListener(this);
-        PressUtil.setPressChange(this, login_tv_forget_pwd);
-
         login_et_username = findViewById(R.id.login_et_username);
         login_et_username.setText(username);
         login_et_pwd = findViewById(R.id.login_et_pwd);
         login_et_pwd.setText(password);
+
+        login_tv_login = findViewById(R.id.login_tv_login);
+        login_tv_login.setOnClickListener(this);
+//        PressUtil.setPressChange(this, login_tv_login);
+
+        login_tv_forget_pwd = findViewById(R.id.login_tv_forget_pwd);
+        login_tv_forget_pwd.setOnClickListener(this);
+//        PressUtil.setPressChange(this, login_tv_forget_pwd);
 
         login_cb_rem_pwd = findViewById(R.id.login_cb_rem_pwd);
         login_cb_rem_pwd.setChecked(is_rem_pwd);
@@ -190,7 +193,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.login_tv_login:
-                // 登录后获取司机信息+跳转
+                // 登录后获取信息+跳转
                 username = login_et_username.getText().toString().trim();
                 password = login_et_pwd.getText().toString().trim();
                 if(username.length() != 0 && password.length() != 0) {

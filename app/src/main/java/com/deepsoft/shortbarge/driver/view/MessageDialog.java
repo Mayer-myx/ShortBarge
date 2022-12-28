@@ -180,14 +180,14 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                 Log.i(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
 
                 //聊天消息
-                WsManager.getInstance().sendReq(new Action("{\"message\": \"{\\\"msg\\\":\\\""+resultGson.getData().toString()
-                        +"\\\",\\\"msgType\\\":2}\",\"type\": 2}", 2, null));
+                WsManager.getInstance().sendReq(new Action("{\"message\": \"{\"msg\":\""+resultGson.getData().toString()
+                        +"\",\"msgType\":2}\",\"type\": 2}", 2, null));
                 WsManager.getInstance().sendReq(new Action("{\"message\":\"{" +
-                        "\\\"chatMessageId\\\":8" +
-                        ",\\\"from\\\":"+driver
-                        +",\\\"msg\\\":\\\"hello test 你好\\\"" +
-                        ",\\\"msgType\\\":1" +
-                        ",\\\"to\\\":"+resp+"}\",\"type\":3}", 3, null));
+                        "\"chatMessageId\":8" +
+                        ",\"from\":"+driver
+                        +",\"msg\":\"hello test 你好\"" +
+                        ",\"msgType\":1" +
+                        ",\"to\":"+resp+"}\",\"type\":3}", 3, null));
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {

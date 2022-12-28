@@ -139,8 +139,8 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.dialog_set_tv_serset:
-                dismiss();
-                ((AppCompatActivity)context).finish();
+//                dismiss();
+//                ((AppCompatActivity)context).finish();
                 context.startActivity(new Intent(context, ServerConfigActivity.class));
                 break;
             case R.id.dialog_set_tv_logout:

@@ -10,19 +10,20 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.bumptech.glide.Glide;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
 import com.deepsoft.shortbarge.driver.callback.ICallback;
@@ -40,8 +41,14 @@ import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
+import com.deepsoft.shortbarge.driver.widget.BaseApplication;
+import com.tencent.map.geolocation.TencentLocation;
+import com.tencent.map.geolocation.TencentLocationListener;
+import com.tencent.map.geolocation.TencentLocationManager;
+import com.tencent.map.geolocation.TencentLocationRequest;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdate;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
+import com.tencent.tencentmap.mapsdk.maps.LocationSource;
 import com.tencent.tencentmap.mapsdk.maps.MapView;
 import com.tencent.tencentmap.mapsdk.maps.TencentMap;
 import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptor;
@@ -55,6 +62,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -64,18 +72,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private final static String TAG = "MainActivity";
 
     private ApiInterface apiInterface;
     private TencentMap mTencentMap;
     private Marker mCustomMarker = null;
-    private LocationManager mLocationMgr = null;
-    private Criteria mCriteria = new Criteria();
-    private Handler mHandler = new Handler();
-    private boolean isLocationEnable = false;
-    private Location location;
+    private TencentLocationManager locationManager;
+    private TencentLocationRequest locationRequest;
+    private TencentLocation tencentLocation;
 
     private MessageDialog messageDialog;
     private SettingDialog settingDialog;
@@ -83,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TaskGson currentTask;
     private String truckId, driverId, lang;
     private UserInfoGson currentUserInfoGson;
+    private SharedPreferences sp;
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -98,6 +105,78 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private View main_v_isvm;
 
 
+    private LocationSource.OnLocationChangedListener locationChangedListener;
+    private LocationSource locationSource = new LocationSource() {
+        @Override
+        public void activate(LocationSource.OnLocationChangedListener onLocationChangedListener) {
+            //这里我们将地图返回的位置监听保存为当前 Activity 的成员变量
+            locationChangedListener = onLocationChangedListener;
+            //开启定位
+            int err = locationManager.requestLocationUpdates(locationRequest, locationListener, Looper.myLooper());
+            switch (err) {
+                case 1:
+                    Toast.makeText(MainActivity.this, "设备缺少使用腾讯定位服务需要的基本条件", Toast.LENGTH_SHORT).show();
+                    break;
+                case 2:
+                    Toast.makeText(MainActivity.this, "manifest 中配置的 key 不正确", Toast.LENGTH_SHORT).show();
+                    break;
+                case 3:
+                    Toast.makeText(MainActivity.this, "自动加载libtencentloc.so失败", Toast.LENGTH_SHORT).show();
+                    break;
+                default:
+                    break;
+            }
+        }
+        @Override
+        public void deactivate() {
+            //当不需要展示定位点时，需要停止定位并释放相关资源
+            locationManager.removeUpdates(locationListener);
+            locationManager = null;
+            locationRequest = null;
+            locationChangedListener = null;
+        }
+    };
+
+    private TencentLocationListener locationListener = new TencentLocationListener() {
+
+        @Override
+        public void onLocationChanged(TencentLocation tencentLocation, int i, String s) {
+            if (tencentLocation != null && i == TencentLocation.ERROR_OK) {
+                MainActivity.this.tencentLocation = tencentLocation;
+                Log.e(TAG, String.format("定位对象经度：%f，纬度：%f，速度：%f米，精度：%d米",
+                        tencentLocation.getLongitude(), tencentLocation.getLatitude(),
+                        tencentLocation.getSpeed(), Math.round(tencentLocation.getAccuracy())));
+
+                initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
+                setMaker(tencentLocation.getLatitude(), tencentLocation.getLongitude());
+            } else {
+                Toast.makeText(MainActivity.this, "暂未获取到定位对象", Toast.LENGTH_SHORT).show();
+            }
+
+
+            //其中 locationChangeListener 为 LocationSource.active 返回给用户的位置监听器
+            //用户通过这个监听器就可以设置地图的定位点位置
+            if(i == TencentLocation.ERROR_OK && locationChangedListener != null){
+                Location location = new Location(tencentLocation.getProvider());
+                //设置经纬度
+                location.setLatitude(tencentLocation.getLatitude());
+                location.setLongitude(tencentLocation.getLongitude());
+                //设置精度，这个值会被设置为定位点上表示精度的圆形半径
+                location.setAccuracy(tencentLocation.getAccuracy());
+                //设置定位标的旋转角度，注意 tencentLocation.getBearing() 只有在 gps 时才有可能获取
+                location.setBearing((float) tencentLocation.getBearing());
+                //将位置信息返回给地图
+                locationChangedListener.onLocationChanged(location);
+            }
+        }
+
+        @Override
+        public void onStatusUpdate(String s, int i, String s1) {
+
+        }
+    };
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -107,14 +186,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NavigationBarUtil.hideNavigationBar(getWindow());
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
-        SharedPreferences sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
+        sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         String token = sp.getString("token", "");
-        lang = sp.getString("locale_language", "en");
-        lang = lang.equals("en") ? "1": "2";
 
-        WsManager.getInstance().init(token);
+
+        EventBus.getDefault().register(this);
+        TencentLocationManager.setUserAgreePrivacy(true);
+//        WsManager.getInstance().init(token);
 
         initView();
+        initLocation();
 
         getDriverInfo();
         getDriverTask();
@@ -126,96 +207,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 初始化定位服务
      */
     private void initLocation() {
-        // 从系统服务中获取定位管理器
-        mLocationMgr = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-        // 设置定位精确度。Criteria.ACCURACY_COARSE表示粗略，Criteria.ACCURACY_FIN表示精细
-        mCriteria.setAccuracy(Criteria.ACCURACY_FINE);
-        // 设置是否需要海拔信息
-        mCriteria.setAltitudeRequired(true);
-        // 设置是否需要方位信息
-        mCriteria.setBearingRequired(true);
-        // 设置是否允许运营商收费
-        mCriteria.setCostAllowed(true);
-        // 设置对电源的需求
-        mCriteria.setPowerRequirement(Criteria.POWER_LOW);
-        // 获取定位管理器的最佳定位提供者
-        String bestProvider = mLocationMgr.getBestProvider(mCriteria, true);
-        if (mLocationMgr.isProviderEnabled(bestProvider)) { // 定位提供者当前可用
-            Toast.makeText(this, "正在获取" + bestProvider + "定位对象", Toast.LENGTH_SHORT).show();
-            Log.e(TAG, String.format("定位类型=%s", bestProvider));
-            beginLocation(bestProvider);
-            isLocationEnable = true;
-        } else { // 定位提供者暂不可用
-            Toast.makeText(MainActivity.this, ""+bestProvider+"定位不可用", Toast.LENGTH_SHORT).show();
-            isLocationEnable = false;
-        }
+        //用于访问腾讯定位服务的类, 周期性向客户端提供位置更新
+        locationManager = TencentLocationManager.getInstance(this);
+        //创建定位请求
+        locationRequest = TencentLocationRequest.create();
+        locationRequest.setRequestLevel(TencentLocationRequest.REQUEST_LEVEL_GEO);
+        locationRequest.setAllowGPS(true);
+        locationRequest.setAllowDirection(true);
+        locationRequest.setIndoorLocationMode(true);
+        // 设置定位模式
+//        int locMode = TencentLocationRequest.HIGH_ACCURACY_MODE;
+//        locationRequest.setLocMode(locMode);
+//        locationRequest.setGpsFirst(true);
+//        // 用户可定义GPS超时时间，超过该时间仍然没有卫星定位结果将返回网络定位结果
+//        locationRequest.setGpsTimeOut(5*1000);
+        locationRequest.setInterval(3000);
     }
-
-    /**
-     * 设置定位结果文本
-     */
-    private void setLocationText(Location location) {
-        if (location != null) {
-            this.location = location;
-            Log.e(TAG, String.format("定位对象经度：%f，纬度：%f，速度：%f米，精度：%d米",
-                    location.getLongitude(), location.getLatitude(),
-                    location.getSpeed(), Math.round(location.getAccuracy())));
-
-            initMap(location.getLatitude(), location.getLongitude());
-            setMaker(location.getLatitude(), location.getLongitude());
-        } else {
-            Toast.makeText(this, "暂未获取到定位对象", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    /**
-     * 开始定位
-     */
-    private void beginLocation(String method) {
-        // 检查当前设备是否已经开启了定位功能
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(this, "请授予定位权限并开启定位功能", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        // 设置定位管理器的位置变更监听器
-        mLocationMgr.requestLocationUpdates(method, 300, 0, mLocationListener);
-        // 获取最后一次成功定位的位置信息
-        Location location = mLocationMgr.getLastKnownLocation(method);
-        setLocationText(location);
-    }
-
-    /**
-     * 定义一个位置变更监听器
-     */
-    private LocationListener mLocationListener = new LocationListener() {
-        @Override
-        public void onLocationChanged(Location location) {
-            setLocationText(location);
-        }
-
-        @Override
-        public void onProviderDisabled(String arg0) {}
-
-        @Override
-        public void onProviderEnabled(String arg0) {}
-
-        @Override
-        public void onStatusChanged(String arg0, int arg1, Bundle arg2) {}
-    };
-
-    /**
-     * 定义一个刷新任务，若无法定位则每隔一秒就尝试定位
-     */
-    private Runnable mRefresh = new Runnable() {
-        @Override
-        public void run() {
-            if (!isLocationEnable) {
-                initLocation();
-                mHandler.postDelayed(this, 1000);
-            }
-        }
-    };
 
 
     private void initMap(double lat, double lon){
@@ -232,6 +239,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
         });
         mTencentMap.setMapType(TencentMap.MAP_TYPE_NORMAL);
+
+        //地图上设置定位数据源
+        mTencentMap.setLocationSource(locationSource);
+        //设置当前位置可见
+        mTencentMap.setMyLocationEnabled(true);
+
+        //SDK版本4.3.5新增内置定位标点击回调监听
+//        mTencentMap.setMyLocationClickListener(new TencentMap.OnMyLocationClickListener() {
+//            @Override
+//            public boolean onMyLocationClicked(LatLng latLng) {
+//                Toast.makeText(MainActivity.this, "内置定位标点击回调", Toast.LENGTH_SHORT).show();
+//                return true;
+//            }
+//        });
     }
 
 
@@ -300,6 +321,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     DriverInfoGson driverInfoGson = list.get(0);
                     currentDriverInfo = driverInfoGson;
                     main_tv_ln.setText(driverInfoGson.getLicensePlate());
+                    lang = sp.getString("locale_language", "en");
+                    lang = lang.equals("en") ? "1": "2";
                     if(lang.equals("1")){
                         main_tv_ec.setText(driverInfoGson.getEmergencyContactEng());
                         main_tv_driver.setText(driverInfoGson.getNameEng());
@@ -328,6 +351,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void getWeatherInfo(){
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        lang = sp.getString("locale_language", "en");
+        lang = lang.equals("en") ? "1": "2";
         String wea = lang.equals("1") ? "2" : "1";
         apiInterface.getWeatherInfo(wea).enqueue(new Callback<ResultGson>() {
             @Override
@@ -339,10 +364,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     WeatherGson weatherGson = list.get(0);
                     main_tv_wea.setText(weatherGson.getWeather() + " " + weatherGson.getTemperature());
                     main_tv_date.setText(weatherGson.getDate());
-                    Glide.with(MainActivity.this)
-                            .load(weatherGson.getIcon())
-                            .into(main_iv_wea);
-                    Log.e(TAG, "weatherGson.getIcon()="+weatherGson.getIcon());
+                    main_iv_wea.setColorFilter(Color.WHITE);
+                    Log.e(TAG, ""+weatherGson.getIcon());
+                    main_iv_wea.setImageResource(getResources().getIdentifier("wea_"+weatherGson.getIcon(), "drawable",
+                            BaseApplication.getApplication().getPackageName()));
                 }else{
                     Toast.makeText(MainActivity.this, "getWeatherInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
@@ -389,6 +414,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (resultGson.getSuccess()) {
                     taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
                     currentTask = taskGsonList.get(0);
+                    lang = sp.getString("locale_language", "en");
+                    lang = lang.equals("en") ? "1": "2";
                     main_tv_st.setText(currentTask.getStartTime());
                     main_tv_at.setText(currentTask.getArrivalTime());
                     main_tv_dest.setText(currentTask.getTaskDura(lang));
@@ -442,6 +469,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
                     currentTask.setState(state);
+                    lang = sp.getString("locale_language", "en");
+                    lang = lang.equals("en") ? "1": "2";
                     main_tv_ts.setText(currentTask.getTaskState(lang));
                     moreTaskAdapter.notifyItemChanged(0);
                 }else{
@@ -469,12 +498,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    /**
+     * 设置用户是否同意隐私协议政策
+     * 调用其他接口前必须首先调用此接口进行用户是否同意隐私政策的设置，传入true后才能正常使用定位功能
+     * @param isAgree 是否同意隐私政策
+     */
+    public static void setUserAgreePrivacy(boolean isAgree) {
+//        isAgreePrivacy = isAgree;
+    }
 
     @Override
     protected void onStart() {
         super.onStart();
         main_mv_map.onStart();
-        EventBus.getDefault().register(this);
     }
 
 
@@ -482,9 +518,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         main_mv_map.onResume();
-        mHandler.removeCallbacks(mRefresh); // 移除定位刷新任务
-        initLocation();
-        mHandler.postDelayed(mRefresh, 100); // 延迟100毫秒启动定位刷新任务
     }
 
 
@@ -499,6 +532,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStop() {
         super.onStop();
         main_mv_map.onStop();
+//        WsManager.getInstance().disconnect();
     }
 
 
@@ -514,17 +548,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onDestroy();
         mCustomMarker.remove();
         main_mv_map.onDestroy();
-        if (mLocationMgr != null) {
-            mLocationMgr.removeUpdates(mLocationListener);
-        }
-        mLocationListener = null;
         if(settingDialog != null){
             settingDialog.dismiss();
         }
         if(messageDialog != null){
             messageDialog.dismiss();
         }
-        WsManager.getInstance().disconnect();
+        locationManager.removeUpdates(locationListener);
         EventBus.getDefault().unregister(this);
     }
 
@@ -552,10 +582,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onEventMainThread(MessageResponse messageResponse){
         if(messageResponse.getType() == 1){
             //返回经纬度
-            Action action = new Action("{\"message\":\"{\\\"driverId\\\":"+driverId
-                    +",\\\"truckId\\\":"+truckId
-                    +",\\\"lng\\\":"+location.getLongitude()
-                    +",\\\"lat\\\":"+location.getLatitude()+"}\",\"type\":1}", 1, null);
+            Action action = new Action("{\"message\":\"{\"driverId\":"+driverId
+                    +",\"truckId\":"+truckId
+                    +",\"lng\":"+tencentLocation.getLongitude()
+                    +",\"lat\":"+tencentLocation.getLatitude()+"}\",\"type\":1}", 1, null);
             WsManager.getInstance().sendReq(action);
         }else if(messageResponse.getType() == 2){
             //聊天消息

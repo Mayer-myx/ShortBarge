@@ -5,7 +5,7 @@ public class WeatherGson extends ResultGson{
     private String weather;
     private String temperature;
     private String date;
-    private String icon;
+    private int icon;
 
     public String getWeather() {
         return weather;
@@ -31,11 +31,11 @@ public class WeatherGson extends ResultGson{
         this.date = date;
     }
 
-    public String getIcon() {
+    public int getIcon() {
         return icon;
     }
 
-    public void setIcon(String icon) {
+    public void setIcon(int icon) {
         this.icon = icon;
     }
 }
