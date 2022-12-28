@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.BuildConfig;
 import com.deepsoft.shortbarge.driver.R;
+import com.deepsoft.shortbarge.driver.constant.ConstantGlobal;
 import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.LoginInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
@@ -50,8 +51,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private int PERMISSION_STORAGE_CODE = 10001;
     private String[] PERMS = {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.INTERNET,
             Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.RECORD_AUDIO, Manifest.permission.WAKE_LOCK, Manifest.permission.CHANGE_NETWORK_STATE,
-            Manifest.permission.BLUETOOTH, Manifest.permission.FOREGROUND_SERVICE, Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            Manifest.permission.RECORD_AUDIO, Manifest.permission.WAKE_LOCK,
             Manifest.permission.ACCESS_LOCATION_EXTRA_COMMANDS};
 
     private ApiInterface apiInterface;
@@ -96,7 +96,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         if (EasyPermissions.hasPermissions(this, PERMS)) {
             login_tv_login.setClickable(true);
             login_tv_forget_pwd.setClickable(true);
-            MainActivity.setUserAgreePrivacy(true);
         } else {
             // 没有申请过权限，现在去申请
             /**
@@ -125,11 +124,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         login_tv_login = findViewById(R.id.login_tv_login);
         login_tv_login.setOnClickListener(this);
-//        PressUtil.setPressChange(this, login_tv_login);
+        PressUtil.setPressChange(this, login_tv_login);
 
         login_tv_forget_pwd = findViewById(R.id.login_tv_forget_pwd);
         login_tv_forget_pwd.setOnClickListener(this);
-//        PressUtil.setPressChange(this, login_tv_forget_pwd);
+        PressUtil.setPressChange(this, login_tv_forget_pwd);
 
         login_cb_rem_pwd = findViewById(R.id.login_cb_rem_pwd);
         login_cb_rem_pwd.setChecked(is_rem_pwd);
@@ -156,6 +155,13 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if (is_rem_pwd) {
                         editor.putString("username", username);
                         editor.putString("password", password);
+                    }
+                    if(login_tv_login.getText().toString().equals("Log in")) {
+                        editor.putString(ConstantGlobal.LOCALE_LANGUAGE, "en");
+                        editor.putString(ConstantGlobal.LOCALE_COUNTRY, "US");
+                    }else{
+                        editor.putString(ConstantGlobal.LOCALE_LANGUAGE, "zh");
+                        editor.putString(ConstantGlobal.LOCALE_COUNTRY, "CN");
                     }
                     editor.putInt("login_chances", 10);
                     editor.commit();
@@ -233,6 +239,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
      */
     @Override
     public void onPermissionsGranted(int requestCode, @NonNull List<String> perms) {
+        login_tv_login.setClickable(true);
+        login_tv_forget_pwd.setClickable(true);
     }
 
 
@@ -260,6 +268,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             //从设置页面返回，判断权限是否申请。
             if (EasyPermissions.hasPermissions(this, PERMS)) {
                 Log.e(TAG, "权限申请成功!");
+                login_tv_login.setClickable(true);
+                login_tv_forget_pwd.setClickable(true);
             } else {
                 Log.e(TAG, "权限申请失败!");
             }

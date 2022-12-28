@@ -69,8 +69,8 @@ dependencies {
 
     // 腾讯地图
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.tencent.map:tencent-map-vector-sdk:4.3.4'
-    implementation 'com.tencent.map.geolocation:TencentLocationSdk-openplatform:7.4.6'
+    implementation 'com.tencent.map:tencent-map-vector-sdk:4.3.5'
+    implementation 'com.tencent.map.geolocation:TencentLocationSdk-openplatform:7.4.7'
 
     // retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.6.2'
