@@ -28,6 +28,8 @@ import com.neovisionaries.ws.client.WebSocketException;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import com.neovisionaries.ws.client.WebSocketFrame;
 
+import org.greenrobot.eventbus.EventBus;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
@@ -42,9 +44,6 @@ public class WsManager {
     private static WsManager mInstance;
     private final String TAG = this.getClass().getSimpleName();
 
-    /**
-     * WebSocket config
-     */
     private static final int FRAME_QUEUE_SIZE = 5;
     private static final int CONNECT_TIMEOUT = 5000;
 //    private static final String DEF_TEST_URL = "测试服地址";//测试服默认地址
@@ -150,8 +149,6 @@ public class WsManager {
             return;
         }
 
-        //这里其实应该还有个用户是否登录了的判断 因为当连接成功后我们需要发送用户信息到服务端进行校验
-        //由于我们这里是个demo所以省略了
         if (ws != null &&
                 !ws.isOpen() &&//当前连接断开了
                 getStatus() != WsStatus.CONNECTING) {//不是正在重连状态
@@ -212,6 +209,9 @@ public class WsManager {
         return false;
     }
 
+    public void sendReq(Action action) {
+        sendReq(action, iCallback, REQUEST_TIMEOUT);
+    }
 
     public void sendReq(Action action, ICallback callback) {
         sendReq(action, callback, REQUEST_TIMEOUT);
@@ -312,69 +312,32 @@ public class WsManager {
             Log.d(TAG, "receiverMsg:"+text);
 
             MessageResponse messageResponse = Codec.decoder(text);//解析出第一层bean
-            if (messageResponse.getType() == 0) {//连接成功，响应
-                CallbackWrapper wrapper = callbacks.remove(Long.parseLong(messageResponse.getMessage()));//找到对应callback
-                if (wrapper == null) {
-                    Log.d(TAG, "(action:"+ messageResponse.getMessage()+") not found callback");
-                    return;
-                }
-
-                try {
-                    wrapper.getTimeoutTask().cancel(true);//取消超时任务
-                    UserReceiveMessage childResponse = Codec.decoderUserReceiveMessage(messageResponse.getMessage());//解析第二层bean
-                    if (childResponse.getMsg()!=null) {
-                        Object o = new Gson().fromJson(childResponse.getMsg(), wrapper.getAction().getRespClazz());
-                        wrapper.getTempCallback().onSuccess(o);
-                    } else {
-                        wrapper.getTempCallback().onError(ErrorCode.BUSINESS_EXCEPTION.getMsg(), wrapper.getRequest(), wrapper.getAction());
-                    }
-                } catch (JsonSyntaxException e) {
-                    e.printStackTrace();
-                    wrapper.getTempCallback()
-                            .onError(ErrorCode.PARSE_EXCEPTION.getMsg(), wrapper.getRequest(), wrapper.getAction());
-                }
+            if (messageResponse.getType() == 0) {//连接成功
+//                CallbackWrapper wrapper = callbacks.remove(messageResponse.getMessage());//找到对应callback
+//                if (wrapper == null) {
+//                    Log.d(TAG, "(action:"+ messageResponse.getMessage()+") not found callback");
+//                    return;
+//                }
+//
+//                wrapper.getTimeoutTask().cancel(true);//取消超时任务
+//                try {
+//                    UserReceiveMessage childResponse = Codec.decoderUserReceiveMessage(messageResponse.getMessage());//解析第二层bean
+//                    if (childResponse.getMsg()!=null) {
+//                        Object o = new Gson().fromJson(childResponse.getMsg(), wrapper.getAction().getRespClazz());
+//                        wrapper.getTempCallback().onSuccess(o);
+//                    } else {
+//                        wrapper.getTempCallback().onError(ErrorCode.BUSINESS_EXCEPTION.getMsg(), wrapper.getRequest(), wrapper.getAction());
+//                    }
+//                } catch (JsonSyntaxException e) {
+//                    e.printStackTrace();
+//                    wrapper.getTempCallback().onError(ErrorCode.PARSE_EXCEPTION.getMsg(), wrapper.getRequest(), wrapper.getAction());
+//                }
             } else if (messageResponse.getType() == 1) {//返回经纬度
-                sendReq(Action.LOCATION, new ICallback() {
-                    @Override
-                    public void onSuccess(Object o) {
-                        Log.d(TAG, "授权成功 LOCATION");
-                        setStatus(WsStatus.AUTH_SUCCESS);
-                        startHeartbeat();
-                        delaySyncData();
-                    }
-
-                    @Override
-                    public void onFail(String msg) {
-                    }
-                });
+                EventBus.getDefault().post(messageResponse);
             } else if (messageResponse.getType() == 2) {//聊天消息
-                sendReq(Action.LOCATION, new ICallback() {
-                    @Override
-                    public void onSuccess(Object o) {
-                        Log.d(TAG, "授权成功 LOCATION");
-                        setStatus(WsStatus.AUTH_SUCCESS);
-                        startHeartbeat();
-                        delaySyncData();
-                    }
-
-                    @Override
-                    public void onFail(String msg) {
-                    }
-                });
+                EventBus.getDefault().post(messageResponse);
             } else if (messageResponse.getType() == 3) {//通知
-                sendReq(Action.LOCATION, new ICallback() {
-                    @Override
-                    public void onSuccess(Object o) {
-                        Log.d(TAG, "授权成功 LOCATION");
-                        setStatus(WsStatus.AUTH_SUCCESS);
-                        startHeartbeat();
-                        delaySyncData();
-                    }
-
-                    @Override
-                    public void onFail(String msg) {
-                    }
-                });
+                EventBus.getDefault().post(messageResponse);
             }
         }
 
@@ -385,7 +348,7 @@ public class WsManager {
             Log.d(TAG, "连接成功");
             setStatus(WsStatus.CONNECT_SUCCESS);
             cancelReconnect();//连接成功的时候取消重连,初始化连接次数
-            doAuth();
+//            sendReq(Action.LOGIN, iCallback);
         }
 
         @Override
@@ -409,36 +372,19 @@ public class WsManager {
     }
 
 
-    private void doAuth() {
-        sendReq(Action.LOGIN, new ICallback() {
-            @Override
-            public void onSuccess(Object o) {
-                Log.d(TAG, "授权成功");
-                setStatus(WsStatus.AUTH_SUCCESS);
-                startHeartbeat();
-                delaySyncData();
-            }
-
-            @Override
-            public void onFail(String msg) {
-            }
-        });
-    }
-
     //同步数据
     private void delaySyncData() {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                sendReq(Action.SYNC, new ICallback() {
+                Action action = new Action("sync", -1, null);
+                sendReq(action, new ICallback() {
                     @Override
                     public void onSuccess(Object o) {
-
                     }
 
                     @Override
                     public void onFail(String msg) {
-
                     }
                 });
             }
@@ -461,7 +407,8 @@ public class WsManager {
     private Runnable heartbeatTask = new Runnable() {
         @Override
         public void run() {
-            sendReq(Action.HEARTBEAT, new ICallback() {
+            Action action = new Action("heartbeat", -1, null);
+            sendReq(action, new ICallback() {
                 @Override
                 public void onSuccess(Object o) {
                     heartbeatFailCount = 0;
@@ -477,6 +424,20 @@ public class WsManager {
             });
 
             mHandler.postDelayed(this, HEARTBEAT_INTERVAL);
+        }
+    };
+
+    private ICallback iCallback = new ICallback() {
+        @Override
+        public void onSuccess(Object o) {
+            Log.d(TAG, "授权成功");
+            setStatus(WsStatus.AUTH_SUCCESS);
+            startHeartbeat();
+            delaySyncData();
+        }
+
+        @Override
+        public void onFail(String msg) {
         }
     };
 }

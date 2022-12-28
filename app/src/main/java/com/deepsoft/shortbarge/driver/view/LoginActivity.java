@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.deepsoft.shortbarge.driver.BuildConfig;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.LoginInfoGson;
@@ -24,6 +25,7 @@ import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
+import com.deepsoft.shortbarge.driver.utils.OkHttpUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.utils.SwitchUtil;
@@ -37,6 +39,9 @@ import pub.devrel.easypermissions.EasyPermissions;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener, EasyPermissions.PermissionCallbacks{
 
@@ -72,7 +77,6 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         //Intent service = new Intent(LoginActivity.this, MyService.class);
         //this.startService(service);
 
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         editor = sp.edit();
 
@@ -81,11 +85,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         password = sp.getString("password", "");
         login_chances = sp.getInt("login_chances", 10);
         lang = sp.getString("locale_language", "en");
-        if(lang.equals("en")){
-            lang = "1";
-        }else{
-            lang = "2";
-        }
+        lang = lang.equals("en") ? "1": "2";
 
         initView();
 
@@ -134,6 +134,58 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     }
 
 
+    private void getLogin(String username, String password){
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BuildConfig.SERVICE_HOST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
+        apiInterface = retrofit.create(ApiInterface.class);
+        apiInterface.getLogin(username, password).enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.i(TAG, "getDriverInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                ResultGson resultGson = response.body();
+                Gson gson = new Gson();
+                if (resultGson.getSuccess() && login_chances >= 0) {
+                    LoginInfoGson loginInfoGson = gson.fromJson(resultGson.getData().toString(), LoginInfoGson.class);
+                    editor.putString("token", loginInfoGson.getToken());
+                    if (is_rem_pwd) {
+                        editor.putString("username", username);
+                        editor.putString("password", password);
+                    }
+                    editor.putInt("login_chances", 10);
+                    editor.commit();
+                    LoginActivity.this.finish();
+                    startActivity(new Intent(LoginActivity.this, MainActivity.class));
+                } else {
+                    if (login_chances == 0) {
+                        if(lang.equals("1")){
+                            Toast.makeText(LoginActivity.this, "Locked, contact your administrator.", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(LoginActivity.this, "已锁定，请联系管理员。", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        login_chances--;
+                        editor.putInt("login_chances", login_chances);
+                        editor.commit();
+                        if(lang.equals("1")){
+                            Toast.makeText(LoginActivity.this, resultGson.getMsg() + ". You have " + login_chances + "more chances", Toast.LENGTH_SHORT).show();
+                        }else{
+                            Toast.makeText(LoginActivity.this, resultGson.getMsg() + "，您还有" + login_chances + "次机会", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getLogin onFailure:" + t);
+            }
+        });
+    }
+
+
     @Override
     public void onClick(View view) {
         switch (view.getId()){
@@ -142,44 +194,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 username = login_et_username.getText().toString().trim();
                 password = login_et_pwd.getText().toString().trim();
                 if(username.length() != 0 && password.length() != 0) {
-                    apiInterface.getLogin(username, password).enqueue(new Callback<ResultGson>() {
-                        @Override
-                        public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                            Log.i(TAG, "getDriverInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
-                            ResultGson resultGson = response.body();
-                            Gson gson = new Gson();
-                            if (resultGson.getSuccess() && login_chances >= 0) {
-                                LoginInfoGson loginInfoGson = gson.fromJson(resultGson.getData().toString(), LoginInfoGson.class);
-                                editor.putString("token", loginInfoGson.getToken());
-                                if (is_rem_pwd) {
-                                    editor.putString("username", username);
-                                    editor.putString("password", password);
-                                }
-                                editor.putInt("login_chances", 10);
-                                editor.commit();
-                                LoginActivity.this.finish();
-                                Intent intent = new Intent(LoginActivity.this, MainActivity.class);
-                                intent.putExtra("token", loginInfoGson.getToken());
-                                startActivity(intent);
-                            } else {
-                                if (login_chances == 0) {
-                                    Toast.makeText(LoginActivity.this, "已锁定，请联系管理员。", Toast.LENGTH_SHORT).show();
-                                } else {
-                                    login_chances--;
-                                    editor.putInt("login_chances", login_chances);
-                                    editor.commit();
-                                    Toast.makeText(LoginActivity.this, resultGson.getMsg() + "，您还有" + login_chances + "次机会", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onFailure(Call<ResultGson> call, Throwable t) {
-                            Log.e(TAG, "getLogin onFailure:" + t);
-                        }
-                    });
+                    getLogin(username, password);
                 }else{
-                    if(login_tv_login.getText().equals("Log in")) {
+                    if(lang.equals("1")) {
                         Toast.makeText(this, "Please enter a username or password", Toast.LENGTH_SHORT).show();
                     }else{
                         Toast.makeText(this, "请输入用户名或密码", Toast.LENGTH_SHORT).show();

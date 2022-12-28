@@ -25,11 +25,15 @@ import android.widget.Toast;
 import com.bumptech.glide.Glide;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
+import com.deepsoft.shortbarge.driver.callback.ICallback;
+import com.deepsoft.shortbarge.driver.constant.Action;
+import com.deepsoft.shortbarge.driver.constant.WsStatus;
 import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.TaskGson;
 import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
 import com.deepsoft.shortbarge.driver.gson.WeatherGson;
+import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
@@ -46,6 +50,10 @@ import com.tencent.tencentmap.mapsdk.maps.model.CameraPosition;
 import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
 import com.tencent.tencentmap.mapsdk.maps.model.Marker;
 import com.tencent.tencentmap.mapsdk.maps.model.MarkerOptions;
+
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -67,6 +75,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Criteria mCriteria = new Criteria();
     private Handler mHandler = new Handler();
     private boolean isLocationEnable = false;
+    private Location location;
 
     private MessageDialog messageDialog;
     private SettingDialog settingDialog;
@@ -86,26 +95,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             main_tv_wea, main_tv_date;
     private ImageView main_iv_wea, main_iv_setting;
     private RecyclerView main_rv_tasks;
+    private View main_v_isvm;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         NavigationBarUtil.focusNotAle(getWindow());
         setContentView(R.layout.activity_main);
         NavigationBarUtil.hideNavigationBar(getWindow());
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
-        String token = getIntent().getStringExtra("token");
         SharedPreferences sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
+        String token = sp.getString("token", "");
         lang = sp.getString("locale_language", "en");
-        if(lang.equals("en")){
-            lang = "1";
-        }else{
-            lang = "2";
-        }
-//        WsManager.getInstance().init(token);
+        lang = lang.equals("en") ? "1": "2";
+
+        WsManager.getInstance().init(token);
+
         initView();
+
         getDriverInfo();
         getDriverTask();
         getWeatherInfo();
@@ -146,6 +156,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void setLocationText(Location location) {
         if (location != null) {
+            this.location = location;
             Log.e(TAG, String.format("定位对象经度：%f，纬度：%f，速度：%f米，精度：%d米",
                     location.getLongitude(), location.getLatitude(),
                     location.getSpeed(), Math.round(location.getAccuracy())));
@@ -271,6 +282,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_iv_setting = findViewById(R.id.main_iv_setting);
         main_iv_setting.setOnClickListener(this);
         PressUtil.setPressChange(this, main_iv_setting);
+
+        main_v_isvm = findViewById(R.id.main_v_isvm);
+        main_v_isvm.setVisibility(View.INVISIBLE);
     }
 
 
@@ -299,6 +313,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     driverId = ""+driverInfoGson.getDriverId();
                     if(driverId.length() == 1) driverId = "0"+driverId;
                     main_tv_truck.setText(truckId);
+                    messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);
                 }else{
                     Toast.makeText(MainActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
@@ -327,6 +342,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     Glide.with(MainActivity.this)
                             .load(weatherGson.getIcon())
                             .into(main_iv_wea);
+                    Log.e(TAG, "weatherGson.getIcon()="+weatherGson.getIcon());
                 }else{
                     Toast.makeText(MainActivity.this, "getWeatherInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
@@ -458,6 +474,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStart() {
         super.onStart();
         main_mv_map.onStart();
+        EventBus.getDefault().register(this);
     }
 
 
@@ -507,7 +524,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(messageDialog != null){
             messageDialog.dismiss();
         }
-//        WsManager.getInstance().disconnect();
+        WsManager.getInstance().disconnect();
+        EventBus.getDefault().unregister(this);
     }
 
 
@@ -519,13 +537,34 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 changeTaskState(currentTask.getTransportTaskId(), 8);
                 break;
             case R.id.main_tv_vm:
-                messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);
                 messageDialog.showMessageDialog(this, getLayoutInflater());
+                main_v_isvm.setVisibility(View.INVISIBLE);
                 break;
             case R.id.main_iv_setting:
                 settingDialog = new SettingDialog(MainActivity.this, currentDriverInfo, currentUserInfoGson);
                 settingDialog.showSettingDialog(this, getLayoutInflater());
                 break;
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventMainThread(MessageResponse messageResponse){
+        if(messageResponse.getType() == 1){
+            //返回经纬度
+            Action action = new Action("{\"message\":\"{\\\"driverId\\\":"+driverId
+                    +",\\\"truckId\\\":"+truckId
+                    +",\\\"lng\\\":"+location.getLongitude()
+                    +",\\\"lat\\\":"+location.getLatitude()+"}\",\"type\":1}", 1, null);
+            WsManager.getInstance().sendReq(action);
+        }else if(messageResponse.getType() == 2){
+            //聊天消息
+            Toast.makeText(this, "有聊天消息", Toast.LENGTH_SHORT).show();
+            Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
+            main_v_isvm.setVisibility(View.VISIBLE);
+            messageDialog.addData(messageResponse);
+        }else{
+            Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
         }
     }
 }

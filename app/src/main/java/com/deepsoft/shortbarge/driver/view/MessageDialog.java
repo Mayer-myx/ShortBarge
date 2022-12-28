@@ -17,11 +17,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MessageAdapter;
+import com.deepsoft.shortbarge.driver.constant.Action;
 import com.deepsoft.shortbarge.driver.gson.message.MessageBean;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
+import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
+import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
 
@@ -47,14 +50,13 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
     private Context context;
 
     private MediaRecorder mMediaRecorder;
-    private MediaPlayer mMediaPlayer;
     private File mFile;
-    private String filename, name, uploadUrl, resp, driver;
+    private String filename, name, resp, driver;
     private int fileTime;
     private long startTime, endTime;
     private List<MessageBean> messageBeans = new ArrayList<>();
 
-    private MessageAdapter messageAdapter;
+    private MessageAdapter messageAdapter = null;
     private LinearLayoutManager layoutManager;
     private ImageView dialog_vm_iv_close;
     private TextView dialog_vm_tv_sent;
@@ -127,11 +129,11 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                         stopSound();
                         uploadFile();
 
-                        StringBuilder sbjyj = new StringBuilder("");
+                        StringBuilder sb = new StringBuilder("");
                         int len = fileTime > 60 ? 60 : fileTime;
                         for(int j = 0; j < len; j++)
-                            sbjyj.append(" ");
-                        MessageBean messageBean2 = new MessageBean(sbjyj.toString()+fileTime+"″", true);
+                            sb.append(" ");
+                        MessageBean messageBean2 = new MessageBean(sb.toString()+fileTime+"″", true);
                         messageBean2.setUrl(filename);
                         messageBeans.add(messageBean2);
                         messageAdapter.notifyItemChanged(messageBeans.size()-1);
@@ -175,8 +177,17 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 ResultGson resultGson = response.body();
-                uploadUrl = resultGson.getData().toString();
                 Log.i(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
+
+                //聊天消息
+                WsManager.getInstance().sendReq(new Action("{\"message\": \"{\\\"msg\\\":\\\""+resultGson.getData().toString()
+                        +"\\\",\\\"msgType\\\":2}\",\"type\": 2}", 2, null));
+                WsManager.getInstance().sendReq(new Action("{\"message\":\"{" +
+                        "\\\"chatMessageId\\\":8" +
+                        ",\\\"from\\\":"+driver
+                        +",\\\"msg\\\":\\\"hello test 你好\\\"" +
+                        ",\\\"msgType\\\":1" +
+                        ",\\\"to\\\":"+resp+"}\",\"type\":3}", 3, null));
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
@@ -226,6 +237,15 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                 Log.i(TAG, "initPath: "+f.getName()+"\n");
             }
             mMediaRecorder = null;
+        }
+    }
+
+
+    public void addData(MessageResponse messageResponse){
+        MessageBean messageBean = new MessageBean(messageResponse.getMessage(), false);
+        messageBeans.add(messageBean);
+        if(messageAdapter != null) {
+            messageAdapter.notifyItemChanged(messageBeans.size()-1);
         }
     }
 }
