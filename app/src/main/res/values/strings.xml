@@ -30,7 +30,7 @@
     <string name="login">Log in</string>
     <string name="forget_pwd2">Forgot Password</string>
     <string name="administrator_name">Administrator Name：</string>
-    <string name="administrator_password">Administrator Password：</string>
+    <string name="administrator_phone">Administrator Phone：</string>
     <string name="hint_forgot_pwd">The user name and password are managed by the administrator, please contact the administrator to change the password</string>
     <string name="server_configuration">Server configuration</string>
     <string name="confirm">Confirm</string>
@@ -50,4 +50,7 @@
     <string name="press_speak">Press and hold to speak</string>
     <string name="connecting">Please wait while connecting to the server~</string>
     <string name="license_number_truck">License NO.:</string>
+    <string name="state_connected">Connected</string>
+    <string name="state_lost">Lost</string>
+    <string name="state_reconnecting">Reconnecting</string>
 </resources>

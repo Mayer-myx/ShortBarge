@@ -2,9 +2,6 @@ package com.deepsoft.shortbarge.driver.view;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.os.Handler;
-import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,7 +36,7 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     private ApiInterface apiInterface;
     private Context context;
     private DriverInfoGson driverInfoGson;
-    private UserInfoGson userInfoGson;
+    private String gps, server;
 
     private TextView dialog_set_tv_serset, dialog_set_tv_logout, dialog_set_tv_lang,
             dialog_set_tv_dn, dialog_set_tv_pn, dialog_set_tv_ln, dialog_set_tv_cn,
@@ -47,17 +44,13 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
 
     public SettingDialog(@NonNull Context context) {
         super(context);
+        this.driverInfoGson = new DriverInfoGson();
+        this.gps = context.getString(R.string.state_connected);
+        this.server = context.getString(R.string.state_connected);
     }
 
     public SettingDialog(@NonNull Context context, int themeResId) {
         super(context, themeResId);
-    }
-
-    public SettingDialog(@NonNull Context context, DriverInfoGson driverInfoGson,
-                         UserInfoGson userInfoGson) {
-        super(context);
-        this.driverInfoGson = driverInfoGson;
-        this.userInfoGson = userInfoGson;
     }
 
 
@@ -102,9 +95,9 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         dialog_set_tv_ln2 = dialog_setting.findViewById(R.id.dialog_set_tv_ln2);
         dialog_set_tv_ln2.setText(driverInfoGson.getLicensePlate());
         dialog_set_tv_gps = dialog_setting.findViewById(R.id.dialog_set_tv_gps);
-        dialog_set_tv_gps.setText("Connected");
+        dialog_set_tv_gps.setText(gps);
         dialog_set_tv_server = dialog_setting.findViewById(R.id.dialog_set_tv_server);
-        dialog_set_tv_server.setText("Connected");
+        dialog_set_tv_server.setText(server);
 
         dialog_set_tv_lang_label = findViewById(R.id.dialog_set_tv_lang_label);
         String lang = dialog_set_tv_lang_label.getText().toString();
@@ -178,5 +171,17 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         BaseApplication.getContext().startActivity(intent);
         android.os.Process.killProcess(android.os.Process.myPid());
+    }
+
+    public void setGps(String gps) {
+        this.gps = gps;
+    }
+
+    public void setServer(String server) {
+        this.server = server;
+    }
+
+    public void setDriverInfoGson(DriverInfoGson driverInfoGson) {
+        this.driverInfoGson = driverInfoGson;
     }
 }

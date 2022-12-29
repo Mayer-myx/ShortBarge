@@ -72,13 +72,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/administrator_password"
+            android:text="@string/administrator_phone"
             android:textColor="@color/deepsoft_text_black"
             android:textSize="12sp"
             android:layout_marginTop="114dp"
             android:layout_marginLeft="67dp"/>
         <TextView
-            android:id="@+id/forpwd_tv_pwd"
+            android:id="@+id/forpwd_tv_phone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="808578924"

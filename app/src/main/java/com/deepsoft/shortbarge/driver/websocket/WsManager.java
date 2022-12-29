@@ -6,7 +6,6 @@ import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.SystemClock;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -15,13 +14,10 @@ import com.deepsoft.shortbarge.driver.callback.CallbackWrapper;
 import com.deepsoft.shortbarge.driver.callback.ICallback;
 import com.deepsoft.shortbarge.driver.callback.IWsCallback;
 import com.deepsoft.shortbarge.driver.constant.Action;
-import com.deepsoft.shortbarge.driver.constant.ErrorCode;
 import com.deepsoft.shortbarge.driver.constant.WsStatus;
 import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
-import com.deepsoft.shortbarge.driver.gson.message.receive.UserReceiveMessage;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
 import com.neovisionaries.ws.client.WebSocketException;
@@ -38,7 +34,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 
 public class WsManager {
     private static WsManager mInstance;

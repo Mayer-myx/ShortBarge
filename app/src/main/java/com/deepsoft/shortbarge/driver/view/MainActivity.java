@@ -32,6 +32,7 @@ import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
+import com.deepsoft.shortbarge.driver.widget.Status;
 import com.tencent.map.geolocation.TencentLocation;
 import com.tencent.map.geolocation.TencentLocationListener;
 import com.tencent.map.geolocation.TencentLocationManager;
@@ -72,6 +73,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private MessageDialog messageDialog;
     private SettingDialog settingDialog;
+    private WaitConnectDialog waitConnectDialog;
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
     private String truckId, driverId, lang;
@@ -108,6 +110,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         EventBus.getDefault().register(this);
         WsManager.getInstance().init(token);
 
+        Status.setOnChangeListener(new Status.OnChangeListener() {
+            @Override
+            public void onChange() {
+                if(Status.getGps().equals(getString(R.string.state_connected))
+                        && Status.getServer().equals(getString(R.string.state_connected)))
+                    waitConnectDialog.dismiss();
+                else{
+
+                }
+            }
+        });
+        Status.setGps(getString(R.string.state_lost));
+        Status.setServer(getString(R.string.state_lost));
+        settingDialog = new SettingDialog(MainActivity.this);
+
         initView();
         initLocation();
 
@@ -119,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void initLocation(){
         request = TencentLocationRequest.create();
-        request.setInterval(10000)
+        request.setInterval(10*1000)
                 .setRequestLevel(TencentLocationRequest.REQUEST_LEVEL_NAME)
                 .setAllowGPS(true)
                 .setAllowDirection(true)
@@ -131,10 +148,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mLocationManager = TencentLocationManager.getInstance(this);
         int error = mLocationManager.requestLocationUpdates(request, this);
-        if (error == 0)
+        if (error == 0){
             Log.e(TAG, "注册位置监听器成功！");
-        else
+            Status.setGps(getString(R.string.state_connected));
+            settingDialog.setGps(getString(R.string.state_connected));
+        } else {
             Log.e(TAG, "注册位置监听器失败！");
+            Status.setGps(getString(R.string.state_lost));
+            settingDialog.setGps(getString(R.string.state_lost));
+        }
     }
 
 
@@ -145,26 +167,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 0f,             //目标倾斜角[0.0 ~ 45.0] (垂直地图时为0)
                 0f));          //目标旋转角 0~360° (正北方为0)
         mTencentMap.moveCamera(cameraSigma);
-        //第一次渲染成功的回调
         mTencentMap.setOnMapLoadedCallback(new TencentMap.OnMapLoadedCallback() {
             public void onMapLoaded() {
-                Log.e(TAG, "map ok");
+                //第一次渲染成功的回调
+                Log.i(TAG, "map ok");
+                Status.setGps(getString(R.string.state_connected));
+                settingDialog.setGps(getString(R.string.state_connected));
             }
         });
 
-        //地图上设置定位数据源
         mTencentMap.setLocationSource(locationSource);
-        //设置当前位置可见
         mTencentMap.setMyLocationEnabled(true);
-
-        //SDK版本4.3.5新增内置定位标点击回调监听
-        mTencentMap.setMyLocationClickListener(new TencentMap.OnMyLocationClickListener() {
-            @Override
-            public boolean onMyLocationClicked(LatLng latLng) {
-                Log.i(TAG, "内置定位标点击回调");
-                return true;
-            }
-        });
     }
 
 
@@ -249,7 +262,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(driverId.length() == 1) driverId = "0"+driverId;
                     main_tv_truck.setText(truckId);
                     messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);
+
+                    Status.setServer(getString(R.string.state_connected));
+                    settingDialog.setDriverInfoGson(currentDriverInfo);
+                    settingDialog.setGps(getString(R.string.state_connected));
                 }else{
+                    Status.setServer(getString(R.string.state_lost));
+                    settingDialog.setGps(getString(R.string.state_lost));
                     Toast.makeText(MainActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -277,7 +296,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     main_tv_wea.setText(weatherGson.getWeather() + " " + weatherGson.getTemperature());
                     main_tv_date.setText(weatherGson.getDate());
                     main_iv_wea.setColorFilter(Color.WHITE);
-                    Log.e(TAG, ""+weatherGson.getIcon());
                     main_iv_wea.setImageResource(getResources().getIdentifier("wea_"+weatherGson.getIcon(), "drawable",
                             BaseApplication.getApplication().getPackageName()));
                 }else{
@@ -336,7 +354,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
                     main_rv_tasks.setAdapter(moreTaskAdapter);
                     main_tv_tasknum.setText(""+taskGsonList.size());
+
+                    Status.setServer(getString(R.string.state_connected));
+                    settingDialog.setGps(getString(R.string.state_connected));
                 }else{
+                    Status.setServer(getString(R.string.state_lost));
+                    settingDialog.setGps(getString(R.string.state_lost));
                     Toast.makeText(MainActivity.this, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -415,6 +438,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onStart() {
         super.onStart();
         main_mv_map.onStart();
+        waitConnectDialog = new WaitConnectDialog(MainActivity.this);
+        waitConnectDialog.showWaitConnectDialog(this, getLayoutInflater());
     }
 
 
@@ -462,7 +487,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         EventBus.getDefault().unregister(this);
         WsManager.getInstance().disconnect();
-//        mLocationManager.removeUpdates(MainActivity.this);
+        mLocationManager.removeUpdates(MainActivity.this);
         mLocationManager = null;
         request = null;
         locationChangedListener = null;
@@ -473,7 +498,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.main_tv_arrive:
-//                WaitConnectDialog.getInstance().showWaitConnectDialog(this, getLayoutInflater());
                 changeTaskState(currentTask.getTransportTaskId(), 8);
                 break;
             case R.id.main_tv_vm:
@@ -481,7 +505,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 main_v_isvm.setVisibility(View.INVISIBLE);
                 break;
             case R.id.main_iv_setting:
-                settingDialog = new SettingDialog(MainActivity.this, currentDriverInfo, currentUserInfoGson);
                 settingDialog.showSettingDialog(this, getLayoutInflater());
                 break;
         }
@@ -492,10 +515,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onEventMainThread(MessageResponse messageResponse){
         if(messageResponse.getType() == 1 && tencentLocation != null){
             //返回经纬度
-            Action action = new Action("{\"message\":\"{\"driverId\":"+driverId
-                    +",\"truckId\":"+truckId
+            Action action = new Action("{\"driverId\":"+currentDriverInfo.getDriverId()
+                    +",\"truckId\":"+currentDriverInfo.getTruckId()
                     +",\"lng\":"+tencentLocation.getLongitude()
-                    +",\"lat\":"+tencentLocation.getLatitude()+"}\",\"type\":1}", 1, null);
+                    +",\"lat\":"+tencentLocation.getLatitude()+"}", 1, null);
             WsManager.getInstance().sendReq(action);
         }else if(messageResponse.getType() == 2){
             //聊天消息
@@ -510,7 +533,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     /**
-     * 位置更新时的回调\
+     * 位置更新时的回调
      * @param tencentLocation 新的位置
      * @param i               错误码
      * @param s               错误描述
@@ -519,17 +542,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onLocationChanged(TencentLocation tencentLocation, int i, String s) {
         if (TencentLocation.ERROR_OK == i) {
             if (tencentLocation != null) {
-                if(this.tencentLocation == null){
-                    initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
-                }
-                this.tencentLocation = tencentLocation;
-                String lat = String.valueOf(tencentLocation.getLatitude());
-                String lon = String.valueOf(tencentLocation.getLongitude());
-                Log.e(TAG, lat + "---" + lon);
+                initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
                 setMaker(tencentLocation.getLatitude(), tencentLocation.getLongitude());
+                this.tencentLocation = tencentLocation;
+//                Log.i(TAG, tencentLocation.getLatitude() + "---" + tencentLocation.getLongitude() + "---" + tencentLocation.getSpeed());
             }
         } else {
             Log.e(TAG, "定位失败"+i+" "+s);
+            Status.setGps(getString(R.string.state_lost));
+            settingDialog.setGps(getString(R.string.state_lost));
         }
     }
 
@@ -560,7 +581,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         @Override
         public void deactivate() {
             //当不需要展示定位点时，需要停止定位并释放相关资源
-//            mLocationManager.removeUpdates(MainActivity.this);
+            mLocationManager.removeUpdates(MainActivity.this);
             mLocationManager = null;
             request = null;
             locationChangedListener = null;

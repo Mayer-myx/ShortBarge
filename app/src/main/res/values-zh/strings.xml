@@ -31,7 +31,7 @@
     <string name="login">登录</string>
     <string name="forget_pwd2">忘记密码</string>
     <string name="administrator_name">管理员姓名：</string>
-    <string name="administrator_password">管理员密码：</string>
+    <string name="administrator_phone">管理员电话：</string>
     <string name="hint_forgot_pwd">用户名密码为管理员统一管理，请联系管理员修改密码</string>
     <string name="server_configuration">服务器配置</string>
     <string name="confirm">确定</string>
@@ -51,4 +51,7 @@
     <string name="press_speak">按住说话</string>
     <string name="connecting">正在连接服务器，请稍后~</string>
     <string name="license_number_truck">车牌号码：</string>
+    <string name="state_connected">已连接</string>
+    <string name="state_lost">失去连接</string>
+    <string name="state_reconnecting">重连中</string>
 </resources>
