@@ -52,8 +52,12 @@ public class TaskGson extends ResultGson {
         String str = getDuration();
         int h = 0, min = 0, sub = str.indexOf(',');
         if(sub != -1){
-            h = Integer.parseInt(str.substring(0, sub));
-            min = Integer.parseInt(str.substring(sub));;
+            if(sub == 0){
+                h = 0;
+            }else {
+                h = Integer.parseInt(str.substring(0, sub));
+            }
+            min = Integer.parseInt(str.substring(sub+1));
         }
         if(type.equals("1")) return String.valueOf(h*60+min)+" "+"minutes";
         else return String.valueOf(h*60+min)+" "+"分钟";
