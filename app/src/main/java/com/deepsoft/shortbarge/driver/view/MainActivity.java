@@ -402,19 +402,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     ResultGson resultGson = value;
                     if (resultGson.getSuccess()) {
                         taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
-                        currentTask = taskGsonList.get(0);
-                        lang = sp.getString("locale_language", "en");
-                        lang = lang.equals("en") ? "1": "2";
+                        if(taskGsonList.size() != 0) {
+                            currentTask = taskGsonList.get(0);
+                            lang = sp.getString("locale_language", "en");
+                            lang = lang.equals("en") ? "1" : "2";
+                            main_tv_dest.setText(currentTask.getTaskDura(lang));
+                            main_tv_ts.setText(currentTask.getTaskState(lang));
+                            main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState() + 1, lang));
+                            main_tv_arrive.setClickable(true);
+                        }else{
+                            currentTask = new TaskGson();
+                            main_tv_dest.setText(currentTask.getDuration());
+                            main_tv_ts.setText(""+currentTask.getState());
+                            main_tv_arrive.setText(currentTask.getTaskState(8, lang));
+                            main_tv_arrive.setClickable(false);
+                        }
                         main_tv_st.setText(currentTask.getStartTime());
                         main_tv_at.setText(currentTask.getArrivalTime());
-                        main_tv_dest.setText(currentTask.getTaskDura(lang));
-                        main_tv_ts.setText(currentTask.getTaskState(lang));
-                        main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
-                        main_tv_tasknum.setText(""+taskGsonList.size());
+                        main_tv_tasknum.setText("" + taskGsonList.size());
                         moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
                         main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
                         main_rv_tasks.setAdapter(moreTaskAdapter);
-
                         Status.setServer(getString(R.string.state_connected));
                         settingDialog.setGps(getString(R.string.state_connected));
                     }else{
