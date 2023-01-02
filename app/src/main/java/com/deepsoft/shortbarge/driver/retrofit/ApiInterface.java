@@ -4,6 +4,7 @@ import com.deepsoft.shortbarge.driver.gson.ResultGson;
 
 import org.json.JSONArray;
 
+import io.reactivex.Observable;
 import okhttp3.MultipartBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
@@ -88,11 +89,11 @@ public interface ApiInterface {
     Call<ResultGson> getDriverInfo();
 
     /**
-     * 获取任务列表
+     * 获取任务列表 轮询
      * @return
      */
     @GET("transport/getDriverTask")
-    Call<ResultGson> getDriverTask();
+    Observable<ResultGson> getDriverTask();
 
     /**
      * 天气

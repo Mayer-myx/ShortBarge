@@ -1,5 +1,6 @@
 package com.deepsoft.shortbarge.driver.view;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -54,7 +55,15 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.android.schedulers.AndroidSchedulers;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Function;
+import io.reactivex.schedulers.Schedulers;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -76,7 +85,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
     private String truckId, driverId, lang;
-    private UserInfoGson currentUserInfoGson;
     private SharedPreferences sp;
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
@@ -144,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         && Status.getServer().equals(getString(R.string.state_connected)))
                     waitConnectDialog.dismiss();
                 else{
-
+//                    waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
                 }
             }
         });
@@ -157,10 +165,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         
         initView();
         initLocation();
-
-        getDriverInfo();
-        getDriverTask();
-        getWeatherInfo();
     }
 
 
@@ -366,39 +370,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void getDriverTask(){
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
-        apiInterface.getDriverTask().enqueue(new Callback<ResultGson>() {
+        Observable<ResultGson> observable = apiInterface.getDriverTask();
+        observable.repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
             @Override
-            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                Log.e(TAG, "getDriverTask run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
-                ResultGson resultGson = response.body();
-                if (resultGson.getSuccess()) {
-                    taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
-                    currentTask = taskGsonList.get(0);
-                    lang = sp.getString("locale_language", "en");
-                    lang = lang.equals("en") ? "1": "2";
-                    main_tv_st.setText(currentTask.getStartTime());
-                    main_tv_at.setText(currentTask.getArrivalTime());
-                    main_tv_dest.setText(currentTask.getTaskDura(lang));
-                    main_tv_ts.setText(""+currentTask.getTaskState(lang));
-                    moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
-                    main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
-                    main_rv_tasks.setAdapter(moreTaskAdapter);
-                    main_tv_tasknum.setText(""+taskGsonList.size());
+            public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
+                return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(@NonNull Object throwable) throws Exception {
+                        // 加入判断条件：当轮询次数 = 5次后，就停止轮询
+//                        if (poll_count > 3) {
+//                            // 此处选择发送onError事件以结束轮询，因为可触发下游观察者的onError（）方法回调
+//                            return Observable.error(new Throwable("轮询结束"));
+//                        }
+                        // 若轮询次数＜4次，则发送1Next事件以继续轮询
+                        // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 5s），以实现轮询间间隔设置
+                        return Observable.just(1).delay(5 , TimeUnit.SECONDS);
+                    }
+                });
+            }
+        }).subscribeOn(Schedulers.io())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(new Observer<ResultGson>() {
+                @Override
+                public void onSubscribe(Disposable d) {
 
-                    Status.setServer(getString(R.string.state_connected));
-                    settingDialog.setGps(getString(R.string.state_connected));
-                }else{
-                    Status.setServer(getString(R.string.state_lost));
-                    settingDialog.setGps(getString(R.string.state_lost));
-                    Toast.makeText(MainActivity.this, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
-            }
 
-            @Override
-            public void onFailure(Call<ResultGson> call, Throwable t) {
-                Log.e(TAG, "getDriverTask onFailure:"+t);
-            }
-        });
+                @Override
+                public void onNext(ResultGson value) {
+                    Log.e(TAG, "getDriverTask run: get同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
+                    ResultGson resultGson = value;
+                    if (resultGson.getSuccess()) {
+                        taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                        currentTask = taskGsonList.get(0);
+                        lang = sp.getString("locale_language", "en");
+                        lang = lang.equals("en") ? "1": "2";
+                        main_tv_st.setText(currentTask.getStartTime());
+                        main_tv_at.setText(currentTask.getArrivalTime());
+                        main_tv_dest.setText(currentTask.getTaskDura(lang));
+                        main_tv_ts.setText(""+currentTask.getTaskState(lang));
+                        moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
+                        main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+                        main_rv_tasks.setAdapter(moreTaskAdapter);
+                        main_tv_tasknum.setText(""+taskGsonList.size());
+
+                        Status.setServer(getString(R.string.state_connected));
+                        settingDialog.setGps(getString(R.string.state_connected));
+                    }else{
+                        Status.setServer(getString(R.string.state_lost));
+                        settingDialog.setGps(getString(R.string.state_lost));
+                        Toast.makeText(MainActivity.this, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    Log.e(TAG, "getDriverTask onFailure:"+e.toString());
+                }
+
+                @Override
+                public void onComplete() {
+
+                }
+            });
     }
 
 
@@ -411,7 +445,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
                     List<UserInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), UserInfoGson.class);
-                    currentUserInfoGson = list.get(0);
                 }else{
                     Toast.makeText(MainActivity.this, "getUserDetail连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
@@ -475,6 +508,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         main_mv_map.onResume();
+        getDriverInfo();
+        getDriverTask();
+        getWeatherInfo();
     }
 
 
