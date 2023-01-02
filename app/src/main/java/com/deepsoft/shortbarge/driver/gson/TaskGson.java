@@ -21,6 +21,33 @@ public class TaskGson extends ResultGson {
     private String nextStation;
     private String nextStationEng;
 
+    public String getTaskState(Integer i, String type){
+        Map<Integer, String> res_zh = new HashMap<>();
+        res_zh.put(1, "待运输");
+        res_zh.put(2, "到达起始点(装货)");
+        res_zh.put(3, "运输中");
+        res_zh.put(4, "延迟");
+        res_zh.put(5, "到达经停站");
+        res_zh.put(6, "继续运输");
+        res_zh.put(7, "到达目的地(卸货)");
+        res_zh.put(8, "完成");
+        res_zh.put(9, "异常换车");
+
+        Map<Integer, String> res_en = new HashMap<>();
+        res_en.put(1, "To be transported");
+        res_en.put(2, "Arrival at the starting point(loading)");
+        res_en.put(3, "In transit");
+        res_en.put(4, "Delay");
+        res_en.put(5, "Arrive at the stop");
+        res_en.put(6, "Continue shipping");
+        res_en.put(7, "Arrival at destination(unloading)");
+        res_en.put(8, "Finish");
+        res_en.put(9, "Abnormal car change");
+
+        if(type.equals("2")) return res_zh.get(i);
+        else return res_en.get(i);
+    }
+
     public String getTaskState(String type){
         Map<Integer, String> res_zh = new HashMap<>();
         res_zh.put(1, "待运输");

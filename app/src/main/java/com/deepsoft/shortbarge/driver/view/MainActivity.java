@@ -408,11 +408,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         main_tv_st.setText(currentTask.getStartTime());
                         main_tv_at.setText(currentTask.getArrivalTime());
                         main_tv_dest.setText(currentTask.getTaskDura(lang));
-                        main_tv_ts.setText(""+currentTask.getTaskState(lang));
+                        main_tv_ts.setText(currentTask.getTaskState(lang));
+                        main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
+                        main_tv_tasknum.setText(""+taskGsonList.size());
                         moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
                         main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
                         main_rv_tasks.setAdapter(moreTaskAdapter);
-                        main_tv_tasknum.setText(""+taskGsonList.size());
 
                         Status.setServer(getString(R.string.state_connected));
                         settingDialog.setGps(getString(R.string.state_connected));
@@ -470,6 +471,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     lang = sp.getString("locale_language", "en");
                     lang = lang.equals("en") ? "1": "2";
                     main_tv_ts.setText(currentTask.getTaskState(lang));
+                    main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
                     moreTaskAdapter.notifyItemChanged(0);
                 }else{
                     Toast.makeText(MainActivity.this, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
@@ -564,7 +566,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.main_tv_arrive:
-                changeTaskState(currentTask.getTransportTaskId(), 8);
+                if(currentTask.getState() < 9) {
+                    changeTaskState(currentTask.getTransportTaskId(), currentTask.getState()+1);
+                    if(currentTask.getState() == 8){
+                        taskGsonList.remove(currentTask);
+                        moreTaskAdapter.notifyItemChanged(0);
+                        lang = sp.getString("locale_language", "en");
+                        lang = lang.equals("en") ? "1": "2";
+                        if(taskGsonList.size() == 0){
+                            currentTask = new TaskGson();
+                            main_tv_arrive.setClickable(false);
+                        }else{
+                            currentTask = taskGsonList.get(0);
+                            main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
+                        }
+                        main_tv_dest.setText(currentTask.getTaskDura(lang));
+                        main_tv_st.setText(currentTask.getStartTime());
+                        main_tv_at.setText(currentTask.getArrivalTime());
+                        main_tv_tasknum.setText(""+taskGsonList.size());
+                    }
+                }
                 break;
             case R.id.main_tv_vm:
                 messageDialog.showMessageDialog(this, getLayoutInflater());
