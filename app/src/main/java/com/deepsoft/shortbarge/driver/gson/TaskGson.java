@@ -36,8 +36,8 @@ public class TaskGson extends ResultGson {
         Map<Integer, String> res_en = new HashMap<>();
         res_en.put(1, "To be transported");
         res_en.put(2, "Arrival at the starting point(loading)");
-        res_en.put(3, "In transit");
-        res_en.put(4, "Delay");
+        res_en.put(3, "In Transit");
+        res_en.put(4, "Delayed");
         res_en.put(5, "Arrive at the stop");
         res_en.put(6, "Continue shipping");
         res_en.put(7, "Arrival at destination(unloading)");

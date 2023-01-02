@@ -19,7 +19,7 @@
             android:id="@+id/dialog_set_tv_dn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="278dp"
+            android:layout_marginLeft="285dp"
             android:layout_marginTop="23dp"
             android:includeFontPadding="false"
             android:text="LiXiaoming"

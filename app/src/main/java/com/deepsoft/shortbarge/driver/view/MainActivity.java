@@ -148,8 +148,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Status.setOnChangeListener(new Status.OnChangeListener() {
             @Override
             public void onChange() {
-                if(Status.getGps().equals(getString(R.string.state_connected))
-                        && Status.getServer().equals(getString(R.string.state_connected)))
+                if(Status.getGps().equals(getString(R.string.state_connected)) && Status.getServer().equals(getString(R.string.state_connected))
+                        && waitConnectDialog != null)
                     waitConnectDialog.dismiss();
                 else{
 //                    waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
@@ -409,16 +409,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             main_tv_dest.setText(currentTask.getTaskDura(lang));
                             main_tv_ts.setText(currentTask.getTaskState(lang));
                             main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState() + 1, lang));
+                            main_tv_st.setText(currentTask.getStartTime());
+                            main_tv_at.setText(currentTask.getArrivalTime());
                             main_tv_arrive.setClickable(true);
                         }else{
                             currentTask = new TaskGson();
                             main_tv_dest.setText(currentTask.getDuration());
                             main_tv_ts.setText(""+currentTask.getState());
                             main_tv_arrive.setText(currentTask.getTaskState(8, lang));
+                            main_tv_st.setText(currentTask.getStartTime());
+                            main_tv_at.setText(currentTask.getArrivalTime());
                             main_tv_arrive.setClickable(false);
                         }
-                        main_tv_st.setText(currentTask.getStartTime());
-                        main_tv_at.setText(currentTask.getArrivalTime());
                         main_tv_tasknum.setText("" + taskGsonList.size());
                         moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
                         main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
@@ -565,8 +567,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(messageDialog != null){
             messageDialog.dismiss();
         }
+        if(waitConnectDialog != null){
+            waitConnectDialog.dismiss();
+        }
         EventBus.getDefault().unregister(this);
         WsManager.getInstance().disconnect();
+        Status.removeChangeListener();
     }
 
 

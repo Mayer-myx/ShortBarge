@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="license_number_driver">Driver\'s License NO.:</string>
+    <string name="license_number_driver">Driver\'s license NO.:</string>
     <string name="app_name">ShortBarge</string>
     <string name="emergency_contact">Emergency Contact:</string>
     <string name="phone_number">Phone NO.:</string>
@@ -26,10 +26,10 @@
     <string name="welcome_login">Welcome Login</string>
     <string name="plz_username">Please enter a username</string>
     <string name="plz_pwd">Please enter a password</string>
-    <string name="rem_pwd">Remember password</string>
-    <string name="forget_pwd">Forgot password?</string>
-    <string name="login">Log in</string>
-    <string name="forget_pwd2">Forgot Password</string>
+    <string name="rem_pwd">Remember</string>
+    <string name="forget_pwd">Forget</string>
+    <string name="login">Login</string>
+    <string name="forget_pwd2">Forget</string>
     <string name="administrator_name">Administrator Name：</string>
     <string name="administrator_phone">Administrator Phone：</string>
     <string name="hint_forgot_pwd">The user name and password are managed by the administrator, please contact the administrator to change the password</string>
@@ -42,7 +42,7 @@
     <string name="fail_connect">The server connection failed, contact your administrator.</string>
     <string name="retry">Retry</string>
     <string name="exit">Exit</string>
-    <string name="driver_name">Driver Name:</string>
+    <string name="driver_name">Name:</string>
     <string name="language">Language</string>
     <string name="car_name">Car Name:</string>
     <string name="gps_link_status">GPS Link Status:</string>
@@ -50,7 +50,7 @@
     <string name="log_out">Log out</string>
     <string name="press_speak">Press and hold to speak</string>
     <string name="connecting">Please wait while connecting to the server~</string>
-    <string name="license_number_truck">License NO.:</string>
+    <string name="license_number_truck">License Plate:</string>
     <string name="state_connected">Connected</string>
     <string name="state_lost">Lost</string>
     <string name="state_reconnecting">Reconnecting</string>

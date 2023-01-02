@@ -9,6 +9,9 @@ public class Status {
     public static void setOnChangeListener(OnChangeListener onChange){	// 创建setListener方法
         onChangeListener = onChange;
     }
+    public static void removeChangeListener(){	// 注销Listener
+        onChangeListener = null;
+    }
 
 
     private static String gps, server;
