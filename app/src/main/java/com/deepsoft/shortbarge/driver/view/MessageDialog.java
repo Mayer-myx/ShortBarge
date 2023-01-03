@@ -145,7 +145,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         });
 
         for(int i = 0;i < 3; i++){
-            MessageBean messageBean1 = new MessageBean("hhh\nhhh\nhhhh\nhhh", false);
+            MessageBean messageBean1 = new MessageBean("系统测试message", false);
             messageBeans.add(messageBean1);
         }
         dialog_vm_rv = dialog_message.findViewById(R.id.dialog_vm_rv);

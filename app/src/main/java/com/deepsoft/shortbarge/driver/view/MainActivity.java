@@ -54,6 +54,8 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
+import java.io.IOException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -88,7 +90,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TaskGson currentTask;
     private String truckId, driverId, lang;
     private SharedPreferences sp;
-    private Handler mHandler = new Handler();
+    private int currentRetryCount = 0, waitRetryTime = 0;// 当前已重试次数// 重试等待时间
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -119,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Status.setOnChangeListener(new Status.OnChangeListener() {
             @Override
             public void onChange() {
+                Log.e(TAG, "onchange="+Status.getGps()+Status.getServer());
                 if(waitConnectDialog.getWaitTime() >= 60){
                     waitConnectDialog.dismiss();
                     connectFailDialog.showConnectFailDialog(MainActivity.this, getLayoutInflater());
@@ -140,33 +143,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         String token = sp.getString("token", "");
 
-        tencentLocationListener = new TencentLocationListener() {
-            /**
-             * 位置更新时的回调
-             * @param tencentLocation 新的位置
-             * @param i               错误码
-             * @param s               错误描述
-             */
-            @Override
-            public void onLocationChanged(TencentLocation tencentLocation, int i, String s) {
-                if (TencentLocation.ERROR_OK == i) {
-                    if (tencentLocation != null) {
-                        initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
-                        setMaker(tencentLocation.getLatitude(), tencentLocation.getLongitude());
-                        location = tencentLocation;
-//                Log.i(TAG, tencentLocation.getLatitude() + "---" + tencentLocation.getLongitude() + "---" + tencentLocation.getSpeed());
-                    }
-                } else {
-                    Log.e(TAG, "定位失败"+i+" "+s);
-                    Status.setGps(getString(R.string.state_lost));
-                    settingDialog.setGps(getString(R.string.state_lost));
-                }
-            }
-
-            @Override
-            public void onStatusUpdate(String s, int i, String s1) {
-            }
-        };
         TencentLocationManager.setUserAgreePrivacy(true);
         EventBus.getDefault().register(this);
         WsManager.getInstance().init(token);
@@ -182,10 +158,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         initView();
         initLocation();
+        getDriverInfo();
+        getDriverTask();
+        getWeatherInfo();
     }
 
 
     private void initLocation(){
+        mLocationManager = TencentLocationManager.getInstance(this);
+        tencentLocationListener = new TencentLocationListener() {
+            @Override
+            public void onLocationChanged(TencentLocation tencentLocation, int i, String s) {
+                if (TencentLocation.ERROR_OK == i) {
+                    if (tencentLocation != null) {
+                        initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
+                        setMaker(tencentLocation.getLatitude(), tencentLocation.getLongitude());
+                        location = tencentLocation;
+                        Status.setGps(getString(R.string.state_connected));
+                        settingDialog.setGps(getString(R.string.state_connected));
+//                Log.i(TAG, tencentLocation.getLatitude() + "---" + tencentLocation.getLongitude() + "---" + tencentLocation.getSpeed());
+                    }
+                } else {
+                    Log.e(TAG, "定位失败"+i+" "+s);
+                    Status.setGps(getString(R.string.state_lost));
+                    settingDialog.setGps(getString(R.string.state_lost));
+                }
+            }
+
+            @Override
+            public void onStatusUpdate(String s, int i, String s1) {
+            }
+        };
+
         request = TencentLocationRequest.create();
         request.setInterval(10*1000)
                 .setRequestLevel(TencentLocationRequest.REQUEST_LEVEL_NAME)
@@ -197,7 +201,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 .setGpsFirstTimeOut(5*1000)
                 .setAllowCache(true);
 
-        mLocationManager = TencentLocationManager.getInstance(this);
         int error = mLocationManager.requestLocationUpdates(request, tencentLocationListener);
         if (error == 0){
             Log.e(TAG, "注册位置监听器成功！");
@@ -316,10 +319,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     Status.setServer(getString(R.string.state_connected));
                     settingDialog.setDriverInfoGson(currentDriverInfo);
-                    settingDialog.setGps(getString(R.string.state_connected));
+                    settingDialog.setServer(getString(R.string.state_connected));
                 }else{
                     Status.setServer(getString(R.string.state_lost));
-                    settingDialog.setGps(getString(R.string.state_lost));
+                    settingDialog.setServer(getString(R.string.state_lost));
                     Toast.makeText(MainActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -387,10 +390,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    /**
+     * 5s 轮询任务列表
+     */
     private void getDriverTask(){
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         Observable<ResultGson> observable = apiInterface.getDriverTask();
-        observable.repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
+        observable.retryWhen(new Function<Observable<Throwable>, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(Observable<Throwable> throwableObservable) throws Exception {
+                        return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
+                            @Override
+                            public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
+                                Log.d(TAG, "发生异常 = " + throwable.toString());
+                                currentRetryCount++;
+                                Log.d(TAG, "重试次数 = " + currentRetryCount);
+                                waitRetryTime = 1 + currentRetryCount;
+                                Log.d(TAG, "等待时间 =" + waitRetryTime);
+                                return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
+                            }
+                        });
+                    }
+                }).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
             @Override
             public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
                 return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
@@ -445,10 +466,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
                         main_rv_tasks.setAdapter(moreTaskAdapter);
                         Status.setServer(getString(R.string.state_connected));
-                        settingDialog.setGps(getString(R.string.state_connected));
+                        settingDialog.setServer(getString(R.string.state_connected));
                     }else{
                         Status.setServer(getString(R.string.state_lost));
-                        settingDialog.setGps(getString(R.string.state_lost));
+                        settingDialog.setServer(getString(R.string.state_lost));
                         Toast.makeText(MainActivity.this, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -456,7 +477,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onError(Throwable e) {
                     Status.setServer(getString(R.string.state_lost));
-                    settingDialog.setGps(getString(R.string.state_lost));
+                    settingDialog.setServer(getString(R.string.state_lost));
                     Log.e(TAG, "getDriverTask onFailure:"+e.toString());
                 }
 
@@ -541,9 +562,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
         super.onResume();
         main_mv_map.onResume();
-        getDriverInfo();
-        getDriverTask();
-        getWeatherInfo();
     }
 
 

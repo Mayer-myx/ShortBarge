@@ -54,12 +54,14 @@ public class WaitConnectDialog extends MyDialog {
     public long getWaitTime(){
         if(startTime == 0){
             return -1;
-        }else {
+        } else {
             long endTime = System.currentTimeMillis();
+            long res = (endTime - startTime) / 1000;
             Log.e("2 START TIME", "" + startTime);
             Log.e("2 END TIME", "" + endTime);
-            Log.e("2 second", String.valueOf((endTime - startTime) / 1000));
-            return (endTime - startTime) / 1000;
+            Log.e("2 second", ""+res);
+            startTime = 0;
+            return res;
         }
     }
 }
