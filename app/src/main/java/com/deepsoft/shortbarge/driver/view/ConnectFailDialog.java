@@ -1,11 +1,13 @@
 package com.deepsoft.shortbarge.driver.view;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
@@ -42,6 +44,8 @@ public class ConnectFailDialog extends MyDialog{
         TextView dialog_fail_tv_exit = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_exit);
         dialog_fail_tv_exit.setOnClickListener(v->{
             this.dismiss();
+            ((AppCompatActivity)(context)).finish();
+            context.startActivity(new Intent(context, LoginActivity.class));
         });
         TextView dialog_fail_tv_retry = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_retry);
         dialog_fail_tv_retry.setOnClickListener(v->{

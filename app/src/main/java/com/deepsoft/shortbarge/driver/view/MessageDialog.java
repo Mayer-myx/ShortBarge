@@ -182,12 +182,6 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                 //聊天消息
                 WsManager.getInstance().sendReq(new Action("{\"msg\":\""+resultGson.getData().toString()
                         +"\",\"msgType\":2}", 2, null));
-                WsManager.getInstance().sendReq(new Action("{" +
-                        "\"chatMessageId\":8" +
-                        ",\"from\":"+driver
-                        +",\"msg\":\"hello test 你好\"" +
-                        ",\"msgType\":1" +
-                        ",\"to\":"+resp+"}", 3, null));
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {

@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
@@ -82,10 +83,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MessageDialog messageDialog;
     private SettingDialog settingDialog;
     private WaitConnectDialog waitConnectDialog;
+    private ConnectFailDialog connectFailDialog;
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
     private String truckId, driverId, lang;
     private SharedPreferences sp;
+    private Handler mHandler = new Handler();
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -112,8 +115,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NavigationBarUtil.hideNavigationBar(getWindow());
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
+        waitConnectDialog = new WaitConnectDialog(MainActivity.this);
+        Status.setOnChangeListener(new Status.OnChangeListener() {
+            @Override
+            public void onChange() {
+                if(waitConnectDialog.getWaitTime() >= 60){
+                    waitConnectDialog.dismiss();
+                    connectFailDialog.showConnectFailDialog(MainActivity.this, getLayoutInflater());
+                }
+
+                if(Status.getGps().equals(getString(R.string.state_connected))
+                        && Status.getServer().equals(getString(R.string.state_connected))) {
+                    waitConnectDialog.dismiss();
+                }else{
+                    waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
+                }
+            }
+        });
+        settingDialog = new SettingDialog(MainActivity.this);
+        connectFailDialog = new ConnectFailDialog(MainActivity.this);
+        Status.setGps(getString(R.string.state_lost));
+        Status.setServer(getString(R.string.state_lost));
+
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         String token = sp.getString("token", "");
+
         tencentLocationListener = new TencentLocationListener() {
             /**
              * 位置更新时的回调
@@ -145,24 +171,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         EventBus.getDefault().register(this);
         WsManager.getInstance().init(token);
 
-        Status.setOnChangeListener(new Status.OnChangeListener() {
-            @Override
-            public void onChange() {
-                if(Status.getGps().equals(getString(R.string.state_connected)) && Status.getServer().equals(getString(R.string.state_connected))
-                        && waitConnectDialog != null)
-                    waitConnectDialog.dismiss();
-                else{
-//                    waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
-                }
-            }
-        });
-        Status.setGps(getString(R.string.state_lost));
-        Status.setServer(getString(R.string.state_lost));
-        settingDialog = new SettingDialog(MainActivity.this);
+//        mHandler.postDelayed(new Runnable() {
+//            @Override
+//            public void run() {
+//                if(waitConnectDialog != null) {
+//                    waitConnectDialog.dismiss();
+//                }
+//            }
+//        },60*1000);
 
-        waitConnectDialog = new WaitConnectDialog(MainActivity.this);
-        waitConnectDialog.showWaitConnectDialog(this, getLayoutInflater());
-        
         initView();
         initLocation();
     }
@@ -308,6 +325,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
+                Status.setServer(getString(R.string.state_lost));
+                settingDialog.setGps(getString(R.string.state_lost));
                 Log.e(TAG, "getDriverInfo onFailure:"+t);
             }
         });
@@ -436,6 +455,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onError(Throwable e) {
+                    Status.setServer(getString(R.string.state_lost));
+                    settingDialog.setGps(getString(R.string.state_lost));
                     Log.e(TAG, "getDriverTask onFailure:"+e.toString());
                 }
 
@@ -569,10 +590,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         if(waitConnectDialog != null){
             waitConnectDialog.dismiss();
+            waitConnectDialog = null;
         }
         EventBus.getDefault().unregister(this);
         WsManager.getInstance().disconnect();
-        Status.removeChangeListener();
     }
 
 
@@ -580,25 +601,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.main_tv_arrive:
-                if(currentTask.getState() < 9) {
+                lang = sp.getString("locale_language", "en");
+                lang = lang.equals("en") ? "1": "2";
+                if(currentTask.getState() < 8) {
                     changeTaskState(currentTask.getTransportTaskId(), currentTask.getState()+1);
-                    if(currentTask.getState() == 8){
-                        taskGsonList.remove(currentTask);
-                        moreTaskAdapter.notifyItemChanged(0);
-                        lang = sp.getString("locale_language", "en");
-                        lang = lang.equals("en") ? "1": "2";
-                        if(taskGsonList.size() == 0){
-                            currentTask = new TaskGson();
-                            main_tv_arrive.setClickable(false);
-                        }else{
-                            currentTask = taskGsonList.get(0);
-                            main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
-                        }
-                        main_tv_dest.setText(currentTask.getTaskDura(lang));
-                        main_tv_st.setText(currentTask.getStartTime());
-                        main_tv_at.setText(currentTask.getArrivalTime());
-                        main_tv_tasknum.setText(""+taskGsonList.size());
+                }else{
+                    main_tv_arrive.setText(currentTask.getTaskState(8, lang));
+                    changeTaskState(currentTask.getTransportTaskId(), 8);
+                }
+                if(currentTask.getState() == 8){
+                    taskGsonList.remove(currentTask);
+                    moreTaskAdapter.notifyItemChanged(0);
+                    if(taskGsonList.size() == 0){
+                        currentTask = new TaskGson();
+                        main_tv_arrive.setClickable(false);
+                    }else{
+                        currentTask = taskGsonList.get(0);
+                        main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
                     }
+                    main_tv_dest.setText(currentTask.getTaskDura(lang));
+                    main_tv_st.setText(currentTask.getStartTime());
+                    main_tv_at.setText(currentTask.getArrivalTime());
+                    main_tv_tasknum.setText(""+taskGsonList.size());
                 }
                 break;
             case R.id.main_tv_vm:
@@ -616,19 +640,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onEventMainThread(MessageResponse messageResponse){
         if(messageResponse.getType() == 1 && location != null){
             //返回经纬度
-            Action action = new Action("{\"driverId\":"+currentDriverInfo.getDriverId()
+            WsManager.getInstance().sendReq(new Action("{\"driverId\":"+currentDriverInfo.getDriverId()
                     +",\"truckId\":"+currentDriverInfo.getTruckId()
                     +",\"lng\":"+ location.getLongitude()
-                    +",\"lat\":"+ location.getLatitude()+"}", 1, null);
-            WsManager.getInstance().sendReq(action);
+                    +",\"lat\":"+ location.getLatitude()+"}", 1, null));
+            WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
         }else if(messageResponse.getType() == 2){
             //聊天消息
+            WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
             Toast.makeText(this, "有聊天消息", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
             main_v_isvm.setVisibility(View.VISIBLE);
             messageDialog.addData(messageResponse);
         }else{
-            Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
+            WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
+            Log.e(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
         }
     }
 
