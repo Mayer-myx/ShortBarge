@@ -36,7 +36,7 @@ public class ConnectFailDialog extends MyDialog{
 //        return connectFailDialog;
 //    }
 
-    public void showConnectFailDialog(Context context, LayoutInflater layoutInflater){
+    public void showConnectFailDialog(Context context, LayoutInflater layoutInflater, Intent intent){
         View dialog_wait_connect = layoutInflater.inflate(R.layout.dialog_connect_fail, null);
         this.setContentView(dialog_wait_connect);
         this.show();
@@ -50,6 +50,9 @@ public class ConnectFailDialog extends MyDialog{
         TextView dialog_fail_tv_retry = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_retry);
         dialog_fail_tv_retry.setOnClickListener(v->{
             this.dismiss();
+            intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+            ((AppCompatActivity)(context)).finish();
+            context.startActivity(intent);
         });
     }
 }

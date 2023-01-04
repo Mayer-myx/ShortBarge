@@ -47,6 +47,7 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         this.driverInfoGson = new DriverInfoGson();
         this.gps = context.getString(R.string.state_connected);
         this.server = context.getString(R.string.state_connected);
+        this.context = context;
     }
 
     public SettingDialog(@NonNull Context context, int themeResId) {
@@ -118,7 +119,7 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
                 ResultGson resultGson = response.body();
                 Log.i(TAG, "getLogout onResponse: "+resultGson.getMsg());
                 dismiss();
-                ((AppCompatActivity)context).finish();
+                ((MainActivity)context).finish();
                 context.startActivity(new Intent(context, LoginActivity.class));
             }
             @Override
@@ -132,8 +133,6 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.dialog_set_tv_serset:
-//                dismiss();
-//                ((AppCompatActivity)context).finish();
                 context.startActivity(new Intent(context, ServerConfigActivity.class));
                 break;
             case R.id.dialog_set_tv_logout:

@@ -1,6 +1,7 @@
 package com.deepsoft.shortbarge.driver.view;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -8,6 +9,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -56,8 +58,12 @@ import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Observable;
@@ -92,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private SharedPreferences sp;
     private int currentRetryCount = 0, waitRetryTime = 0;// 当前已重试次数// 重试等待时间
     private boolean isStopOver = false, isStart = false;//是否已经过了经停 是否到达起始点
+    private Observable<ResultGson> observable;//轮询任务用的观察者
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -125,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if(waitConnectDialog != null) {
                     if (waitConnectDialog.getWaitTime() >= 60) {
                         waitConnectDialog.dismiss();
-                        connectFailDialog.showConnectFailDialog(MainActivity.this, getLayoutInflater());
+                        connectFailDialog.showConnectFailDialog(MainActivity.this, getLayoutInflater(), getIntent());
                     }
 
                     if (Status.getGps().equals(getString(R.string.state_connected))
@@ -148,6 +155,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         TencentLocationManager.setUserAgreePrivacy(true);
         EventBus.getDefault().register(this);
         WsManager.getInstance().init(token);
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
 
 //        mHandler.postDelayed(new Runnable() {
 //            @Override
@@ -295,7 +303,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void getDriverInfo(){
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         apiInterface.getDriverInfo().enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
@@ -324,11 +331,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);
 
                     Status.setServer(getString(R.string.state_connected));
-                    settingDialog.setDriverInfoGson(currentDriverInfo);
-                    settingDialog.setServer(getString(R.string.state_connected));
+                    if(settingDialog != null) {
+                        settingDialog.setDriverInfoGson(currentDriverInfo);
+                        settingDialog.setServer(getString(R.string.state_connected));
+                    }
                 }else{
                     Status.setServer(getString(R.string.state_lost));
-                    settingDialog.setServer(getString(R.string.state_lost));
+                    if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                     Toast.makeText(MainActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                 }
             }
@@ -343,7 +352,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void getWeatherInfo(){
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         lang = sp.getString("locale_language", "en");
         lang = lang.equals("en") ? "1": "2";
         String wea = lang.equals("1") ? "2" : "1";
@@ -374,7 +382,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void getUserName(){
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         apiInterface.getUserName().enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
@@ -400,24 +407,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      * 5s 轮询任务列表
      */
     private void getDriverTask(){
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
-        Observable<ResultGson> observable = apiInterface.getDriverTask();
+        observable = apiInterface.getDriverTask();
         observable.retryWhen(new Function<Observable<Throwable>, ObservableSource<?>>() {
+            @Override
+            public ObservableSource<?> apply(Observable<Throwable> throwableObservable) throws Exception {
+                return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
                     @Override
-                    public ObservableSource<?> apply(Observable<Throwable> throwableObservable) throws Exception {
-                        return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
-                            @Override
-                            public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
-                                Log.d(TAG, "发生异常 = " + throwable.toString());
-                                currentRetryCount++;
-                                Log.d(TAG, "重试次数 = " + currentRetryCount);
-                                waitRetryTime = 1 + currentRetryCount;
-                                Log.d(TAG, "等待时间 =" + waitRetryTime);
-                                return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
-                            }
-                        });
+                    public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
+                        Log.d(TAG, "发生异常 = " + throwable.toString());
+                        currentRetryCount++;
+                        Log.d(TAG, "重试次数 = " + currentRetryCount);
+                        waitRetryTime = 1 + currentRetryCount;
+                        Log.d(TAG, "等待时间 =" + waitRetryTime);
+                        return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
                     }
-                }).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
+                });
+            }
+        }).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
             @Override
             public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
                 return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
@@ -432,9 +438,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe(new Observer<ResultGson>() {
                 @Override
-                public void onSubscribe(Disposable d) {
-
-                }
+                public void onSubscribe(Disposable d) { }
 
                 @Override
                 public void onNext(ResultGson value) {
@@ -468,25 +472,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
                         main_rv_tasks.setAdapter(moreTaskAdapter);
                         Status.setServer(getString(R.string.state_connected));
-                        settingDialog.setServer(getString(R.string.state_connected));
+                        if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
                     }else{
                         Status.setServer(getString(R.string.state_lost));
-                        settingDialog.setServer(getString(R.string.state_lost));
-                        Toast.makeText(MainActivity.this, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                        if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
+                        Log.i(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
                     }
                 }
 
                 @Override
                 public void onError(Throwable e) {
                     Status.setServer(getString(R.string.state_lost));
-                    settingDialog.setServer(getString(R.string.state_lost));
+                    if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                     Log.e(TAG, "getDriverTask onFailure:"+e.toString());
                 }
 
                 @Override
-                public void onComplete() {
-
-                }
+                public void onComplete() { }
             });
     }
 
@@ -514,7 +516,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void changeTaskState(String transportTaskId, Integer state){
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         apiInterface.changeTaskState(transportTaskId, state).enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
@@ -603,9 +604,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_mv_map.onDestroy();
         if(settingDialog != null){
             settingDialog.dismiss();
+            settingDialog = null;
         }
         if(messageDialog != null){
             messageDialog.dismiss();
+            messageDialog = null;
         }
         if(waitConnectDialog != null){
             waitConnectDialog.dismiss();
@@ -613,26 +616,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         EventBus.getDefault().unregister(this);
         WsManager.getInstance().disconnect();
+        Status.setOnChangeListener(null);
+        apiInterface = null;
+        observable = null;
     }
 
 
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onClick(View view) {
         switch (view.getId()){
             case R.id.main_tv_arrive:
                 lang = sp.getString("locale_language", "en");
                 lang = lang.equals("en") ? "1": "2";
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss", Locale.CHINA);
                 String btn_text = main_tv_arrive.getText().toString();
                 if(btn_text.equals(getString(R.string.task_start))){//开始任务
                     if(!isStart) {//开始任务
                         isStart = true;
                         main_tv_arrive.setText(R.string.task_arrive);
-                        main_tv_st.setText(currentTask.getStartTime());
+                        LocalTime localTime = LocalTime.now();
+                        main_tv_st.setText(localTime.format(formatter));
                     }else{//装货完成 开始运输
                         isStart = false;//免得被经停站和终点判断
                         changeTaskState(currentTask.getTransportTaskId(), 3);
                         main_tv_arrive.setText(R.string.task_arrive);
-                        main_tv_st.setText(currentTask.getStartTime());
                     }
                     Log.e(TAG, "task_start = " + currentTask.getTaskState(lang));
                 }else if(btn_text.equals(getString(R.string.task_arrive))){
@@ -647,7 +655,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         changeTaskState(currentTask.getTransportTaskId(), 7);
                         main_tv_arrive.setText(R.string.task_finish);
                     }
-                    main_tv_at.setText(currentTask.getArrivalTime());
+                    LocalTime localTime = LocalTime.now();
+                    main_tv_at.setText(localTime.format(formatter));
                     Log.e(TAG, "task_arrive = " + currentTask.getTaskState(lang));
                 }else if(btn_text.equals(getString(R.string.task_continue))){
                     changeTaskState(currentTask.getTransportTaskId(), 6);
@@ -656,7 +665,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else if(btn_text.equals(getString(R.string.task_finish))){//全部完成
                     Log.e(TAG, "task_finish = " + currentTask.getTaskState(lang));
                     changeTaskState(currentTask.getTransportTaskId(), 8);
-                    main_tv_at.setText(currentTask.getArrivalTime());
+                    LocalTime localTime = LocalTime.now();
+                    main_tv_at.setText(localTime.format(formatter));
                     taskGsonList.remove(currentTask);
                     moreTaskAdapter.notifyItemChanged(0);
                     if(taskGsonList.size() == 0){

@@ -21,7 +21,9 @@ public class Status {
 
     public static void setGps(String gps) {
         Status.gps = gps;
-        onChangeListener.onChange();
+        if(onChangeListener != null) {
+            onChangeListener.onChange();
+        }
     }
 
     public static String getServer() {
@@ -30,6 +32,8 @@ public class Status {
 
     public static void setServer(String server) {
         Status.server = server;
-        onChangeListener.onChange();
+        if(onChangeListener != null) {
+            onChangeListener.onChange();
+        }
     }
 }

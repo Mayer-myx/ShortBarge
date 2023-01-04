@@ -61,8 +61,7 @@ public class WsManager {
     private WebSocket ws;
     private WsListener mListener;
 
-    private WsManager() {
-    }
+    private WsManager() { }
 
     public static WsManager getInstance(){
         if(mInstance == null){
@@ -357,7 +356,8 @@ public class WsManager {
 
 
         @Override
-        public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame, WebSocketFrame clientCloseFrame, boolean closedByServer)
+        public void onDisconnected(WebSocket websocket, WebSocketFrame serverCloseFrame,
+                                   WebSocketFrame clientCloseFrame, boolean closedByServer)
                 throws Exception {
             super.onDisconnected(websocket, serverCloseFrame, clientCloseFrame, closedByServer);
             Log.d(TAG, "断开连接");
@@ -375,12 +375,10 @@ public class WsManager {
                 Action action = new Action("sync", -1, null);
                 sendReq(action, new ICallback() {
                     @Override
-                    public void onSuccess(Object o) {
-                    }
+                    public void onSuccess(Object o) { }
 
                     @Override
-                    public void onFail(String msg) {
-                    }
+                    public void onFail(String msg) { }
                 });
             }
         }, 300);
@@ -432,7 +430,6 @@ public class WsManager {
         }
 
         @Override
-        public void onFail(String msg) {
-        }
+        public void onFail(String msg) { }
     };
 }

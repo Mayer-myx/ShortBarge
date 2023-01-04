@@ -64,11 +64,9 @@ public class BaseApplication extends Application {
         application = this;
         context = getApplicationContext();
 
+        initAppStatusListener();
         //注册Activity生命周期监听回调，此部分一定加上，因为有些版本不加的话多语言切换不回来
         registerActivityLifecycleCallbacks(callbacks);
-
-        initAppStatusListener();
-
         changeLanguage();
     }
 
