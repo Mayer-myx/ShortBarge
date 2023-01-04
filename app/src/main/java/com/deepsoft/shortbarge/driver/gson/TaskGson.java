@@ -1,7 +1,5 @@
 package com.deepsoft.shortbarge.driver.gson;
 
-import android.util.Log;
-
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -15,11 +13,14 @@ public class TaskGson extends ResultGson {
 
     private String transportTaskId;
     private Integer state;
+    private Boolean delay;
     private String startTime;
     private String arrivalTime;
     private String duration;
     private String nextStation;
     private String nextStationEng;
+    private Boolean stopOver;
+    private Boolean emergency;
 
     public String getTaskState(Integer i, String type){
         Map<Integer, String> res_zh = new HashMap<>();
@@ -107,6 +108,14 @@ public class TaskGson extends ResultGson {
         this.state = state;
     }
 
+    public Boolean getDelay() {
+        return delay;
+    }
+
+    public void setDelay(Boolean delay) {
+        this.delay = delay;
+    }
+
     public String getStartTime() {
         return startTime;
     }
@@ -132,6 +141,9 @@ public class TaskGson extends ResultGson {
     }
 
     public String getNextStation() {
+        if(nextStation.length() != 0){
+            nextStation += "\t\t";
+        }
         return nextStation;
     }
 
@@ -145,5 +157,21 @@ public class TaskGson extends ResultGson {
 
     public void setNextStationEng(String nextStationEng) {
         this.nextStationEng = nextStationEng;
+    }
+
+    public Boolean getStopOver() {
+        return stopOver;
+    }
+
+    public void setStopOver(Boolean stopOver) {
+        this.stopOver = stopOver;
+    }
+
+    public Boolean getEmergency() {
+        return emergency;
+    }
+
+    public void setEmergency(Boolean emergency) {
+        this.emergency = emergency;
     }
 }

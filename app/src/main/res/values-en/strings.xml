@@ -54,4 +54,8 @@
     <string name="state_connected">Connected</string>
     <string name="state_lost">Lost</string>
     <string name="state_reconnecting">Reconnecting</string>
+    <string name="task_continue">Continue</string>
+    <string name="task_start">Start</string>
+    <string name="task_finish">Finished</string>
+    <string name="task_arrive">Arrived</string>
 </resources>

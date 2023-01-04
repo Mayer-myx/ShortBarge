@@ -91,6 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String truckId, driverId, lang;
     private SharedPreferences sp;
     private int currentRetryCount = 0, waitRetryTime = 0;// 当前已重试次数// 重试等待时间
+    private boolean isStopOver = false, isStart = false;//是否已经过了经停 是否到达起始点
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -121,17 +122,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Status.setOnChangeListener(new Status.OnChangeListener() {
             @Override
             public void onChange() {
-                Log.e(TAG, "onchange="+Status.getGps()+Status.getServer());
-                if(waitConnectDialog.getWaitTime() >= 60){
-                    waitConnectDialog.dismiss();
-                    connectFailDialog.showConnectFailDialog(MainActivity.this, getLayoutInflater());
-                }
+                if(waitConnectDialog != null) {
+                    if (waitConnectDialog.getWaitTime() >= 60) {
+                        waitConnectDialog.dismiss();
+                        connectFailDialog.showConnectFailDialog(MainActivity.this, getLayoutInflater());
+                    }
 
-                if(Status.getGps().equals(getString(R.string.state_connected))
-                        && Status.getServer().equals(getString(R.string.state_connected))) {
-                    waitConnectDialog.dismiss();
-                }else{
-                    waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
+                    if (Status.getGps().equals(getString(R.string.state_connected))
+                            && Status.getServer().equals(getString(R.string.state_connected))) {
+                        waitConnectDialog.dismiss();
+                    } else {
+                        waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
+                    }
                 }
             }
         });
@@ -203,11 +205,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         int error = mLocationManager.requestLocationUpdates(request, tencentLocationListener);
         if (error == 0){
-            Log.e(TAG, "注册位置监听器成功！");
+            Log.i(TAG, "注册位置监听器成功！");
             Status.setGps(getString(R.string.state_connected));
             settingDialog.setGps(getString(R.string.state_connected));
         } else {
-            Log.e(TAG, "注册位置监听器失败！");
+            Log.i(TAG, "注册位置监听器失败！");
             Status.setGps(getString(R.string.state_lost));
             settingDialog.setGps(getString(R.string.state_lost));
         }
@@ -285,6 +287,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         main_v_isvm = findViewById(R.id.main_v_isvm);
         main_v_isvm.setVisibility(View.INVISIBLE);
+
+        main_tv_st.setText("");
+        main_tv_at.setText("");
+        main_tv_arrive.setText(R.string.task_start);
     }
 
 
@@ -344,7 +350,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         apiInterface.getWeatherInfo(wea).enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                Log.e(TAG, "getWeatherInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                Log.i(TAG, "getWeatherInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
                     List<WeatherGson> list = GsonConvertUtil.performTransform(resultGson.getData(), WeatherGson.class);
@@ -417,12 +423,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
                     @Override
                     public ObservableSource<?> apply(@NonNull Object throwable) throws Exception {
-                        // 加入判断条件：当轮询次数 = 5次后，就停止轮询
-//                        if (poll_count > 3) {
-//                            // 此处选择发送onError事件以结束轮询，因为可触发下游观察者的onError（）方法回调
-//                            return Observable.error(new Throwable("轮询结束"));
-//                        }
-                        // 若轮询次数＜4次，则发送1Next事件以继续轮询
                         // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 5s），以实现轮询间间隔设置
                         return Observable.just(1).delay(5 , TimeUnit.SECONDS);
                     }
@@ -438,28 +438,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                 @Override
                 public void onNext(ResultGson value) {
-                    Log.e(TAG, "getDriverTask run: get同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
+                    Log.i(TAG, "getDriverTask run: get同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
                     ResultGson resultGson = value;
+                    lang = sp.getString("locale_language", "en");
+                    lang = lang.equals("en") ? "1" : "2";
                     if (resultGson.getSuccess()) {
                         taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
                         if(taskGsonList.size() != 0) {
+                            if(currentTask != null && !currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId())){
+                                isStopOver = false;
+                                isStart = false;
+                            }
                             currentTask = taskGsonList.get(0);
-                            lang = sp.getString("locale_language", "en");
-                            lang = lang.equals("en") ? "1" : "2";
-                            main_tv_dest.setText(currentTask.getTaskDura(lang));
+                            if(lang.equals("1")) {
+                                main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
+                            }else{
+                                main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
+                            }
                             main_tv_ts.setText(currentTask.getTaskState(lang));
-                            main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState() + 1, lang));
-                            main_tv_st.setText(currentTask.getStartTime());
-                            main_tv_at.setText(currentTask.getArrivalTime());
-                            main_tv_arrive.setClickable(true);
                         }else{
                             currentTask = new TaskGson();
                             main_tv_dest.setText(currentTask.getDuration());
                             main_tv_ts.setText(""+currentTask.getState());
-                            main_tv_arrive.setText(currentTask.getTaskState(8, lang));
-                            main_tv_st.setText(currentTask.getStartTime());
-                            main_tv_at.setText(currentTask.getArrivalTime());
-                            main_tv_arrive.setClickable(false);
+                            isStopOver = false;
+                            isStart = false;
                         }
                         main_tv_tasknum.setText("" + taskGsonList.size());
                         moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
@@ -518,12 +520,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 Log.e(TAG, "changeTaskState run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
+                lang = sp.getString("locale_language", "en");
+                lang = lang.equals("en") ? "1": "2";
                 if (resultGson.getSuccess()) {
                     currentTask.setState(state);
-                    lang = sp.getString("locale_language", "en");
-                    lang = lang.equals("en") ? "1": "2";
                     main_tv_ts.setText(currentTask.getTaskState(lang));
-                    main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
                     moreTaskAdapter.notifyItemChanged(0);
                 }else{
                     Toast.makeText(MainActivity.this, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
@@ -621,26 +622,55 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.main_tv_arrive:
                 lang = sp.getString("locale_language", "en");
                 lang = lang.equals("en") ? "1": "2";
-                if(currentTask.getState() < 8) {
-                    changeTaskState(currentTask.getTransportTaskId(), currentTask.getState()+1);
-                }else{
-                    main_tv_arrive.setText(currentTask.getTaskState(8, lang));
+                String btn_text = main_tv_arrive.getText().toString();
+                if(btn_text.equals(getString(R.string.task_start))){//开始任务
+                    if(!isStart) {//开始任务
+                        isStart = true;
+                        main_tv_arrive.setText(R.string.task_arrive);
+                        main_tv_st.setText(currentTask.getStartTime());
+                    }else{//装货完成 开始运输
+                        isStart = false;//免得被经停站和终点判断
+                        changeTaskState(currentTask.getTransportTaskId(), 3);
+                        main_tv_arrive.setText(R.string.task_arrive);
+                        main_tv_st.setText(currentTask.getStartTime());
+                    }
+                    Log.e(TAG, "task_start = " + currentTask.getTaskState(lang));
+                }else if(btn_text.equals(getString(R.string.task_arrive))){
+                    if(isStart) {//到达起点 装货
+                        changeTaskState(currentTask.getTransportTaskId(), 2);
+                        main_tv_arrive.setText(R.string.task_start);
+                    }else if(currentTask.getStopOver() && isStopOver) {//到达经停站
+                        changeTaskState(currentTask.getTransportTaskId(), 5);
+                        isStopOver = true;
+                        main_tv_arrive.setText(R.string.task_continue);
+                    } else {//到达终点 卸货
+                        changeTaskState(currentTask.getTransportTaskId(), 7);
+                        main_tv_arrive.setText(R.string.task_finish);
+                    }
+                    main_tv_at.setText(currentTask.getArrivalTime());
+                    Log.e(TAG, "task_arrive = " + currentTask.getTaskState(lang));
+                }else if(btn_text.equals(getString(R.string.task_continue))){
+                    changeTaskState(currentTask.getTransportTaskId(), 6);
+                    main_tv_arrive.setText(R.string.task_arrive);
+                    Log.e(TAG, "task_continue = " + currentTask.getTaskState(lang));
+                }else if(btn_text.equals(getString(R.string.task_finish))){//全部完成
+                    Log.e(TAG, "task_finish = " + currentTask.getTaskState(lang));
                     changeTaskState(currentTask.getTransportTaskId(), 8);
-                }
-                if(currentTask.getState() == 8){
+                    main_tv_at.setText(currentTask.getArrivalTime());
                     taskGsonList.remove(currentTask);
                     moreTaskAdapter.notifyItemChanged(0);
                     if(taskGsonList.size() == 0){
                         currentTask = new TaskGson();
-                        main_tv_arrive.setClickable(false);
                     }else{
                         currentTask = taskGsonList.get(0);
-                        main_tv_arrive.setText(currentTask.getTaskState(currentTask.getState()+1, lang));
                     }
-                    main_tv_dest.setText(currentTask.getTaskDura(lang));
-                    main_tv_st.setText(currentTask.getStartTime());
-                    main_tv_at.setText(currentTask.getArrivalTime());
+                    main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
+                    main_tv_st.setText("");
+                    main_tv_at.setText("");
                     main_tv_tasknum.setText(""+taskGsonList.size());
+                    main_tv_arrive.setText(R.string.task_start);
+                    isStopOver = false;
+                    isStart = false;
                 }
                 break;
             case R.id.main_tv_vm:
