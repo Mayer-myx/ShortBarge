@@ -59,7 +59,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // LeakCanary内存泄漏检测
-    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.6'
+//    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.6'
 
     // 阴影颜色方向可修改的CardView
     implementation 'io.github.meetsl:SCardView:1.2'

@@ -21,12 +21,15 @@ import com.deepsoft.shortbarge.driver.constant.Action;
 import com.deepsoft.shortbarge.driver.gson.message.MessageBean;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
+import com.deepsoft.shortbarge.driver.gson.message.ReceiveMessage;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
+import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
+import com.google.gson.Gson;
 
 import java.io.File;
 import java.io.IOException;
@@ -236,7 +239,9 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
 
 
     public void addData(MessageResponse messageResponse){
-        MessageBean messageBean = new MessageBean(messageResponse.getMessage(), false);
+        Gson gson = new Gson();
+        ReceiveMessage receiveMessage = gson.fromJson(messageResponse.getMessage(), ReceiveMessage.class);
+        MessageBean messageBean = new MessageBean(receiveMessage.getMsg(), false);
         messageBeans.add(messageBean);
         if(messageAdapter != null) {
             messageAdapter.notifyItemChanged(messageBeans.size()-1);
