@@ -141,7 +141,7 @@ public class TaskGson extends ResultGson {
     }
 
     public String getNextStation() {
-        if(nextStation.length() != 0){
+        if(nextStation != null){
             nextStation += "\t\t";
         }
         return nextStation;
