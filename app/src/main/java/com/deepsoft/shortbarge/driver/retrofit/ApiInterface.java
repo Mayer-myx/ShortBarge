@@ -112,6 +112,14 @@ public interface ApiInterface {
     Call<ResultGson> changeTaskState(@Query("transportTaskId") String transportTaskId,
                               @Query("state") Integer state);
 
+
+    /**
+     * 天气
+     * @return
+     */
+    @GET("account/getAdminUser")
+    Call<ResultGson> getAdminUser();
+
     /**
      * 上传文件 录音
      * @param part

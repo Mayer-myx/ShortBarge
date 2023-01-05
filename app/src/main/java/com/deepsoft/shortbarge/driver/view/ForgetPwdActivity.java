@@ -11,21 +11,23 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.deepsoft.shortbarge.driver.BuildConfig;
 import com.deepsoft.shortbarge.driver.R;
-import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
+import com.deepsoft.shortbarge.driver.gson.AdminGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
-import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
-import com.deepsoft.shortbarge.driver.widget.Status;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ForgetPwdActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -77,25 +79,30 @@ public class ForgetPwdActivity extends AppCompatActivity implements View.OnClick
 
 
     private void getDriverInfo(){
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
-        apiInterface.getDriverInfo().enqueue(new Callback<ResultGson>() {
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(BuildConfig.SERVICE_HOST)
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
+                .build();
+        apiInterface = retrofit.create(ApiInterface.class);
+        apiInterface.getAdminUser().enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                Log.i(TAG, "getDriverInfo run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
+                Log.i(TAG, "getAdminUser run: get同步请求 "+ "code="+response.body().getCode()+" msg="+response.body().getMsg());
                 ResultGson resultGson = response.body();
                 if(resultGson.getSuccess()){
-                    List<DriverInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), DriverInfoGson.class);
-                    DriverInfoGson driverInfoGson = list.get(0);
-                    forpwd_tv_phone.setText(driverInfoGson.getEmergencyPhone());
+                    List<AdminGson> list = GsonConvertUtil.performTransform(resultGson.getData(), AdminGson.class);
+                    AdminGson adminGson = list.get(0);
+                    forpwd_tv_phone.setText(adminGson.getPhone());
                     String lang = sp.getString("locale_language", "en");
                     lang = lang.equals("en") ? "1": "2";
                     if(lang.equals("1")){
-                        forpwd_tv_name.setText(driverInfoGson.getEmergencyContactEng());
+                        forpwd_tv_name.setText(adminGson.getNameEng());
                     }else {
-                        forpwd_tv_name.setText(driverInfoGson.getEmergencyContact());
+                        forpwd_tv_name.setText(adminGson.getName());
                     }
                 }else{
-                    Toast.makeText(ForgetPwdActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
             }
             @Override
