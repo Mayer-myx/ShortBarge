@@ -299,6 +299,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         main_tv_st.setText("");
         main_tv_at.setText("");
         main_tv_arrive.setText(R.string.task_start);
+
+        lang = sp.getString("locale_language", "en");
+        lang = lang.equals("en") ? "1" : "2";
+        moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
+        main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
+        main_rv_tasks.setAdapter(moreTaskAdapter);
     }
 
 
@@ -471,9 +477,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             isStart = false;
                         }
                         main_tv_tasknum.setText("" + taskGsonList.size());
-                        moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
-                        main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
-                        main_rv_tasks.setAdapter(moreTaskAdapter);
+                        moreTaskAdapter.setList(taskGsonList);
                         Status.setServer(getString(R.string.state_connected));
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
                     }else{
@@ -645,7 +649,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         changeTaskState(currentTask.getTransportTaskId(), 3);
                         main_tv_arrive.setText(R.string.task_arrive);
                     }
-                    Log.e(TAG, "task_start = " + currentTask.getTaskState(lang));
                 }else if(btn_text.equals(getString(R.string.task_arrive))){
                     if(isStart) {//到达起点 装货
                         changeTaskState(currentTask.getTransportTaskId(), 2);
@@ -660,18 +663,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                     LocalTime localTime = LocalTime.now();
                     main_tv_at.setText(localTime.format(formatter));
-                    Log.e(TAG, "task_arrive = " + currentTask.getTaskState(lang));
                 }else if(btn_text.equals(getString(R.string.task_continue))){
                     changeTaskState(currentTask.getTransportTaskId(), 6);
                     main_tv_arrive.setText(R.string.task_arrive);
-                    Log.e(TAG, "task_continue = " + currentTask.getTaskState(lang));
                 }else if(btn_text.equals(getString(R.string.task_finish))){//全部完成
-                    Log.e(TAG, "task_finish = " + currentTask.getTaskState(lang));
                     changeTaskState(currentTask.getTransportTaskId(), 8);
                     LocalTime localTime = LocalTime.now();
                     main_tv_at.setText(localTime.format(formatter));
                     taskGsonList.remove(currentTask);
-                    moreTaskAdapter.notifyItemChanged(0);
+                    moreTaskAdapter.setList(taskGsonList);
                     if(taskGsonList.size() == 0){
                         currentTask = new TaskGson();
                     }else{
