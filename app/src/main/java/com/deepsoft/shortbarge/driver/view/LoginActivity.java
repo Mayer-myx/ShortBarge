@@ -81,8 +81,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         editor = sp.edit();
-        String baseurl = sp.getString("BaseURL", "221.12.170.99:8081");
-        RetrofitUtil.setBaseUrl(baseurl);
+        String add = sp.getString("BaseURLAdd", "221.12.170.99");
+        String port = sp.getString("BaseURLPort", "8081");
+        RetrofitUtil.setBaseUrl(add + ":" + port);
 
         is_rem_pwd = sp.getBoolean("is_rem", false);
         username = sp.getString("username", "");

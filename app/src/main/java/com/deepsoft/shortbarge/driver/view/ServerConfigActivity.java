@@ -20,6 +20,9 @@ public class ServerConfigActivity extends AppCompatActivity implements View.OnCl
     private TextView sercon_tv_cancel, sercon_tv_confirm;
     private EditText sercon_et_add, sercon_et_port;
 
+    private SharedPreferences sp;
+    private SharedPreferences.Editor editor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +33,14 @@ public class ServerConfigActivity extends AppCompatActivity implements View.OnCl
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
         initView();
+
+        sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
+        editor = sp.edit();
+        String add = sp.getString("BaseURLAdd", "221.12.170.99");
+        String port = sp.getString("BaseURLPort", "8081");
+        RetrofitUtil.setBaseUrl(add + ":" + port);
+        sercon_et_add.setHint(add);
+        sercon_et_port.setHint(port);
     }
 
     private void initView(){
@@ -55,9 +66,10 @@ public class ServerConfigActivity extends AppCompatActivity implements View.OnCl
                 String add = sercon_et_add.getText().toString();
                 String port = sercon_et_port.getText().toString();
                 if(!add.isEmpty() && !port.isEmpty()) {
-                    SharedPreferences sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sp.edit();
-                    editor.putString("BaseURL", add + ":" + port);
+                    sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
+                    editor = sp.edit();
+                    editor.putString("BaseURLAdd",  add);
+                    editor.putString("BaseURLPort", port);
                     editor.commit();
                     RetrofitUtil.setBaseUrl(add + ":" + port);
                     ServerConfigActivity.this.finish();
