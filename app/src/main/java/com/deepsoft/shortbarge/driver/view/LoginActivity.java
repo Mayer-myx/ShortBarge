@@ -81,6 +81,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         editor = sp.edit();
+        String baseurl = sp.getString("BaseURL", "221.12.170.99:8081");
+        RetrofitUtil.setBaseUrl(baseurl);
 
         is_rem_pwd = sp.getBoolean("is_rem", false);
         username = sp.getString("username", "");
@@ -138,7 +140,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private void getLogin(String username, String password){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BuildConfig.SERVICE_HOST)
+                .baseUrl(RetrofitUtil.getBaseUrl())
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();

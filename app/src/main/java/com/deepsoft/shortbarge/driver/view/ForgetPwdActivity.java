@@ -19,6 +19,7 @@ import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
+import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 
 import java.util.List;
 
@@ -80,7 +81,7 @@ public class ForgetPwdActivity extends AppCompatActivity implements View.OnClick
 
     private void getDriverInfo(){
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BuildConfig.SERVICE_HOST)
+                .baseUrl(RetrofitUtil.getBaseUrl())
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .build();

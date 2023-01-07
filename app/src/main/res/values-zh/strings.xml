@@ -58,4 +58,5 @@
     <string name="task_continue">继续</string>
     <string name="task_finish">完成</string>
     <string name="task_arrive">到达</string>
+    <string name="hint_serverc_config">请检查是否输入完整</string>
 </resources>

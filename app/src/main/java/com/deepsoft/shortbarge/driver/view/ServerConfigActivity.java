@@ -2,14 +2,18 @@ package com.deepsoft.shortbarge.driver.view;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
+import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 
 public class ServerConfigActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -50,7 +54,16 @@ public class ServerConfigActivity extends AppCompatActivity implements View.OnCl
             case R.id.sercon_tv_confirm:
                 String add = sercon_et_add.getText().toString();
                 String port = sercon_et_port.getText().toString();
-                ServerConfigActivity.this.finish();
+                if(!add.isEmpty() && !port.isEmpty()) {
+                    SharedPreferences sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = sp.edit();
+                    editor.putString("BaseURL", add + ":" + port);
+                    editor.commit();
+                    RetrofitUtil.setBaseUrl(add + ":" + port);
+                    ServerConfigActivity.this.finish();
+                }else{
+                    Toast.makeText(this, getString(R.string.hint_serverc_config), Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
     }

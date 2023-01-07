@@ -58,4 +58,5 @@
     <string name="task_start">Start</string>
     <string name="task_finish">Finished</string>
     <string name="task_arrive">Arrived</string>
+    <string name="hint_serverc_config">Please check that the input is complete</string>
 </resources>

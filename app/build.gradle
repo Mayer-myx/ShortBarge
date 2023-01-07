@@ -34,18 +34,18 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
 
-    productFlavors {
-        //测试版本
-        deepsoft_release {
-//            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
-            buildConfigField("String", "SERVICE_HOST", "\"http://221.12.170.99:8081/\"")
-        }
-        //正式版本
-        deepsoft_debug {
-//            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
-            buildConfigField("String", "SERVICE_HOST", "\"http://221.12.170.99:8081/\"")
-        }
-    }
+//    productFlavors {
+//        //测试版本
+//        deepsoft_release {
+////            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+//            buildConfigField("String", "SERVICE_HOST", "\"http://221.12.170.99:8081/\"")
+//        }
+//        //正式版本
+//        deepsoft_debug {
+////            buildConfigField("String", "SERVICE_HOST", "\"http://192.168.31.167:8081/\"")
+//            buildConfigField("String", "SERVICE_HOST", "\"http://221.12.170.99:8081/\"")
+//        }
+//    }
 }
 
 
@@ -59,7 +59,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // LeakCanary内存泄漏检测
-//    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.6'
+    debugImplementation 'com.squareup.leakcanary:leakcanary-android:2.6'
 
     // 阴影颜色方向可修改的CardView
     implementation 'io.github.meetsl:SCardView:1.2'

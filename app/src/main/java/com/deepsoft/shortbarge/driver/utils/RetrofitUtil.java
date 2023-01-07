@@ -1,5 +1,7 @@
 package com.deepsoft.shortbarge.driver.utils;
 
+import android.util.Log;
+
 import com.deepsoft.shortbarge.driver.BuildConfig;
 
 import retrofit2.Retrofit;
@@ -8,6 +10,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitUtil {
 
+    private static String baseUrl;
     private static RetrofitUtil retrofitUtils;
 
     private RetrofitUtil() {}
@@ -26,7 +29,7 @@ public class RetrofitUtil {
     //返回Retrofit
     public Retrofit getRetrofit() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(BuildConfig.SERVICE_HOST)
+                .baseUrl(baseUrl)
                 .client(OkHttpUtil.getOkHttpClient())
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
@@ -35,5 +38,13 @@ public class RetrofitUtil {
 //                .addConverterFactory(MyGsonConverterFactory.create())
 //                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
         return retrofit;
+    }
+
+    public static void setBaseUrl(String baseUrl1){
+        baseUrl = "http://" + baseUrl1 + "/";
+    }
+
+    public static String getBaseUrl(){
+        return baseUrl;
     }
 }

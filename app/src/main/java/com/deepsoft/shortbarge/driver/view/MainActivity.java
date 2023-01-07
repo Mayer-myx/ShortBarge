@@ -469,12 +469,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
                             }
                             main_tv_ts.setText(currentTask.getTaskState(lang));
+                            main_tv_arrive.setClickable(true);
                         }else{
                             currentTask = new TaskGson();
                             main_tv_dest.setText(currentTask.getDuration());
                             main_tv_ts.setText(""+currentTask.getState());
                             isStopOver = false;
                             isStart = false;
+                            main_tv_arrive.setClickable(false);
                         }
                         main_tv_tasknum.setText("" + taskGsonList.size());
                         moreTaskAdapter.setList(taskGsonList);
@@ -674,8 +676,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     moreTaskAdapter.setList(taskGsonList);
                     if(taskGsonList.size() == 0){
                         currentTask = new TaskGson();
+                        main_tv_arrive.setClickable(false);
                     }else{
                         currentTask = taskGsonList.get(0);
+                        main_tv_arrive.setClickable(true);
                     }
                     main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
                     main_tv_st.setText(currentTask.getStartTime());
