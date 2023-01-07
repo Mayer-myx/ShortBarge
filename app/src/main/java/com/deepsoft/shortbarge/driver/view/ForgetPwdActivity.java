@@ -103,7 +103,7 @@ public class ForgetPwdActivity extends AppCompatActivity implements View.OnClick
                         forpwd_tv_name.setText(adminGson.getName());
                     }
                 }else{
-                    Log.e(TAG, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg());
+                    Log.i(TAG, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
             }
             @Override

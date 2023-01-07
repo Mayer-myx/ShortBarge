@@ -7,17 +7,16 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
@@ -25,7 +24,6 @@ import com.deepsoft.shortbarge.driver.constant.Action;
 import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
 import com.deepsoft.shortbarge.driver.gson.ResultGson;
 import com.deepsoft.shortbarge.driver.gson.TaskGson;
-import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
 import com.deepsoft.shortbarge.driver.gson.WeatherGson;
 import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
@@ -35,14 +33,13 @@ import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
-import com.deepsoft.shortbarge.driver.widget.Status;
+import com.deepsoft.shortbarge.driver.widget.MyDialog;
 import com.tencent.map.geolocation.TencentLocation;
 import com.tencent.map.geolocation.TencentLocationListener;
 import com.tencent.map.geolocation.TencentLocationManager;
 import com.tencent.map.geolocation.TencentLocationRequest;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdate;
 import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
-import com.tencent.tencentmap.mapsdk.maps.LocationSource;
 import com.tencent.tencentmap.mapsdk.maps.MapView;
 import com.tencent.tencentmap.mapsdk.maps.TencentMap;
 import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptor;
@@ -56,9 +53,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 
-import java.io.IOException;
-import java.net.UnknownHostException;
-import java.time.LocalDate;
+import java.net.ConnectException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -96,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TaskGson currentTask;
     private String truckId, driverId, lang;
     private SharedPreferences sp;
-    private int currentRetryCount = 0, waitRetryTime = 0;// 当前已重试次数// 重试等待时间
+    private int currentRetryCount = 0, waitRetryTime = 0, maxConnectCount = 10;// 当前已重试次数// 重试等待时间 //最大重试次数
     private boolean isStopOver = false, isStart = false;//是否已经过了经停 是否到达起始点
     private Observable<ResultGson> observable;//轮询任务用的观察者
 
@@ -126,28 +121,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         NavigationBarUtil.clearFocusNotAle(getWindow());
 
         waitConnectDialog = new WaitConnectDialog(MainActivity.this);
-        Status.setOnChangeListener(new Status.OnChangeListener() {
-            @Override
-            public void onChange() {
-                if(waitConnectDialog != null) {
-                    if (waitConnectDialog.getWaitTime() >= 60) {
-                        waitConnectDialog.dismiss();
-                        connectFailDialog.showConnectFailDialog(MainActivity.this, getLayoutInflater(), getIntent());
-                    }
-
-                    if (Status.getGps().equals(getString(R.string.state_connected))
-                            && Status.getServer().equals(getString(R.string.state_connected))) {
-                        waitConnectDialog.dismiss();
-                    } else {
-                        waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
-                    }
-                }
-            }
-        });
         settingDialog = new SettingDialog(MainActivity.this);
         connectFailDialog = new ConnectFailDialog(MainActivity.this);
-        Status.setGps(getString(R.string.state_lost));
-        Status.setServer(getString(R.string.state_lost));
+        waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
 
         sp = getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
         String token = sp.getString("token", "");
@@ -157,17 +133,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         WsManager.getInstance().init(token);
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
 
-//        mHandler.postDelayed(new Runnable() {
-//            @Override
-//            public void run() {
-//                if(waitConnectDialog != null) {
-//                    waitConnectDialog.dismiss();
-//                }
-//            }
-//        },60*1000);
-
         initView();
+
         initLocation();
+
         getDriverInfo();
         getDriverTask();
         getWeatherInfo();
@@ -184,13 +153,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
                         setMaker(tencentLocation.getLatitude(), tencentLocation.getLongitude());
                         location = tencentLocation;
-                        Status.setGps(getString(R.string.state_connected));
+                        if(waitConnectDialog.getIsShow())
+                            waitConnectDialog.dismiss();
                         settingDialog.setGps(getString(R.string.state_connected));
-//                Log.i(TAG, tencentLocation.getLatitude() + "---" + tencentLocation.getLongitude() + "---" + tencentLocation.getSpeed());
+                        // 开始以后位置变化 则运输中
+
+                        // 到达终点 完成
+
                     }
                 } else {
                     Log.e(TAG, "定位失败"+i+" "+s);
-                    Status.setGps(getString(R.string.state_lost));
+                    if(waitConnectDialog.getIsShow())
+                        waitConnectDialog.dismiss();
+                    connectFailDialog.showConnectFailDialog();
                     settingDialog.setGps(getString(R.string.state_lost));
                 }
             }
@@ -214,11 +189,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int error = mLocationManager.requestLocationUpdates(request, tencentLocationListener);
         if (error == 0){
             Log.i(TAG, "注册位置监听器成功！");
-            Status.setGps(getString(R.string.state_connected));
+            if(waitConnectDialog.getIsShow())
+                waitConnectDialog.dismiss();
             settingDialog.setGps(getString(R.string.state_connected));
         } else {
             Log.i(TAG, "注册位置监听器失败！");
-            Status.setGps(getString(R.string.state_lost));
+            if(waitConnectDialog.getIsShow())
+                waitConnectDialog.dismiss();
+            connectFailDialog.showConnectFailDialog();
             settingDialog.setGps(getString(R.string.state_lost));
         }
     }
@@ -235,7 +213,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onMapLoaded() {
                 //第一次渲染成功的回调
                 Log.i(TAG, "map ok");
-                Status.setGps(getString(R.string.state_connected));
+                if(waitConnectDialog.getIsShow())
+                    waitConnectDialog.dismiss();
                 settingDialog.setGps(getString(R.string.state_connected));
             }
         });
@@ -336,22 +315,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     main_tv_truck.setText(truckId);
                     messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);
 
-                    Status.setServer(getString(R.string.state_connected));
                     if(settingDialog != null) {
                         settingDialog.setDriverInfoGson(currentDriverInfo);
                         settingDialog.setServer(getString(R.string.state_connected));
                     }
                 }else{
-                    Status.setServer(getString(R.string.state_lost));
                     if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
-                    Toast.makeText(MainActivity.this, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
+                if(waitConnectDialog.getIsShow())
+                    waitConnectDialog.dismiss();
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
-                Status.setServer(getString(R.string.state_lost));
-                settingDialog.setGps(getString(R.string.state_lost));
                 Log.e(TAG, "getDriverInfo onFailure:"+t);
+                if(t instanceof ConnectException){
+                    if(waitConnectDialog.getIsShow())
+                        waitConnectDialog.dismiss();
+                    connectFailDialog.showConnectFailDialog();
+                    settingDialog.setGps(getString(R.string.state_lost));
+                }
             }
         });
     }
@@ -375,35 +358,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     main_iv_wea.setImageResource(getResources().getIdentifier("wea_"+weatherGson.getIcon(), "drawable",
                             BaseApplication.getApplication().getPackageName()));
                 }else{
-                    Toast.makeText(MainActivity.this, "getWeatherInfo连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "getWeatherInfo连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
+                if(waitConnectDialog.getIsShow())
+                    waitConnectDialog.dismiss();
             }
 
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "getWeatherInfo onFailure:"+t);
-            }
-        });
-    }
-
-
-    private void getUserName(){
-        apiInterface.getUserName().enqueue(new Callback<ResultGson>() {
-            @Override
-            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                Log.e(TAG, "getUserName run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
-                ResultGson resultGson = response.body();
-                if (resultGson.getSuccess()) {
-//                    currentName = resultGson.getData().toString();
-                    main_tv_driver.setText(resultGson.getData().toString());
-                }else{
-                    Toast.makeText(MainActivity.this, "getUserName连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                if(t instanceof ConnectException){
+                    if(waitConnectDialog.getIsShow())
+                        waitConnectDialog.dismiss();
+                    connectFailDialog.showConnectFailDialog();
                 }
-            }
-
-            @Override
-            public void onFailure(Call<ResultGson> call, Throwable t) {
-                Log.e(TAG, "getUserName onFailure:"+t);
             }
         });
     }
@@ -420,12 +388,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
                     @Override
                     public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
-                        Log.d(TAG, "发生异常 = " + throwable.toString());
-                        currentRetryCount++;
-                        Log.d(TAG, "重试次数 = " + currentRetryCount);
-                        waitRetryTime = 1 + currentRetryCount;
-                        Log.d(TAG, "等待时间 =" + waitRetryTime);
-                        return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
+                        if(currentRetryCount < maxConnectCount) {
+                            if(!waitConnectDialog.getIsShow())
+                                waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
+                            Log.d(TAG, "发生异常 = " + throwable.toString());
+                            currentRetryCount++;
+                            Log.d(TAG, "重试次数 = " + currentRetryCount);
+                            waitRetryTime = 1 + currentRetryCount;
+                            Log.d(TAG, "等待时间 = " + waitRetryTime);
+                            return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
+                        }else{
+                            if(waitConnectDialog.getIsShow())
+                                waitConnectDialog.dismiss();
+                            connectFailDialog.showConnectFailDialog();
+                            return Observable.error(new Throwable("重试次数已超过设置次数 = " +currentRetryCount  + "，即不再重试"));
+                        }
                     }
                 });
             }
@@ -477,50 +454,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             isStopOver = false;
                             isStart = false;
                             main_tv_arrive.setClickable(false);
+                            main_tv_arrive.setAlpha(0.5F);
                         }
                         main_tv_tasknum.setText("" + taskGsonList.size());
                         moreTaskAdapter.setList(taskGsonList);
-                        Status.setServer(getString(R.string.state_connected));
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
                     }else{
-                        Status.setServer(getString(R.string.state_lost));
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                         Log.i(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
                     }
+                    if(waitConnectDialog.getIsShow())
+                        waitConnectDialog.dismiss();
                 }
 
                 @Override
                 public void onError(Throwable e) {
-                    Status.setServer(getString(R.string.state_lost));
-                    if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                     Log.e(TAG, "getDriverTask onFailure:"+e.toString());
+                    if(e instanceof ConnectException){
+                        if(waitConnectDialog.getIsShow())
+                            waitConnectDialog.dismiss();
+                        connectFailDialog.showConnectFailDialog();
+                        if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
+                    }
                 }
 
                 @Override
                 public void onComplete() { }
             });
-    }
-
-
-    private void getUserDetail(String id){
-        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
-        apiInterface.getUserDetail(id).enqueue(new Callback<ResultGson>() {
-            @Override
-            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                Log.e(TAG, "getUserDetail run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
-                ResultGson resultGson = response.body();
-                if (resultGson.getSuccess()) {
-                    List<UserInfoGson> list = GsonConvertUtil.performTransform(resultGson.getData(), UserInfoGson.class);
-                }else{
-                    Toast.makeText(MainActivity.this, "getUserDetail连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResultGson> call, Throwable t) {
-                Log.e(TAG, "getUserDetail onFailure:"+t);
-            }
-        });
     }
 
 
@@ -537,13 +497,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     main_tv_ts.setText(currentTask.getTaskState(lang));
                     moreTaskAdapter.notifyItemChanged(0);
                 }else{
-                    Toast.makeText(MainActivity.this, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
+                    Log.i(TAG, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
+                if(waitConnectDialog.getIsShow())
+                    waitConnectDialog.dismiss();
             }
 
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "changeTaskState onFailure:"+t);
+                if(t instanceof ConnectException){
+                    if(waitConnectDialog.getIsShow())
+                        waitConnectDialog.dismiss();
+                    connectFailDialog.showConnectFailDialog();
+                }
             }
         });
     }
@@ -625,7 +592,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         EventBus.getDefault().unregister(this);
         WsManager.getInstance().disconnect();
-        Status.setOnChangeListener(null);
         apiInterface = null;
         observable = null;
     }
@@ -641,7 +607,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss", Locale.CHINA);
                 String btn_text = main_tv_arrive.getText().toString();
                 if(btn_text.equals(getString(R.string.task_start))){//开始任务
-                    if(!isStart) {//开始任务
+                    if(!isStart) { //开始任务
                         isStart = true;
                         main_tv_arrive.setText(R.string.task_arrive);
                         LocalTime localTime = LocalTime.now();
@@ -677,6 +643,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(taskGsonList.size() == 0){
                         currentTask = new TaskGson();
                         main_tv_arrive.setClickable(false);
+                        main_tv_arrive.setAlpha(0.5F);
                     }else{
                         currentTask = taskGsonList.get(0);
                         main_tv_arrive.setClickable(true);
@@ -713,9 +680,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }else if(messageResponse.getType() == 2){
             //聊天消息
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
-            Toast.makeText(this, "有聊天消息", Toast.LENGTH_SHORT).show();
             Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
             main_v_isvm.setVisibility(View.VISIBLE);
+            main_tv_vm.setAlpha(1F);
             messageDialog.addData(messageResponse);
         }else{
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
@@ -754,4 +721,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //            locationChangedListener = null;
 //        }
 //    };
+
+
+    /**
+     * 链接错误dialog
+     */
+    private class ConnectFailDialog extends MyDialog {
+
+        public ConnectFailDialog(@NonNull Context context) {
+            super(context);
+        }
+
+        public ConnectFailDialog(@NonNull Context context, int themeResId) {
+            super(context, themeResId);
+        }
+
+        public void showConnectFailDialog(){
+            View dialog_wait_connect = getLayoutInflater().inflate(R.layout.dialog_connect_fail, null);
+            this.setContentView(dialog_wait_connect);
+            this.show();
+
+            TextView dialog_fail_tv_exit = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_exit);
+            dialog_fail_tv_exit.setOnClickListener(v->{
+                this.dismiss();
+                MainActivity.this.finish();
+                MainActivity.this.startActivity(new Intent(MainActivity.this, LoginActivity.class));
+            });
+            TextView dialog_fail_tv_retry = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_retry);
+            dialog_fail_tv_retry.setOnClickListener(v->{
+                this.dismiss();
+                getDriverInfo();
+                getDriverTask();
+                getWeatherInfo();
+            });
+        }
+    }
 }

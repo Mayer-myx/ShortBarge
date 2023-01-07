@@ -1,6 +1,7 @@
 package com.deepsoft.shortbarge.driver.websocket;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Handler;
@@ -44,9 +45,9 @@ public class WsManager {
 //    private static final String DEF_TEST_URL = "测试服地址";//测试服默认地址
 //    private static final String DEF_RELEASE_URL = "正式服地址";//正式服默认地址
 //private static final String DEF_URL = BuildConfig.DEBUG ? DEF_TEST_URL : DEF_RELEASE_URL;
-    private static final String DEF_URL = "ws://221.12.170.99:8081/websocket/wsDriver/";
     private static final long HEARTBEAT_INTERVAL = 30000;//心跳间隔
     private static final int REQUEST_TIMEOUT = 10000;//请求超时时间
+    private static String DEF_URL = "ws://221.12.170.99:8081/websocket/wsDriver/";
     private final int SUCCESS_HANDLE = 0x01;
     private final int ERROR_HANDLE = 0x02;
 
@@ -61,7 +62,12 @@ public class WsManager {
     private WebSocket ws;
     private WsListener mListener;
 
-    private WsManager() { }
+    private WsManager() {
+        SharedPreferences sp = BaseApplication.getContext().getSharedPreferences("Di-Truck", Context.MODE_PRIVATE);
+        String add = sp.getString("BaseURLAdd", "221.12.170.99");
+        String port = sp.getString("BaseURLPort", "8081");
+        DEF_URL = "ws://"+add+":"+port+"/websocket/wsDriver/";
+    }
 
     public static WsManager getInstance(){
         if(mInstance == null){

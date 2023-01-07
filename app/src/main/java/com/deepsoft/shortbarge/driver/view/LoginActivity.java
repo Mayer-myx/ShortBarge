@@ -32,6 +32,7 @@ import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.utils.SwitchUtil;
 import com.google.gson.Gson;
 
+import java.net.ConnectException;
 import java.util.List;
 
 import pub.devrel.easypermissions.AfterPermissionGranted;
@@ -199,6 +200,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "getLogin onFailure:" + t);
+                if(t instanceof ConnectException){
+                    Toast.makeText(LoginActivity.this, getString(R.string.fail_connect), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

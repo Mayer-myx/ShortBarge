@@ -18,7 +18,8 @@ import java.util.Date;
 public class WaitConnectDialog extends MyDialog {
 
 //    private static WaitConnectDialog waitConnectDialog;
-    private long startTime;
+//    private long startTime;
+    private boolean isShow = false;
 
     public WaitConnectDialog(@NonNull Context context) {
         super(context);
@@ -45,23 +46,35 @@ public class WaitConnectDialog extends MyDialog {
         this.setContentView(dialog_wait_connect);
         this.setCanceledOnTouchOutside(false);
         this.show();
-        if(startTime == 0) {
-            startTime = System.currentTimeMillis();
-            Log.e("1 START TIME", ""+startTime);
-        }
+        this.isShow = true;
+//        if(startTime == 0) {
+//            startTime = System.currentTimeMillis();
+//            Log.e("1 START TIME", ""+startTime);
+//        }
     }
 
-    public long getWaitTime(){
-        if(startTime == 0){
-            return -1;
-        } else {
-            long endTime = System.currentTimeMillis();
-            long res = (endTime - startTime) / 1000;
-            Log.e("2 START TIME", "" + startTime);
-            Log.e("2 END TIME", "" + endTime);
-            Log.e("2 second", ""+res);
-            startTime = 0;
-            return res;
-        }
+    public boolean getIsShow(){
+        return isShow;
     }
+
+
+    @Override
+    public void dismiss() {
+        this.isShow = false;
+        super.dismiss();
+    }
+
+    //    public long getWaitTime(){
+//        if(startTime == 0){
+//            return -1;
+//        } else {
+//            long endTime = System.currentTimeMillis();
+//            long res = (endTime - startTime) / 1000;
+//            Log.e("2 START TIME", "" + startTime);
+//            Log.e("2 END TIME", "" + endTime);
+//            Log.e("2 second", ""+res);
+//            startTime = 0;
+//            return res;
+//        }
+//    }
 }
