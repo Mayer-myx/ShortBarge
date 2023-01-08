@@ -141,9 +141,9 @@ public class TaskGson extends ResultGson {
     }
 
     public String getNextStation() {
-        String res = new String(nextStation);
+        String res = "null";
         if(nextStation != null){
-            res += "\t\t";
+            res = nextStation + "\t\t";
         }
         return res;
     }
@@ -153,9 +153,9 @@ public class TaskGson extends ResultGson {
     }
 
     public String getNextStationEng() {
-        String res = new String(nextStationEng);
+        String res = "null";
         if(nextStationEng != null){
-            res += "\t\t";
+            res = nextStationEng + "\t\t";
         }
         return res;
     }

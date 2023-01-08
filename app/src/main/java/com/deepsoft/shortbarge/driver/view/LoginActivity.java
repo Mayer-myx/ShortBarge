@@ -123,8 +123,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private void initView(){
         login_et_username = findViewById(R.id.login_et_username);
         login_et_username.setText(username);
+        login_et_username.setText("siji000");
         login_et_pwd = findViewById(R.id.login_et_pwd);
         login_et_pwd.setText(password);
+        login_et_pwd.setText("123456");
 
         login_tv_login = findViewById(R.id.login_tv_login);
         login_tv_login.setOnClickListener(this);

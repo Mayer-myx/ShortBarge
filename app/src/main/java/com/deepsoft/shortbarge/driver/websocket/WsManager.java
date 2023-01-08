@@ -138,7 +138,7 @@ public class WsManager {
     };
 
     private int reconnectCount = 0;//重连次数
-    private long minInterval = 3000;//重连最小时间间隔
+    private long minInterval = 1000;//重连最小时间间隔
     private long maxInterval = 60000;//重连最大时间间隔
 
 
@@ -273,7 +273,7 @@ public class WsManager {
      */
     private void timeoutHandle(Request request, Action action, ICallback callback, long timeout) {
         if (request.getReqCount() > 3) {
-            Log.d(TAG, "(action:"+action.getMessage()+")连续3次请求超时 执行http请求");
+            Log.d(TAG, "(action:"+action.getMessage()+")连续3次请求超时 执行http请求?");
             //走http请求
         } else {
             sendReq(action, callback, timeout, request.getReqCount() + 1);

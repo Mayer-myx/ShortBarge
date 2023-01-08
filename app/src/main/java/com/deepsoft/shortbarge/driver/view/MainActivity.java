@@ -170,6 +170,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    static boolean isAlter = false;
     private void initLocation(){
         mLocationManager = TencentLocationManager.getInstance(this);
         tencentLocationListener = new TencentLocationListener() {
@@ -179,46 +180,106 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (tencentLocation != null) {
                         initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
                         setMaker(tencentLocation.getLatitude(), tencentLocation.getLongitude());
-                        location = tencentLocation;
-                        if(waitConnectDialog.getIsShow())
+
+                        if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                             waitConnectDialog.dismiss();
                         settingDialog.setGps(getString(R.string.state_connected));
 
                         if(isStart) {
                             // 从仓库到车间
                             if(currentTask.getNextStation().contains("车间") || currentTask.getNextStationEng().contains("shop")) {
-                                if (startGeofenceEventReceiver.getIsEnter() && !endGeofenceEventReceiver.getIsEnter()) {
+                                if (endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()) {
                                     // 在起点的地理围栏处装卸货
-                                    changeTaskState(currentTask.getTransportTaskId(), 2);
-                                } else if (!startGeofenceEventReceiver.getIsEnter() && !endGeofenceEventReceiver.getIsEnter()) {
+                                    if(currentTask.getState() != 2) {
+                                        changeTaskState(currentTask.getTransportTaskId(), 2);
+                                        currentTask.setState(2);
+                                    }
+                                } else if (!endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()) {
                                     // 退出起点终点地理围栏 则运输中
-                                    changeTaskState(currentTask.getTransportTaskId(), 3);
-                                } else if (!startGeofenceEventReceiver.getIsEnter() && endGeofenceEventReceiver.getIsEnter()) {
-                                    // 到达终点 装卸货
-                                    changeTaskState(currentTask.getTransportTaskId(), 7);
+                                    if(currentTask.getState() != 3) {
+                                        changeTaskState(currentTask.getTransportTaskId(), 3);
+                                        currentTask.setState(3);
+                                        isAlter = false;
+                                    }
+                                } else if (!endGeofenceEventReceiver.getIsEnter() && startGeofenceEventReceiver.getIsEnter()) {
+                                    if(location.getLatitude() == tencentLocation.getLatitude()
+                                            && location.getLongitude() == tencentLocation.getLongitude()) {
+                                        if(currentTask.getStopOver()){
+                                            if (currentTask.getState() != 5) {
+                                                // 到达终点且不动 经停站
+                                                changeTaskState(currentTask.getTransportTaskId(), 5);
+                                                currentTask.setState(5);
+                                            }
+                                        }else {
+                                            if (currentTask.getState() != 7) {
+                                                // 到达终点且不动 装卸货
+                                                changeTaskState(currentTask.getTransportTaskId(), 7);
+                                                currentTask.setState(7);
+                                            }
+                                        }
+                                    }else {
+                                        if (currentTask.getState() == 5 && currentTask.getStopOver()) {
+                                            //在终点动了and经停站 继续运输
+                                            changeTaskState(currentTask.getTransportTaskId(), 6);
+                                            currentTask.setState(6);
+                                        }
+                                    }
                                 }
-                                if (arrival2GeofenceEventReceiver.getIsEnter()) {
+
+                                if (arrival2GeofenceEventReceiver.getIsEnter() && !isAlter) {
                                     // 即将到达
                                     sendNotice();
+                                    isAlter = true;
+                                    Toast.makeText(MainActivity.this, "即将到达！", Toast.LENGTH_SHORT).show();
                                 }
                             }else if(currentTask.getNextStation().contains("码头") || currentTask.getNextStationEng().contains("hose")){
                                 // 从车间到仓库
-                                if(endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()){
-                                    changeTaskState(currentTask.getTransportTaskId(), 2);
-                                }else if(!endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()){
-                                    changeTaskState(currentTask.getTransportTaskId(), 3);
-                                }else if(!endGeofenceEventReceiver.getIsEnter() && startGeofenceEventReceiver.getIsEnter()){
-                                    changeTaskState(currentTask.getTransportTaskId(), 7);
+                                if (startGeofenceEventReceiver.getIsEnter() && !endGeofenceEventReceiver.getIsEnter()) {
+                                    if(currentTask.getState() != 2) {
+                                        changeTaskState(currentTask.getTransportTaskId(), 2);
+                                        currentTask.setState(2);
+                                    }
+                                } else if (!startGeofenceEventReceiver.getIsEnter() && !endGeofenceEventReceiver.getIsEnter()) {
+                                    if(currentTask.getState() != 3) {
+                                        changeTaskState(currentTask.getTransportTaskId(), 3);
+                                        currentTask.setState(3);
+                                        isAlter = false;
+                                    }
+                                } else if (!startGeofenceEventReceiver.getIsEnter() && endGeofenceEventReceiver.getIsEnter()) {
+                                    if(location.getLatitude() == tencentLocation.getLatitude()
+                                            && location.getLongitude() == tencentLocation.getLongitude()) {
+                                        if(currentTask.getStopOver()){
+                                            if (currentTask.getState() != 5) {
+                                                changeTaskState(currentTask.getTransportTaskId(), 5);
+                                                currentTask.setState(5);
+                                            }
+                                        }else {
+                                            if (currentTask.getState() != 7) {
+                                                changeTaskState(currentTask.getTransportTaskId(), 7);
+                                                currentTask.setState(7);
+                                            }
+                                        }
+                                    }else {
+                                        if (currentTask.getState() == 5 && currentTask.getStopOver()) {
+                                            changeTaskState(currentTask.getTransportTaskId(), 6);
+                                            currentTask.setState(6);
+                                        }
+                                    }
                                 }
-                                if(arrival1GeofenceEventReceiver.getIsEnter()){
+
+                                if (arrival1GeofenceEventReceiver.getIsEnter() && !isAlter) {
                                     sendNotice();
+                                    isAlter = true;
+                                    Toast.makeText(MainActivity.this, "即将到达！", Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
+
+                        location = tencentLocation;
                     }
                 } else {
                     Log.e(TAG, "定位失败"+i+" "+s);
-                    if(waitConnectDialog.getIsShow())
+                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                     connectFailDialog.showConnectFailDialog();
                     settingDialog.setGps(getString(R.string.state_lost));
@@ -243,12 +304,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int error = mLocationManager.requestLocationUpdates(request, tencentLocationListener);
         if (error == 0){
             Log.i(TAG, "注册位置监听器成功！");
-            if(waitConnectDialog.getIsShow())
+            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                 waitConnectDialog.dismiss();
             settingDialog.setGps(getString(R.string.state_connected));
         } else {
             Log.i(TAG, "注册位置监听器失败！");
-            if(waitConnectDialog.getIsShow())
+            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                 waitConnectDialog.dismiss();
             connectFailDialog.showConnectFailDialog();
             settingDialog.setGps(getString(R.string.state_lost));
@@ -333,7 +394,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onMapLoaded() {
                 //第一次渲染成功的回调
                 Log.i(TAG, "map ok");
-                if(waitConnectDialog.getIsShow())
+                if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
                 settingDialog.setGps(getString(R.string.state_connected));
             }
@@ -443,14 +504,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                     Log.i(TAG, "getDriverInfo连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
-                if(waitConnectDialog.getIsShow())
+                if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "getDriverInfo onFailure:"+t);
                 if(t instanceof ConnectException){
-                    if(waitConnectDialog.getIsShow())
+                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                     connectFailDialog.showConnectFailDialog();
                     settingDialog.setGps(getString(R.string.state_lost));
@@ -480,7 +541,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else{
                     Log.i(TAG, "getWeatherInfo连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
-                if(waitConnectDialog.getIsShow())
+                if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
             }
 
@@ -488,7 +549,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "getWeatherInfo onFailure:"+t);
                 if(t instanceof ConnectException){
-                    if(waitConnectDialog.getIsShow())
+                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                     connectFailDialog.showConnectFailDialog();
                 }
@@ -509,7 +570,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     @Override
                     public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
                         if(currentRetryCount < maxConnectCount) {
-                            if(!waitConnectDialog.getIsShow())
+                            if(waitConnectDialog != null && !waitConnectDialog.getIsShow())
                                 waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
                             Log.d(TAG, "发生异常 = " + throwable.toString());
                             currentRetryCount++;
@@ -518,7 +579,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             Log.d(TAG, "等待时间 = " + waitRetryTime);
                             return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
                         }else{
-                            if(waitConnectDialog.getIsShow())
+                            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                                 waitConnectDialog.dismiss();
                             connectFailDialog.showConnectFailDialog();
                             return Observable.error(new Throwable("重试次数已超过设置次数 = " +currentRetryCount  + "，即不再重试"));
@@ -583,7 +644,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                         Log.i(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
                     }
-                    if(waitConnectDialog.getIsShow())
+                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                 }
 
@@ -591,7 +652,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 public void onError(Throwable e) {
                     Log.e(TAG, "getDriverTask onFailure:"+e.toString());
                     if(e instanceof ConnectException){
-                        if(waitConnectDialog.getIsShow())
+                        if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                             waitConnectDialog.dismiss();
                         connectFailDialog.showConnectFailDialog();
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
@@ -619,7 +680,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else{
                     Log.i(TAG, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
-                if(waitConnectDialog.getIsShow())
+                if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
             }
 
@@ -627,7 +688,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "changeTaskState onFailure:"+t);
                 if(t instanceof ConnectException){
-                    if(waitConnectDialog.getIsShow())
+                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                     connectFailDialog.showConnectFailDialog();
                 }
@@ -650,7 +711,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }else{
                     Log.i(TAG, "sendNotice连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
-                if(waitConnectDialog.getIsShow())
+                if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
             }
 
@@ -658,7 +719,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "sendNotice onFailure:"+t);
                 if(t instanceof ConnectException){
-                    if(waitConnectDialog.getIsShow())
+                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                     connectFailDialog.showConnectFailDialog();
                 }
@@ -806,7 +867,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     +",\"truckId\":"+currentDriverInfo.getTruckId()
                     +",\"lng\":"+ location.getLongitude()
                     +",\"lat\":"+ location.getLatitude()+"}", 1, null));
-            WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
         }else if(messageResponse.getType() == 2){
             //聊天消息
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
@@ -815,7 +875,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             main_tv_vm.setAlpha(1F);
             messageDialog.addData(messageResponse);
         }else{
-            WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
             Log.e(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
         }
     }
