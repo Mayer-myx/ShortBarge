@@ -141,10 +141,11 @@ public class TaskGson extends ResultGson {
     }
 
     public String getNextStation() {
+        String res = new String(nextStation);
         if(nextStation != null){
-            nextStation += "\t\t";
+            res += "\t\t";
         }
-        return nextStation;
+        return res;
     }
 
     public void setNextStation(String nextStation) {
@@ -152,7 +153,11 @@ public class TaskGson extends ResultGson {
     }
 
     public String getNextStationEng() {
-        return nextStationEng;
+        String res = new String(nextStationEng);
+        if(nextStationEng != null){
+            res += "\t\t";
+        }
+        return res;
     }
 
     public void setNextStationEng(String nextStationEng) {
