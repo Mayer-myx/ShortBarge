@@ -59,4 +59,5 @@
     <string name="task_finish">完成</string>
     <string name="task_arrive">到达</string>
     <string name="hint_serverc_config">请检查是否输入完整</string>
+    <string name="hint_check_load">请先在终点装/卸货</string>
 </resources>

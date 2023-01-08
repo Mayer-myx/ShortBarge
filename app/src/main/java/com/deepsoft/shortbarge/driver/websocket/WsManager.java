@@ -171,7 +171,6 @@ public class WsManager {
 
 
     private Runnable mReconnectTask = new Runnable() {
-
         @Override
         public void run() {
             try {
@@ -241,7 +240,7 @@ public class WsManager {
                 .reqCount(reqCount)
                 .build();
 
-        ScheduledFuture timeoutTask = enqueueTimeout(request.getMessage(), timeout);//添加超时任务
+//        ScheduledFuture timeoutTask = enqueueTimeout(request.getMessage(), timeout);//添加超时任务
 
         IWsCallback tempCallback = new IWsCallback() {
             @Override
@@ -258,11 +257,11 @@ public class WsManager {
 
             @Override
             public void onTimeout(Request request, Action action) {
-                timeoutHandle(request, action, callback, timeout);
+//                timeoutHandle(request, action, callback, timeout);
             }
         };
 
-        callbacks.put(request.getMessage(), new CallbackWrapper(tempCallback, timeoutTask, action, request));
+//        callbacks.put(request.getMessage(), new CallbackWrapper(tempCallback, timeoutTask, action, request));
 
         Log.d(TAG, "send text :"+new Gson().toJson(request));
         ws.sendText(new Gson().toJson(request));
@@ -271,31 +270,31 @@ public class WsManager {
     /**
      * 超时处理
      */
-    private void timeoutHandle(Request request, Action action, ICallback callback, long timeout) {
-        if (request.getReqCount() > 3) {
-            Log.d(TAG, "(action:"+action.getMessage()+")连续3次请求超时 执行http请求?");
-            //走http请求
-        } else {
-            sendReq(action, callback, timeout, request.getReqCount() + 1);
-            Log.d(TAG, "(action:"+action.getMessage()+")发起第"+request.getReqCount()+"次请求");
-        }
-    }
+//    private void timeoutHandle(Request request, Action action, ICallback callback, long timeout) {
+//        if (request.getReqCount() > 3) {
+//            Log.d(TAG, "(action:"+action.getMessage()+")连续3次请求超时 执行http请求?");
+//            //走http请求
+//        } else {
+//            sendReq(action, callback, timeout, request.getReqCount() + 1);
+//            Log.d(TAG, "(action:"+action.getMessage()+")发起第"+request.getReqCount()+"次请求");
+//        }
+//    }
 
     /**
      * 添加超时任务
      */
-    private ScheduledFuture enqueueTimeout(final String message, long timeout) {
-        return executor.schedule(new Runnable() {
-            @Override
-            public void run() {
-                CallbackWrapper wrapper = callbacks.remove(message);
-                if (wrapper != null) {
-                    Log.d(TAG, "(action:"+wrapper.getAction().getMessage()+")第"+wrapper.getRequest().getReqCount()+"次请求超时");
-                    wrapper.getTempCallback().onTimeout(wrapper.getRequest(), wrapper.getAction());
-                }
-            }
-        }, timeout, TimeUnit.MILLISECONDS);
-    }
+//    private ScheduledFuture enqueueTimeout(final String message, long timeout) {
+//        return executor.schedule(new Runnable() {
+//            @Override
+//            public void run() {
+//                CallbackWrapper wrapper = callbacks.remove(message);
+//                if (wrapper != null) {
+//                    Log.d(TAG, "(action:"+wrapper.getAction().getMessage()+")第"+wrapper.getRequest().getReqCount()+"次请求超时");
+//                    wrapper.getTempCallback().onTimeout(wrapper.getRequest(), wrapper.getAction());
+//                }
+//            }
+//        }, timeout, TimeUnit.MILLISECONDS);
+//    }
 
 
     /**

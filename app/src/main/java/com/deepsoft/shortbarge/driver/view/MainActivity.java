@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String truckId, driverId, lang;
     private SharedPreferences sp;
     private int currentRetryCount = 0, waitRetryTime = 0, maxConnectCount = 10;// 当前已重试次数// 重试等待时间 //最大重试次数
-    private boolean isStopOver = false, isStart = false;//是否已经过了经停 是否到达起始点
+    private boolean isStart = false;//是否到达起始点
     private Observable<ResultGson> observable;//轮询任务用的观察者
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
@@ -170,14 +170,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    static boolean isAlter = false;
+    private static boolean isAlter = false;
     private void initLocation(){
         mLocationManager = TencentLocationManager.getInstance(this);
         tencentLocationListener = new TencentLocationListener() {
             @Override
             public void onLocationChanged(TencentLocation tencentLocation, int i, String s) {
                 if (TencentLocation.ERROR_OK == i) {
-                    if (tencentLocation != null) {
+                    if (tencentLocation != null && tencentLocation.getAccuracy() < 30) {
                         initMap(tencentLocation.getLatitude(), tencentLocation.getLongitude());
                         setMaker(tencentLocation.getLatitude(), tencentLocation.getLongitude());
 
@@ -196,7 +196,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 } else if (!endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()) {
                                     // 退出起点终点地理围栏 则运输中
-                                    if(currentTask.getState() != 3) {
+                                    if(location.getLatitude() != tencentLocation.getLatitude()
+                                            && location.getLongitude() != tencentLocation.getLongitude()
+                                            && currentTask.getState() != 3) {
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
                                         currentTask.setState(3);
                                         isAlter = false;
@@ -240,7 +242,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         currentTask.setState(2);
                                     }
                                 } else if (!startGeofenceEventReceiver.getIsEnter() && !endGeofenceEventReceiver.getIsEnter()) {
-                                    if(currentTask.getState() != 3) {
+                                    if(location.getLatitude() != tencentLocation.getLatitude()
+                                            && location.getLongitude() != tencentLocation.getLongitude()
+                                            && currentTask.getState() != 3) {
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
                                         currentTask.setState(3);
                                         isAlter = false;
@@ -326,7 +330,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         intentFilter1.addAction(ACTION_TRIGGER_GEOFENCE_START);
         registerReceiver(startGeofenceEventReceiver, intentFilter1);
         startGeofence = builder.setTag("start") // 设置 Tag，即围栏别名
-                .setCircularRegion(startLat, startLng, 500) // 设置中心点和半径
+                .setCircularRegion(startLat, startLng, 500) // 设置圆心和半径，纬度，经度，半径 500米
                 .build();
         Intent receiver1 = new Intent(ACTION_TRIGGER_GEOFENCE_START);
         receiver1.putExtra("KEY_GEOFENCE_ID", startGeofence.getTag());
@@ -614,8 +618,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
                         if(taskGsonList.size() != 0) {
                             if(currentTask == null
-                                    || (currentTask != null && !currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId()))){
-                                isStopOver = false;
+                                    || (!currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId()))){
                                 isStart = false;
                                 main_tv_st.setText(taskGsonList.get(0).getStartTime());
                                 main_tv_at.setText(taskGsonList.get(0).getArrivalTime());
@@ -632,7 +635,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             currentTask = new TaskGson();
                             main_tv_dest.setText(currentTask.getDuration());
                             main_tv_ts.setText(""+currentTask.getState());
-                            isStopOver = false;
                             isStart = false;
                             main_tv_arrive.setClickable(false);
                             main_tv_arrive.setAlpha(0.5F);
@@ -826,31 +828,36 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     main_tv_st.setText(localTime.format(formatter));
                     main_tv_arrive.setText(R.string.task_finish);
                 }else if(btn_text.equals(getString(R.string.task_finish))){//全部完成
-                    changeTaskState(currentTask.getTransportTaskId(), 8);
-                    LocalTime localTime = LocalTime.now();
-                    main_tv_at.setText(localTime.format(formatter));
-                    taskGsonList.remove(currentTask);
-                    moreTaskAdapter.setList(taskGsonList);
-                    if(taskGsonList.size() == 0){
-                        currentTask = new TaskGson();
-                        main_tv_arrive.setClickable(false);
-                        main_tv_arrive.setAlpha(0.5F);
+                    if(currentTask.getState() == 7) {//装卸货状态后才能完成
+                        changeTaskState(currentTask.getTransportTaskId(), 8);
+                        LocalTime localTime = LocalTime.now();
+                        main_tv_at.setText(localTime.format(formatter));
+                        taskGsonList.remove(currentTask);
+                        moreTaskAdapter.setList(taskGsonList);
+                        if (taskGsonList.size() == 0) {
+                            currentTask = new TaskGson();
+                            main_tv_arrive.setClickable(false);
+                            main_tv_arrive.setAlpha(0.5F);
+                        } else {
+                            currentTask = taskGsonList.get(0);
+                            main_tv_arrive.setClickable(true);
+                        }
+                        main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
+                        main_tv_st.setText(currentTask.getStartTime());
+                        main_tv_at.setText(currentTask.getArrivalTime());
+                        main_tv_tasknum.setText("" + taskGsonList.size());
+                        main_tv_arrive.setText(R.string.task_start);
+                        isStart = false;
                     }else{
-                        currentTask = taskGsonList.get(0);
-                        main_tv_arrive.setClickable(true);
+                        Toast.makeText(this, getString(R.string.hint_check_load), Toast.LENGTH_SHORT).show();
                     }
-                    main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
-                    main_tv_st.setText(currentTask.getStartTime());
-                    main_tv_at.setText(currentTask.getArrivalTime());
-                    main_tv_tasknum.setText(""+taskGsonList.size());
-                    main_tv_arrive.setText(R.string.task_start);
-                    isStopOver = false;
-                    isStart = false;
                 }
                 break;
             case R.id.main_tv_vm:
-                messageDialog.showMessageDialog(this, getLayoutInflater());
-                main_v_isvm.setVisibility(View.INVISIBLE);
+                if(main_v_isvm.getVisibility() == View.VISIBLE) {
+                    messageDialog.showMessageDialog(this, getLayoutInflater());
+                    main_v_isvm.setVisibility(View.INVISIBLE);
+                }
                 break;
             case R.id.main_iv_setting:
                 settingDialog.showSettingDialog(this, getLayoutInflater());
