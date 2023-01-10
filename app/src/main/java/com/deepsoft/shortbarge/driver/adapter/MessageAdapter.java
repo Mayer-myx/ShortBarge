@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
-import com.deepsoft.shortbarge.driver.gson.message.MessageBean;
+import com.deepsoft.shortbarge.driver.bean.message.MessageBean;
 
 import java.io.IOException;
 import java.util.List;

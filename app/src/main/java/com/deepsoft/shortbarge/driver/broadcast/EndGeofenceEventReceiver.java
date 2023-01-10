@@ -13,6 +13,7 @@ public class EndGeofenceEventReceiver extends BroadcastReceiver {
     private final static String TAG = "EndGeofenceEventReceiver";
     private final static String ACTION_TRIGGER_GEOFENCE_END = "com.deepsoft.shortbarge.driver.broadcast.EndGeofenceEventReceiver";
 
+    private Context context;
     private boolean isEnter = false;
 
     @SuppressLint("LongLogTag")
@@ -23,11 +24,16 @@ public class EndGeofenceEventReceiver extends BroadcastReceiver {
         }
 
         // 进入围栏还是退出围栏
-        isEnter = intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, true);
+        isEnter = intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, false);
         String tag = intent.getStringExtra("KEY_GEOFENCE_ID");
         double lat = intent.getDoubleExtra("KEY_GEOFENCE_LAT", 0);
         double lng = intent.getDoubleExtra("KEY_GEOFENCE_LNG", 0);
 
+        this.context = context;
+    }
+
+    @SuppressLint("LongLogTag")
+    public boolean getIsEnter() {
         if(isEnter){
             Toast.makeText(context, "进入围栏"+TAG, Toast.LENGTH_SHORT).show();
             Log.e(TAG, "进入围栏");
@@ -35,9 +41,6 @@ public class EndGeofenceEventReceiver extends BroadcastReceiver {
             Toast.makeText(context, "退出围栏"+TAG, Toast.LENGTH_SHORT).show();
             Log.e(TAG, "退出围栏");
         }
-    }
-
-    public boolean getIsEnter() {
         return isEnter;
     }
 }

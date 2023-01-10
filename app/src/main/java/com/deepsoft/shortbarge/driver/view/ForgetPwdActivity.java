@@ -13,8 +13,8 @@ import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.BuildConfig;
 import com.deepsoft.shortbarge.driver.R;
-import com.deepsoft.shortbarge.driver.gson.AdminGson;
-import com.deepsoft.shortbarge.driver.gson.ResultGson;
+import com.deepsoft.shortbarge.driver.bean.AdminGson;
+import com.deepsoft.shortbarge.driver.bean.ResultGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.NavigationBarUtil;

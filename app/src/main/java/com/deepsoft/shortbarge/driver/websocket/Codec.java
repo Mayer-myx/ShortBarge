@@ -1,6 +1,6 @@
 package com.deepsoft.shortbarge.driver.websocket;
 
-import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
+import com.deepsoft.shortbarge.driver.bean.message.MessageResponse;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;

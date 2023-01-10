@@ -2,7 +2,7 @@ package com.deepsoft.shortbarge.driver.websocket;
 
 import android.util.Log;
 
-import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
+import com.deepsoft.shortbarge.driver.bean.message.MessageResponse;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.annotations.SerializedName;

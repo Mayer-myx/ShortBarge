@@ -1,6 +1,6 @@
 package com.deepsoft.shortbarge.driver.retrofit;
 
-import com.deepsoft.shortbarge.driver.gson.ResultGson;
+import com.deepsoft.shortbarge.driver.bean.ResultGson;
 
 import org.json.JSONArray;
 

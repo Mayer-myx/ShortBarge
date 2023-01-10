@@ -8,7 +8,7 @@ import androidx.annotation.Nullable;
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
 import com.deepsoft.shortbarge.driver.R;
-import com.deepsoft.shortbarge.driver.gson.TaskGson;
+import com.deepsoft.shortbarge.driver.bean.TaskGson;
 
 import java.util.List;
 

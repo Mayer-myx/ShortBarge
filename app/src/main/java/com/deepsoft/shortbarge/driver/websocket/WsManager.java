@@ -16,7 +16,7 @@ import com.deepsoft.shortbarge.driver.callback.ICallback;
 import com.deepsoft.shortbarge.driver.callback.IWsCallback;
 import com.deepsoft.shortbarge.driver.constant.Action;
 import com.deepsoft.shortbarge.driver.constant.WsStatus;
-import com.deepsoft.shortbarge.driver.gson.message.MessageResponse;
+import com.deepsoft.shortbarge.driver.bean.message.MessageResponse;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.google.gson.Gson;
 import com.neovisionaries.ws.client.WebSocket;
@@ -33,8 +33,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.TimeUnit;
 
 public class WsManager {
     private static WsManager mInstance;

@@ -9,13 +9,11 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.constant.ConstantGlobal;
-import com.deepsoft.shortbarge.driver.gson.DriverInfoGson;
-import com.deepsoft.shortbarge.driver.gson.ResultGson;
-import com.deepsoft.shortbarge.driver.gson.UserInfoGson;
+import com.deepsoft.shortbarge.driver.bean.DriverInfoGson;
+import com.deepsoft.shortbarge.driver.bean.ResultGson;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
 import com.deepsoft.shortbarge.driver.utils.MultiLanguageUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
