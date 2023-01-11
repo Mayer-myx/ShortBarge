@@ -14,7 +14,6 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -23,7 +22,6 @@ import android.widget.Toast;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
-import com.deepsoft.shortbarge.driver.bean.GeoInfo;
 import com.deepsoft.shortbarge.driver.broadcast.ArrivalGeofenceEventReceiver;
 import com.deepsoft.shortbarge.driver.broadcast.EndGeofenceEventReceiver;
 import com.deepsoft.shortbarge.driver.broadcast.StartGeofenceEventReceiver;
@@ -98,10 +96,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private Marker mCustomMarker = null;
     private TencentLocationManager mLocationManager;
     private TencentLocationRequest request;
-    private TencentLocation location;
+    private TencentLocation location, startLocation;
     private TencentGeofenceManager geofenceManager;
     private TencentGeofence.Builder builder;
-    private TencentGeofence startGeofence, endGeofence, arriveGeofence1, arriveGeofence2;
     private StartGeofenceEventReceiver startGeofenceEventReceiver;
     private EndGeofenceEventReceiver endGeofenceEventReceiver;
     private ArrivalGeofenceEventReceiver arrivalGeofenceEventReceiver;
@@ -115,12 +112,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private String truckId, driverId, lang;
     private SharedPreferences sp;
     private int currentRetryCount = 0, waitRetryTime = 0, maxConnectCount = 10;// 当前已重试次数// 重试等待时间 //最大重试次数
-    private boolean isStart = false;//是否到达起始点
+    private boolean isStart = false, isStopOver = false, isEnd = false;//是否到达起始点
     private Observable<ResultGson> observable;//轮询任务用的观察者
 
     private List<TaskGson> taskGsonList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
-    private List<GeoInfo> geoInfoList = new ArrayList<>();
     private Map<String, Integer> realgeo = new HashMap<>();
 
     private MapView main_mv_map;
@@ -159,8 +155,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
 
         initView();
-        initData();
-
         regestBroadcast();
         initLocation();
 
@@ -188,22 +182,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if(isStart) {
                             if (!endGeofenceEventReceiver.getIsEnter() && startGeofenceEventReceiver.getIsEnter()) {
                                 // 在起点的地理围栏处 不动 装卸货
-                                if(location != null
-                                    && location.getLatitude() == tencentLocation.getLatitude()
-                                    && location.getLongitude() == tencentLocation.getLongitude()
-                                    && currentTask.getState() != 2) {
+                                if(currentTask.getState() != 2) {
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
                                         currentTask.setState(2);
                                 }
                             } else if (!endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()) {
                                 // 退出起点终点地理围栏 则运输中
                                 if(location != null
-                                    && location.getLatitude() != tencentLocation.getLatitude()
-                                    && location.getLongitude() != tencentLocation.getLongitude()
+                                    &&( location.getLatitude() != tencentLocation.getLatitude()
+                                    || location.getLongitude() != tencentLocation.getLongitude())
                                     && currentTask.getState() != 3) {
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
                                         currentTask.setState(3);
                                         isAlter = false;
+                                        isStopOver = false;
+                                        isEnd = false;
                                 }
                             } else if (endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()) {
                                 if(location != null
@@ -211,13 +204,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     && location.getLongitude() == tencentLocation.getLongitude()) {
                                         // 到达终点且不动 装卸货
                                         if(currentTask.getState() != 2) {
+                                            if(currentTask.getStopOver() && !isStopOver){
+                                                //经停站
+                                                changeTaskState(currentTask.getTransportTaskId(), 5);
+                                                currentTask.setState(5);
+                                                isStopOver = true;
+                                            }
                                             changeTaskState(currentTask.getTransportTaskId(), 2);
                                             currentTask.setState(2);
+                                            isEnd = true;
                                         }
                                 }else {
                                     //在终点动了and经停站 继续运输
-                                    changeTaskState(currentTask.getTransportTaskId(), 3);
-                                    currentTask.setState(3);
+                                    if(currentTask.getState() != 3) {
+                                        if(currentTask.getStopOver() && isStopOver){
+                                            // 经停站
+                                            changeTaskState(currentTask.getTransportTaskId(), 6);
+                                            currentTask.setState(6);
+                                            isStopOver = false;
+                                        }
+                                        changeTaskState(currentTask.getTransportTaskId(), 3);
+                                        currentTask.setState(3);
+                                    }
                                 }
                             }
 
@@ -230,6 +238,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         }
 
                         location = tencentLocation;
+//                        Toast.makeText(MainActivity.this, "当前位置="+location.getLatitude()+" "+location.getLongitude(), Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     Log.e(TAG, "定位失败"+i+" "+s);
@@ -245,7 +254,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         };
 
         request = TencentLocationRequest.create();
-        request.setInterval(2*1000)
+        request.setInterval(1500)
                 .setRequestLevel(TencentLocationRequest.REQUEST_LEVEL_NAME)
                 .setAllowGPS(true)
                 .setAllowDirection(true)
@@ -283,22 +292,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         registerReceiver(endGeofenceEventReceiver, intentFilter2);
 
         arrivalGeofenceEventReceiver = new ArrivalGeofenceEventReceiver();
-        IntentFilter intentFilter4 = new IntentFilter();
-        intentFilter4.addAction(ACTION_TRIGGER_GEOFENCE_ARRIVAL);
-        registerReceiver(arrivalGeofenceEventReceiver, intentFilter4);
+        IntentFilter intentFilter3 = new IntentFilter();
+        intentFilter3.addAction(ACTION_TRIGGER_GEOFENCE_ARRIVAL);
+        registerReceiver(arrivalGeofenceEventReceiver, intentFilter3);
 
         geofenceManager = new TencentGeofenceManager(this);
         builder = new TencentGeofence.Builder();
     }
 
 
-    private void initGeofence(String sta){
+    private void initGeofence(){
         geofenceManager.removeAllFences();
 
-        startGeofence = builder.setTag("start") // 设置 Tag，即围栏别名
-                .setCircularRegion(location.getLatitude(),
-                        location.getLongitude(),
-                        500) // 设置圆心和半径，纬度，经度，半径 500米
+        TencentGeofence startGeofence = builder.setTag("start") // 设置 Tag，即围栏别名
+                .setCircularRegion(startLocation.getLatitude(),
+                        startLocation.getLongitude(),
+                        500F) // 设置圆心和半径，纬度，经度，半径 500米
                 .build();
         Intent receiver1 = new Intent(ACTION_TRIGGER_GEOFENCE_START);
         receiver1.putExtra("KEY_GEOFENCE_ID", startGeofence.getTag());
@@ -308,10 +317,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 receiver1, PendingIntent.FLAG_UPDATE_CURRENT);
         geofenceManager.addFence(startGeofence, pi1);
 
-        endGeofence = builder.setTag("end")
-                .setCircularRegion(geoInfoList.get(realgeo.get(sta)).getLat(),
-                        geoInfoList.get(realgeo.get(sta)).getLng(),
-                        geoInfoList.get(realgeo.get(sta)).getR())
+        TencentGeofence endGeofence = builder.setTag("end")
+                .setCircularRegion(Double.parseDouble(currentTask.getLat()),
+                        Double.parseDouble(currentTask.getLng()),
+                        Float.parseFloat(currentTask.getFenceRange()))
                 .build();
         Intent receiver2 = new Intent(ACTION_TRIGGER_GEOFENCE_END);
         receiver2.putExtra("KEY_GEOFENCE_ID", endGeofence.getTag());
@@ -319,20 +328,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         receiver2.putExtra("KEY_GEOFENCE_LNG", endGeofence.getLongitude());
         PendingIntent pi2 = PendingIntent.getBroadcast(this, (int) (Math.random() * 1E7),
                 receiver2, PendingIntent.FLAG_UPDATE_CURRENT);
-        geofenceManager.addFence(startGeofence, pi2);
+        geofenceManager.addFence(endGeofence, pi2);
 
-        arriveGeofence2 = builder.setTag("arr2")
-                .setCircularRegion(geoInfoList.get(realgeo.get(sta)).getLat(),
-                        geoInfoList.get(realgeo.get(sta)).getLng(),
-                        2000)
+        TencentGeofence arriveGeofence = builder.setTag("arr")
+                .setCircularRegion(Double.parseDouble(currentTask.getLat()),
+                        Double.parseDouble(currentTask.getLng()),
+                        Float.parseFloat(currentTask.getWarningRange()))
                 .build();
-        Intent receiver4 = new Intent(ACTION_TRIGGER_GEOFENCE_ARRIVAL);
-        receiver4.putExtra("KEY_GEOFENCE_ID", arriveGeofence2.getTag());
-        receiver4.putExtra("KEY_GEOFENCE_LAT", arriveGeofence2.getLatitude());
-        receiver4.putExtra("KEY_GEOFENCE_LNG", arriveGeofence2.getLongitude());
-        PendingIntent pi4 = PendingIntent.getBroadcast(this, (int) (Math.random() * 1E7),
-                receiver4, PendingIntent.FLAG_UPDATE_CURRENT);
-        geofenceManager.addFence(arriveGeofence2, pi4);
+        Intent receiver3 = new Intent(ACTION_TRIGGER_GEOFENCE_ARRIVAL);
+        receiver3.putExtra("KEY_GEOFENCE_ID", arriveGeofence.getTag());
+        receiver3.putExtra("KEY_GEOFENCE_LAT", arriveGeofence.getLatitude());
+        receiver3.putExtra("KEY_GEOFENCE_LNG", arriveGeofence.getLongitude());
+        PendingIntent pi3 = PendingIntent.getBroadcast(this, (int) (Math.random() * 1E7),
+                receiver3, PendingIntent.FLAG_UPDATE_CURRENT);
+        geofenceManager.addFence(arriveGeofence, pi3);
     }
 
 
@@ -418,34 +427,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         moreTaskAdapter = new MoreTaskAdapter(R.layout.item_more_task, taskGsonList, lang);
         main_rv_tasks.setLayoutManager(new LinearLayoutManager(MainActivity.this, LinearLayoutManager.HORIZONTAL, false));
         main_rv_tasks.setAdapter(moreTaskAdapter);
-    }
-
-
-    private void initData(){
-        //MCHE 车间
-        geoInfoList.add(new GeoInfo(120.954953, 30.557037, 209F));
-        //BPHE
-        geoInfoList.add(new GeoInfo(120.961169, 30.554363, 86F));
-        //VACON
-        geoInfoList.add(new GeoInfo(120.960136, 30.554674, 66F));
-
-        //2B-1/2 仓库
-        geoInfoList.add(new GeoInfo(120.930238, 30.556578, 45F));
-        //2A-1/2
-        geoInfoList.add(new GeoInfo(120.929712, 30.5569, 40F));
-        //1D-1/2 1C-1/2
-        geoInfoList.add(new GeoInfo(120.928751,30.557507, 50F));
-        //1C-3/4
-        geoInfoList.add(new GeoInfo(120.928086,30.556515, 50F));
-
-        realgeo.put("MCHE", 0);
-        realgeo.put("BPHE", 1);
-        realgeo.put("VACON", 2);
-        realgeo.put("2B-1/2", 3);
-        realgeo.put("2A-1/2", 4);
-        realgeo.put("1D-1/2", 5);
-        realgeo.put("1C-1/2", 5);
-        realgeo.put("1C-3/4", 6);
     }
 
 
@@ -594,15 +575,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (resultGson.getSuccess()) {
                         taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
                         if(taskGsonList != null && taskGsonList.size() != 0) {//任务列表不为空
-                            if(currentTask == null //当前任务和请求任务列表的第一个不同
+                            if(currentTask == null //当前任务和请求任务列表的第一个是不同的
                                     || (!currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId()))){
                                 isStart = false;
                                 main_tv_st.setText(taskGsonList.get(0).getStartTime());
                                 main_tv_at.setText(taskGsonList.get(0).getArrivalTime());
+                                currentTask = taskGsonList.get(0);
+                                if(currentTask.getLat().equals("") || currentTask.getLat() == null){
+                                    currentTask.setLat("120.960136");
+                                    currentTask.setLng("30.554674");
+                                    currentTask.setFenceRange("1000");
+                                    currentTask.setWarningRange("2000");
+                                    Toast.makeText(MainActivity.this, "测试获取经纬度为null，默认目的地经纬度为VACON", Toast.LENGTH_SHORT).show();
+                                }
                             }
-                            currentTask = taskGsonList.get(0);
-                            if (location != null) {
-                                initGeofence(currentTask.getNextStationEng());
+
+                            if(startLocation == null && location != null){
+                                startLocation = location;
+//                                initGeofence();
                             }
 
                             if(lang.equals("1")) {
@@ -775,7 +765,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
         mLocationManager = null;
         request = null;
-//        locationChangedListener = null;
         main_mv_map.onDestroy();
         if(settingDialog != null){
             settingDialog.dismiss();
@@ -799,23 +788,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onClick(View view) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss", Locale.CHINA);
+        lang = sp.getString("locale_language", "en");
+        lang = lang.equals("en") ? "1": "2";
         switch (view.getId()){
             case R.id.main_tv_arrive:
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss", Locale.CHINA);
-                lang = sp.getString("locale_language", "en");
-                lang = lang.equals("en") ? "1": "2";
                 String btn_text = main_tv_arrive.getText().toString();
                 if(btn_text.equals(getString(R.string.task_start))){//开始任务
-                    isStart = true;
-                    LocalTime localTime = LocalTime.now();
-                    main_tv_st.setText(localTime.format(formatter));
-                    if(taskGsonList.size() == 1){
-                        main_tv_arrive.setText(R.string.task_finish);
-                    }else {
+                    if(location != null && !currentTask.getLat().equals("")
+                            && currentTask.getLat() != null) {
+                        isStart = true;
+                        LocalTime localTime = LocalTime.now();
+                        main_tv_st.setText(localTime.format(formatter));
+//                    if(taskGsonList.size() == 1){
                         main_tv_arrive.setText(R.string.task_continue);
+//                    }else {
+//                        main_tv_arrive.setText(R.string.task_continue);
+//                    }
+
+                        startLocation = location;
+                        initGeofence();
+                    }else{
+                        Toast.makeText(this, "还未获取当前定位或任务对象有问题", Toast.LENGTH_SHORT).show();
                     }
                 }else{//完成
-                    if(currentTask.getState() == 2) {//装卸货状态后才能完成
+                    if(currentTask.getState() == 2 && isEnd) {//装卸货状态才能完成
                         LocalTime localTime = LocalTime.now();
                         main_tv_at.setText(localTime.format(formatter));
                         taskGsonList.remove(currentTask);
@@ -849,11 +846,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.main_iv_setting:
-//                settingDialog.showSettingDialog(this, getLayoutInflater());
-//                break;
-//            case R.id.main_mv_map:
-                mLocationManager.requestSingleFreshLocation(null, tencentLocationListener, Looper.getMainLooper());
-                Toast.makeText(this, "定位当前位置", Toast.LENGTH_SHORT).show();
+                settingDialog.showSettingDialog(this, getLayoutInflater());
                 break;
         }
     }
@@ -878,38 +871,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             Log.e(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
         }
     }
-
-
-//    private LocationSource.OnLocationChangedListener locationChangedListener;
-//    private LocationSource locationSource = new LocationSource() {
-//        @Override
-//        public void activate(OnLocationChangedListener onLocationChangedListener) {
-//            locationChangedListener = onLocationChangedListener;
-//            int err = mLocationManager.requestLocationUpdates(request, tencentLocationListener, Looper.myLooper());
-//            switch (err) {
-//                case 1:
-//                    Log.e(TAG, "设备缺少使用腾讯定位服务需要的基本条件");
-//                    break;
-//                case 2:
-//                    Log.e(TAG, "manifest 中配置的 key 不正确");
-//                    break;
-//                case 3:
-//                    Log.e(TAG, "自动加载libtencentloc.so失败");
-//                    break;
-//            }
-//        }
-//
-//        @Override
-//        public void deactivate() {
-//            //当不需要展示定位点时，需要停止定位并释放相关资源
-//            if(tencentLocationListener != null) {
-//                mLocationManager.removeUpdates(tencentLocationListener);
-//            }
-//            mLocationManager = null;
-//            request = null;
-//            locationChangedListener = null;
-//        }
-//    };
 
 
     /**

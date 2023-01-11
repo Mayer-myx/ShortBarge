@@ -8,14 +8,16 @@ import android.location.LocationManager;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.deepsoft.shortbarge.driver.widget.BaseApplication;
+
 
 public class StartGeofenceEventReceiver extends BroadcastReceiver {
 
     private final static String TAG = "StartGeofenceEventReceiver";
     private final static String ACTION_TRIGGER_GEOFENCE_START = "com.deepsoft.shortbarge.driver.broadcast.StartGeofenceEventReceiver";
 
-    private Context context;
-    private boolean isEnter = false;
+    private boolean isEnter = true;
+    private double lat, lng;
 
     @SuppressLint("LongLogTag")
     @Override
@@ -27,19 +29,17 @@ public class StartGeofenceEventReceiver extends BroadcastReceiver {
         // 进入围栏还是退出围栏
         isEnter = intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, true);
         String tag = intent.getStringExtra("KEY_GEOFENCE_ID");
-        double lat = intent.getDoubleExtra("KEY_GEOFENCE_LAT", 0);
-        double lng = intent.getDoubleExtra("KEY_GEOFENCE_LNG", 0);
-
-        this.context = context;
+        lat = intent.getDoubleExtra("KEY_GEOFENCE_LAT", 0);
+        lng = intent.getDoubleExtra("KEY_GEOFENCE_LNG", 0);
     }
 
     @SuppressLint("LongLogTag")
     public boolean getIsEnter() {
         if(isEnter){
-            Toast.makeText(context, "进入围栏"+TAG, Toast.LENGTH_SHORT).show();
+//            Toast.makeText(BaseApplication.getContext(), "进入围栏"+TAG, Toast.LENGTH_SHORT).show();
             Log.e(TAG, "进入围栏");
         }else{
-            Toast.makeText(context, "退出围栏"+TAG, Toast.LENGTH_SHORT).show();
+            Toast.makeText(BaseApplication.getContext(), "退出围栏"+TAG, Toast.LENGTH_SHORT).show();
             Log.e(TAG, "退出围栏");
         }
         return isEnter;

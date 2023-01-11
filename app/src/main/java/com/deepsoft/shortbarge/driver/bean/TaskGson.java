@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TaskGson extends ResultGson {
-
     //任务信息data
 
     //任务状态：1-待运输;2-到达起始点(装货);3-运输中;4-延迟;5-到达经停站;6-继续运输;7-到达目的地(卸货);8-完成;9-异常换车
@@ -13,14 +12,21 @@ public class TaskGson extends ResultGson {
 
     private String transportTaskId;
     private Integer state;
-    private Boolean delay;
+    private boolean delay;
     private String startTime;
     private String arrivalTime;
     private String duration;
     private String nextStation;
     private String nextStationEng;
-    private Boolean stopOver;
-    private Boolean emergency;
+    private boolean stopOver;
+    private boolean emergency;
+    private String lng;
+    private String lat;
+    private String fenceRange;
+    private String warningRange;
+    private String adminName;
+    private String adminNameEng;
+    private String adminPhone;
 
     public String getTaskState(Integer i, String type){
         Map<Integer, String> res_zh = new HashMap<>();
@@ -105,14 +111,6 @@ public class TaskGson extends ResultGson {
         this.transportTaskId = transportTaskId;
     }
 
-    public Integer getState() {
-        return state;
-    }
-
-    public void setState(Integer state) {
-        this.state = state;
-    }
-
     public Boolean getDelay() {
         return delay;
     }
@@ -183,5 +181,95 @@ public class TaskGson extends ResultGson {
 
     public void setEmergency(Boolean emergency) {
         this.emergency = emergency;
+    }
+
+
+    public Integer getState() {
+        return state;
+    }
+
+    public void setState(Integer state) {
+        this.state = state;
+    }
+
+    public boolean isDelay() {
+        return delay;
+    }
+
+    public void setDelay(boolean delay) {
+        this.delay = delay;
+    }
+
+
+    public boolean isStopOver() {
+        return stopOver;
+    }
+
+    public void setStopOver(boolean stopOver) {
+        this.stopOver = stopOver;
+    }
+
+    public boolean isEmergency() {
+        return emergency;
+    }
+
+    public void setEmergency(boolean emergency) {
+        this.emergency = emergency;
+    }
+
+    public String getLng() {
+        return lng;
+    }
+
+    public void setLng(String lng) {
+        this.lng = lng;
+    }
+
+    public String getLat() {
+        return lat;
+    }
+
+    public void setLat(String lat) {
+        this.lat = lat;
+    }
+
+    public String getFenceRange() {
+        return fenceRange;
+    }
+
+    public void setFenceRange(String fenceRange) {
+        this.fenceRange = fenceRange;
+    }
+
+    public String getWarningRange() {
+        return warningRange;
+    }
+
+    public void setWarningRange(String warningRange) {
+        this.warningRange = warningRange;
+    }
+
+    public String getAdminName() {
+        return adminName;
+    }
+
+    public void setAdminName(String adminName) {
+        this.adminName = adminName;
+    }
+
+    public String getAdminNameEng() {
+        return adminNameEng;
+    }
+
+    public void setAdminNameEng(String adminNameEng) {
+        this.adminNameEng = adminNameEng;
+    }
+
+    public String getAdminPhone() {
+        return adminPhone;
+    }
+
+    public void setAdminPhone(String adminPhone) {
+        this.adminPhone = adminPhone;
     }
 }
