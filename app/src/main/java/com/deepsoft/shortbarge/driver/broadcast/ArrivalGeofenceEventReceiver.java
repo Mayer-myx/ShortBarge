@@ -35,7 +35,7 @@ public class ArrivalGeofenceEventReceiver extends BroadcastReceiver {
         String fenceId = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID);
         GeoFence fence = bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE);
         Log.e(TAG, ""+status+" "+customId+" "+fenceId+" "+fence.getType());
-        Toast.makeText(context, ""+status+" "+customId+" "+fenceId+" "+fence.getType(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(BaseApplication.getContext(), ""+status+" "+customId+" "+fenceId+" "+fence.getType(), Toast.LENGTH_SHORT).show();
 
 
         // 进入围栏还是退出围栏

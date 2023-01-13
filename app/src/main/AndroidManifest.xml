@@ -22,6 +22,11 @@
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION"
+        tools:ignore="ProtectedPermissions" />
+    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
 
     <application
         android:name=".widget.BaseApplication"
@@ -79,7 +84,7 @@
                 <action android:name="com.deepsoft.shortbarge.driver.broadcast.StartGeofenceEventReceiver"/>
             </intent-filter>
         </receiver>
-        <receiver android:name=".broadcast.EndGeofenceEventReceiver"
+        <!--<receiver android:name=".broadcast.EndGeofenceEventReceiver"
             android:enabled="true"
             android:exported="true">
             <intent-filter>
@@ -92,7 +97,7 @@
             <intent-filter>
                 <action android:name="com.deepsoft.shortbarge.driver.broadcast.ArrivalGeofenceEventReceiver"/>
             </intent-filter>
-        </receiver>
+        </receiver>-->
 
 
         <service android:name="com.amap.api.location.APSService"></service>

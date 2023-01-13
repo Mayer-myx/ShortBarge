@@ -34,23 +34,32 @@ public class StartGeofenceEventReceiver extends BroadcastReceiver {
         int status = bundle.getInt(GeoFence.BUNDLE_KEY_FENCESTATUS);
         String customId = bundle.getString(GeoFence.BUNDLE_KEY_CUSTOMID);
         String fenceId = bundle.getString(GeoFence.BUNDLE_KEY_FENCEID);
+        int code = bundle.getInt(GeoFence.BUNDLE_KEY_LOCERRORCODE);
         GeoFence fence = bundle.getParcelable(GeoFence.BUNDLE_KEY_FENCE);
-        Log.e(TAG, ""+status+" "+customId+" "+fenceId+" "+fence.getType());
-        Toast.makeText(context, ""+status+" "+customId+" "+fenceId+" "+fence.getType(), Toast.LENGTH_SHORT).show();
 
-        // 进入围栏还是退出围栏
-//        isEnter = intent.getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, false);
-//        String tag = intent.getStringExtra("KEY_GEOFENCE_ID");
-//        lat = intent.getDoubleExtra("KEY_GEOFENCE_LAT", 0);
-//        lng = intent.getDoubleExtra("KEY_GEOFENCE_LNG", 0);
-//        Log.e(TAG, "lat="+lat+" lng="+lng);
-//        if(isEnter){
-////            Toast.makeText(BaseApplication.getContext(), "进入围栏"+TAG, Toast.LENGTH_SHORT).show();
-//            Log.e(TAG, "进入围栏");
-//        }else{
-////            Toast.makeText(BaseApplication.getContext(), "退出围栏"+TAG, Toast.LENGTH_SHORT).show();
-//            Log.e(TAG, "退出围栏");
-//        }
+        Log.e(TAG, ""+status+" "+customId+" "+fenceId+" "+fence.getType());
+        Toast.makeText(BaseApplication.getContext(), ""+status+" "+customId+" "+fenceId+" "+fence.getType(), Toast.LENGTH_SHORT).show();
+
+        switch (status) {
+            case GeoFence.STATUS_LOCFAIL:
+                Log.e(TAG, "定位失败"+code);
+                Toast.makeText(BaseApplication.getContext(), "定位失败"+code, Toast.LENGTH_SHORT).show();
+                break;
+            case GeoFence.STATUS_IN:
+                Log.e(TAG, "进入围栏"+fence.getType());
+                Toast.makeText(BaseApplication.getContext(), "进入围栏"+fence.getType(), Toast.LENGTH_SHORT).show();
+                break;
+            case GeoFence.STATUS_OUT:
+                Log.e(TAG, "离开围栏"+fence.getType());
+                Toast.makeText(BaseApplication.getContext(), "离开围栏"+fence.getType(), Toast.LENGTH_SHORT).show();
+                break;
+            case GeoFence.STATUS_STAYED:
+                Log.e(TAG, "停留在围栏内 10min");
+                Toast.makeText(BaseApplication.getContext(), "停留在围栏内 10min", Toast.LENGTH_SHORT).show();
+                break;
+            default:
+                break;
+        }
     }
 
     @SuppressLint("LongLogTag")
