@@ -21,6 +21,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
 
     <application
         android:name=".widget.BaseApplication"
@@ -94,9 +95,14 @@
         </receiver>
 
 
+        <service android:name="com.amap.api.location.APSService"></service>
         <meta-data
+            android:name="com.amap.api.v2.apikey"
+            android:value="b79f7bfa929d029aaa6f8ddbd964dfcd"/>
+
+        <!--<meta-data
             android:name="TencentMapSDK"
-            android:value="EGGBZ-TZLLU-DA6VA-BSQGA-J3F4E-PWBOI" />
+            android:value="EGGBZ-TZLLU-DA6VA-BSQGA-J3F4E-PWBOI" />-->
     </application>
 
 </manifest>

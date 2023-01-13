@@ -515,7 +515,11 @@
             app:cardElevation="0dp"
             app:cardMaxElevation="0dp"
             app:cardCornerRadius="10dp">
-            <com.tencent.tencentmap.mapsdk.maps.MapView
+            <!--<com.tencent.tencentmap.mapsdk.maps.MapView
+                android:id="@+id/main_mv_map"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>-->
+            <com.amap.api.maps2d.MapView
                 android:id="@+id/main_mv_map"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"/>
