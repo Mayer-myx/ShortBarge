@@ -191,84 +191,75 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             waitConnectDialog.dismiss();
                         settingDialog.setGps(getString(R.string.state_connected));
 
-                        if(isStart && !isEnd) {
+                        if(isStart && !isEnd && currentTask != null) {
                             float start_distance = CoordinateConverter.calculateLineDistance(ori,
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                             float end_distance = CoordinateConverter.calculateLineDistance(dest,
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                            Log.e(TAG, "start_distance="+start_distance+"\nend_distance"+end_distance);
+                            Log.e(TAG, "start_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy());
 
-                            if(end_distance <= dest_warn && isAlter){
+                            if(end_distance <= dest_warn && !isAlter){
                                 // 即将到达
                                 sendNotice();
                                 isAlter = true;
-                                Toast.makeText(MainActivity.this, "即将到达"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "即将到达"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
                             }
 
-                            if(end_distance <= dest_r){
-                                Toast.makeText(MainActivity.this, "进入终点范围"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
-                            }
 
-                            if(start_distance <= ori_r){
-                                Toast.makeText(MainActivity.this, "进入起点范围"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
-                            }
-
-                            if(location != null
-                                    && (location.getLatitude() != aMapLocation.getLatitude()
-                                    || location.getLongitude() != aMapLocation.getLongitude())){
-                                if(currentTask.getState() != 3 && !isEnd) {
-                                    // 动了就运输中
-                                    if(currentTask.getStopOver() && isStopOver){//经停站
+                            if (start_distance <= ori_r) {
+                                // 在起点的地理围栏处 不动 装卸货
+                                if(currentTask.getState() != 2 && aMapLocation.getSpeed() == 0) {
+                                    changeTaskState(currentTask.getTransportTaskId(), 2);
+                                    currentTask.setState(2);
+                                    Toast.makeText(MainActivity.this, "起点速度=0 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
+                                }else if(currentTask.getState() != 3 && aMapLocation.getSpeed() != 0){
+                                    changeTaskState(currentTask.getTransportTaskId(), 3);
+                                    currentTask.setState(3);
+                                    Toast.makeText(MainActivity.this, "起点速度!=0 运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
+                                }
+                            } else if (end_distance <= dest_r) {
+                                // 到达终点 不动 装卸货
+                                if(currentTask.getState() != 2 && aMapLocation.getSpeed() == 0) {
+                                    if(currentTask.getStopOver() && !isStopOver){
+                                        // 经停站
+                                        changeTaskState(currentTask.getTransportTaskId(), 5);
+                                        currentTask.setState(5);
+                                        isStopOver = true;
+                                        Toast.makeText(MainActivity.this, "经停站速度=0 装卸货", Toast.LENGTH_SHORT).show();
+                                    }
+                                    changeTaskState(currentTask.getTransportTaskId(), 2);
+                                    currentTask.setState(2);
+                                    isEnd = true;
+                                    Toast.makeText(MainActivity.this, "终点速度=0 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
+                                }else if(currentTask.getState() != 3 && aMapLocation.getSpeed() != 0){
+                                    if (currentTask.getStopOver() && isStopOver) {//经停站
                                         isStopOver = false;
                                         changeTaskState(currentTask.getTransportTaskId(), 6);
                                         currentTask.setState(6);
-                                        Toast.makeText(MainActivity.this, "经停站 运输中", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "经停站速度!=0 运输中", Toast.LENGTH_SHORT).show();
                                     }
                                     changeTaskState(currentTask.getTransportTaskId(), 3);
                                     currentTask.setState(3);
-                                    Toast.makeText(MainActivity.this, "运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "终点速度!=0 运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
                                 }
-                            }else{
-                                // 没动 判断是否在起点终点
-                                if (start_distance <= ori_r) {
-                                    // 在起点的地理围栏处 装卸货
-                                    if(currentTask.getState() != 2) {
-                                        changeTaskState(currentTask.getTransportTaskId(), 2);
-                                        currentTask.setState(2);
-                                        Toast.makeText(MainActivity.this, "在起点的地理围栏处 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
-                                    }
-                                } else if (end_distance <= dest_r || end_distance <= dest_warn) {
-                                    // 到达终点 装卸货
-                                    if(currentTask.getState() != 2) {
-                                        if(end_distance <= dest_warn && currentTask.getStopOver() && !isStopOver){
-                                            //经停站
-                                            changeTaskState(currentTask.getTransportTaskId(), 5);
-                                            currentTask.setState(5);
-                                            isStopOver = true;
-                                            Toast.makeText(MainActivity.this, "经停站 装卸货", Toast.LENGTH_SHORT).show();
-                                        }
-                                        changeTaskState(currentTask.getTransportTaskId(), 2);
-                                        currentTask.setState(2);
-                                        isEnd = true;
-                                        Toast.makeText(MainActivity.this, "终点 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
-                                    }
-                                } else {
-                                    // 不在起点 终点围栏 运输中
+                            } else {
+                                // 不在起点 终点围栏 运输中
+                                if(currentTask.getState() != 3) {
                                     changeTaskState(currentTask.getTransportTaskId(), 3);
                                     currentTask.setState(3);
-                                    Toast.makeText(MainActivity.this, "不在起点终点 运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "不在起点终点 运输中" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
 
                         location = aMapLocation;
-
                     }else {
                         Toast.makeText(MainActivity.this, "location Error, ErrCode:" + aMapLocation.getErrorCode()
                                 + ", errInfo:" + aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
                         //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
                         Log.e("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
                                 + ", errInfo:" + aMapLocation.getErrorInfo());
+
                         if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                             waitConnectDialog.dismiss();
                         connectFailDialog.showConnectFailDialog();
@@ -277,13 +268,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
             }
         };
-        mLocationOption = new AMapLocationClientOption();
 
         try {
             mLocationClient = new AMapLocationClient(this);
             mLocationClient.setApiKey("b79f7bfa929d029aaa6f8ddbd964dfcd");
             mLocationClient.setLocationListener(aMapLocationListener);
-            mLocationOption.setInterval(1500);
+            mLocationOption = new AMapLocationClientOption();
+            mLocationOption.setInterval(1000);
             mLocationOption.setLocationMode(AMapLocationClientOption.AMapLocationMode.Hight_Accuracy);
             mLocationOption.setNeedAddress(false);
             mLocationOption.setMockEnable(true);
@@ -301,42 +292,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void initGeofenceGaode(){
-        GeoFenceListener fenceListenter = new GeoFenceListener() {
-            @Override
-            public void onGeoFenceCreateFinished(List<GeoFence> list, int i, String s) {
-                if(i == GeoFence.ADDGEOFENCE_SUCCESS){//判断围栏是否创建成功
-                    for(GeoFence x : list){
-                        Log.e(TAG, "围栏创建成功："+x.getType());
-                        Toast.makeText(MainActivity.this, "围栏创建成功："+x.getType(), Toast.LENGTH_SHORT).show();
-                    }
-                } else {
-                    for(GeoFence x : list){
-                        Log.e(TAG, "围栏创建失败："+x.getType());
-                        Toast.makeText(MainActivity.this, "围栏创建失败："+x.getType(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-            }
-        };
-        mGeoFenceClient = new GeoFenceClient(this);
-        mGeoFenceClient.setGeoFenceListener(fenceListenter);
-        mGeoFenceClient.setActivateAction(GEOFENCE_IN|GEOFENCE_OUT|GEOFENCE_STAYED);
-        mGeoFenceClient.createPendingIntent(ACTION_TRIGGER_GEOFENCE_START);
-        mGeoFenceClient.removeGeoFence();
-        mGeoFenceClient.addGeoFence("start","起点",
-                new DPoint(Double.parseDouble(currentTask.getOriginLat()),
-                        Double.parseDouble(currentTask.getOriginLng())),
-                Float.parseFloat(currentTask.getOriginFenceRange()),
-                10,"进出起点");
-        mGeoFenceClient.addGeoFence("end","终点",
-                new DPoint(Double.parseDouble(currentTask.getDestinationLat()),
-                        Double.parseDouble(currentTask.getDestinationLng())),
-                Float.parseFloat(currentTask.getDestinationFenceRange()),
-                11,"进出终点");
-        mGeoFenceClient.addGeoFence("arrival","预警",
-                new DPoint(Double.parseDouble(currentTask.getDestinationLat()),
-                        Double.parseDouble(currentTask.getDestinationLng())),
-                Float.parseFloat(currentTask.getDestinationWarningRange()),
-                12,"进出预警");
+//        GeoFenceListener fenceListenter = new GeoFenceListener() {
+//            @Override
+//            public void onGeoFenceCreateFinished(List<GeoFence> list, int i, String s) {
+//                if(i == GeoFence.ADDGEOFENCE_SUCCESS){//判断围栏是否创建成功
+//                    for(GeoFence x : list){
+//                        Log.e(TAG, "围栏创建成功："+x.getType());
+//                        Toast.makeText(MainActivity.this, "围栏创建成功："+x.getType(), Toast.LENGTH_SHORT).show();
+//                    }
+//                } else {
+//                    for(GeoFence x : list){
+//                        Log.e(TAG, "围栏创建失败："+x.getType());
+//                        Toast.makeText(MainActivity.this, "围栏创建失败："+x.getType(), Toast.LENGTH_SHORT).show();
+//                    }
+//                }
+//            }
+//        };
+//        mGeoFenceClient = new GeoFenceClient(this);
+//        mGeoFenceClient.setGeoFenceListener(fenceListenter);
+//        mGeoFenceClient.setActivateAction(GEOFENCE_IN|GEOFENCE_OUT|GEOFENCE_STAYED);
+//        mGeoFenceClient.c
+//        reatePendingIntent(ACTION_TRIGGER_GEOFENCE_START);
+//        mGeoFenceClient.removeGeoFence();
+//        mGeoFenceClient.addGeoFence("start","起点",
+//                new DPoint(Double.parseDouble(currentTask.getOriginLat()),
+//                        Double.parseDouble(currentTask.getOriginLng())),
+//                Float.parseFloat(currentTask.getOriginFenceRange()),
+//                10,"进出起点");
+//        mGeoFenceClient.addGeoFence("end","终点",
+//                new DPoint(Double.parseDouble(currentTask.getDestinationLat()),
+//                        Double.parseDouble(currentTask.getDestinationLng())),
+//                Float.parseFloat(currentTask.getDestinationFenceRange()),
+//                11,"进出终点");
+//        mGeoFenceClient.addGeoFence("arrival","预警",
+//                new DPoint(Double.parseDouble(currentTask.getDestinationLat()),
+//                        Double.parseDouble(currentTask.getDestinationLng())),
+//                Float.parseFloat(currentTask.getDestinationWarningRange()),
+//                12,"进出预警");
 
         LatLng latLng1 = new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng()));
         LatLng latLng2 = new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng()));
@@ -615,13 +607,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     lang = lang.equals("en") ? "1" : "2";
                     if (resultGson.getSuccess()) {
                         taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                        List<TaskGson> tmp = new ArrayList<>();
+
                         if(taskGsonList != null && taskGsonList.size() != 0) {//任务列表不为空
+                            tmp = new ArrayList<>(taskGsonList);
+                            tmp.remove(0);
+
                             if(currentTask == null //当前任务和请求任务列表的第一个是不同的
                                     || (!currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId()))){
                                 isStart = false;
-                                main_tv_st.setText(taskGsonList.get(0).getStartTime());
-                                main_tv_at.setText(taskGsonList.get(0).getArrivalTime());
+
                                 currentTask = taskGsonList.get(0);
+
                                 if(currentTask.getOriginLat().equals("") || currentTask.getOriginLat() == null
                                         || currentTask.getDestinationLat().equals("") || currentTask.getDestinationLat() == null){
                                     currentTask.setOriginLat("30.5569");
@@ -634,6 +631,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     Log.e(TAG, "测试获取经纬度为null，默认2A-1/2出发前往VACON");
                                     Toast.makeText(MainActivity.this, "测试获取经纬度为null，默认2A-1/2出发前往VACON", Toast.LENGTH_SHORT).show();
                                 }
+
                                 ori = new DPoint(Double.parseDouble(currentTask.getOriginLat()),
                                         Double.parseDouble(currentTask.getOriginLng()));
                                 ori_r = Float.parseFloat(currentTask.getOriginFenceRange());
@@ -641,6 +639,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         Double.parseDouble(currentTask.getDestinationLng()));
                                 dest_r = Float.parseFloat(currentTask.getDestinationFenceRange());
                                 dest_warn = Float.parseFloat(currentTask.getDestinationWarningRange());
+
+                                main_tv_st.setText(currentTask.getStartTime());
+                                main_tv_at.setText(currentTask.getArrivalTime());
                             }
 
                             if(lang.equals("1")) {
@@ -652,21 +653,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             }
                             main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
                             main_tv_arrive.setClickable(true);
-                        }else{
-                            currentTask = new TaskGson();
-                            main_tv_dest.setText(currentTask.getDuration());
-                            main_tv_ts.setText(""+currentTask.getState());
+
+                        }else{//任务列表为空
+                            currentTask = null;
+                            main_tv_dest.setText("null");
+                            main_tv_ts.setText("null");
+                            main_tv_st.setText("null");
+                            main_tv_at.setText("null");
                             isStart = false;
                             main_tv_arrive.setClickable(false);
                             main_tv_arrive.setAlpha(0.5F);
                         }
+
                         main_tv_tasknum.setText("" + taskGsonList.size());
-                        moreTaskAdapter.setList(taskGsonList);
+                        moreTaskAdapter.setList(tmp);
+
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
+
                     }else{
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                         Log.i(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
                     }
+
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                 }
@@ -698,7 +706,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 lang = lang.equals("en") ? "1": "2";
                 if (resultGson.getSuccess()) {
                     currentTask.setState(state);
-                    main_tv_ts.setText(currentTask.getTaskState(lang));
+                    main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
                     moreTaskAdapter.notifyItemChanged(0);
                 }else{
                     Log.i(TAG, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg());
@@ -800,7 +808,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.main_tv_arrive:
                 String btn_text = main_tv_arrive.getText().toString();
                 if(btn_text.equals(getString(R.string.task_start))){//开始任务
-                    if(location != null
+                    if(location != null && currentTask != null
                             && !currentTask.getOriginLat().equals("")
                             && currentTask.getOriginLat() != null) {
                         isStart = true;
@@ -809,32 +817,45 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         isAlter = false;
                         LocalTime localTime = LocalTime.now();
                         main_tv_st.setText(localTime.format(formatter));
-                        if(taskGsonList.size() == 1){
+                        if(taskGsonList.size() != 1){
                             main_tv_arrive.setText(R.string.task_continue);
                         } else {
-                            main_tv_arrive.setText(R.string.task_continue);
+                            main_tv_arrive.setText(R.string.task_finish);
                         }
+
                         initGeofenceGaode();
                     }else{
-                        Toast.makeText(this, "还未获取当前定位或任务对象有问题", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(this, "还未获取当前定位或任务有问题", Toast.LENGTH_SHORT).show();
                     }
-                }else{//完成
+                } else {//继续or完成
                     if(currentTask.getState() == 2 && isEnd) {//装卸货状态才能完成
                         LocalTime localTime = LocalTime.now();
                         main_tv_at.setText(localTime.format(formatter));
+
                         taskGsonList.remove(currentTask);
-                        moreTaskAdapter.setList(taskGsonList);
-                        if (taskGsonList.size() == 0) {
-                            currentTask = new TaskGson();
+                        if (btn_text.equals(getString(R.string.task_finish))) {//没任务了
+                            moreTaskAdapter.setList(taskGsonList);
+                            currentTask = null;
+                            main_tv_dest.setText("null");
+                            main_tv_ts.setText("null");
+                            main_tv_st.setText("null");
+                            main_tv_at.setText("null");
+
                             main_tv_arrive.setClickable(false);
                             main_tv_arrive.setAlpha(0.5F);
                         } else {
                             currentTask = taskGsonList.get(0);
+                            List<TaskGson> tmp = new ArrayList<>(taskGsonList);
+                            tmp.remove(0);
+                            moreTaskAdapter.setList(tmp);
+                            main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
+                            main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
+                            main_tv_st.setText(currentTask.getStartTime());
+                            main_tv_at.setText(currentTask.getArrivalTime());
+
                             main_tv_arrive.setClickable(true);
                         }
-                        main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
-                        main_tv_st.setText(currentTask.getStartTime());
-                        main_tv_at.setText(currentTask.getArrivalTime());
+
                         main_tv_tasknum.setText("" + taskGsonList.size());
                         main_tv_arrive.setText(R.string.task_start);
                         isStart = false;
