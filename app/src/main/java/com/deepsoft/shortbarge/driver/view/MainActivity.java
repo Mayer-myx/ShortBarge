@@ -32,17 +32,14 @@ import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
 import com.amap.api.location.AMapLocationListener;
+import com.amap.api.location.CoordinateConverter;
 import com.amap.api.location.DPoint;
 import com.amap.api.maps2d.AMap;
-import com.amap.api.maps2d.CameraUpdate;
 import com.amap.api.maps2d.CameraUpdateFactory;
-import com.amap.api.maps2d.LocationSource;
 import com.amap.api.maps2d.MapView;
 import com.amap.api.maps2d.MapsInitializer;
-import com.amap.api.maps2d.UiSettings;
 import com.amap.api.maps2d.model.BitmapDescriptor;
 import com.amap.api.maps2d.model.BitmapDescriptorFactory;
-import com.amap.api.maps2d.model.CameraPosition;
 import com.amap.api.maps2d.model.Circle;
 import com.amap.api.maps2d.model.CircleOptions;
 import com.amap.api.maps2d.model.LatLng;
@@ -66,24 +63,6 @@ import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
-//import com.tencent.map.geolocation.TencentGeofence;
-//import com.tencent.map.geolocation.TencentGeofenceManager;
-//import com.tencent.map.geolocation.TencentLocation;
-//import com.tencent.map.geolocation.TencentLocationListener;
-//import com.tencent.map.geolocation.TencentLocationManager;
-//import com.tencent.map.geolocation.TencentLocationRequest;
-//import com.tencent.tencentmap.mapsdk.maps.CameraUpdate;
-//import com.tencent.tencentmap.mapsdk.maps.CameraUpdateFactory;
-//import com.tencent.tencentmap.mapsdk.maps.MapView;
-//import com.tencent.tencentmap.mapsdk.maps.TencentMap;
-//import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptor;
-//import com.tencent.tencentmap.mapsdk.maps.model.BitmapDescriptorFactory;
-//import com.tencent.tencentmap.mapsdk.maps.model.CameraPosition;
-//import com.tencent.tencentmap.mapsdk.maps.model.Circle;
-//import com.tencent.tencentmap.mapsdk.maps.model.CircleOptions;
-//import com.tencent.tencentmap.mapsdk.maps.model.LatLng;
-//import com.tencent.tencentmap.mapsdk.maps.model.Marker;
-//import com.tencent.tencentmap.mapsdk.maps.model.MarkerOptions;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -137,6 +116,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AMapLocationListener aMapLocationListener;
     private AMap aMap;
     private Circle circle1, circle2, circle3;
+    private DPoint ori, dest;
+    private float ori_r, dest_r, dest_warn;
 
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
@@ -210,12 +191,26 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             waitConnectDialog.dismiss();
                         settingDialog.setGps(getString(R.string.state_connected));
 
-                        if(isStart) {
-                            if (arrivalGeofenceEventReceiver.getIsEnter() && !isAlter) {
+                        if(isStart && !isEnd) {
+                            float start_distance = CoordinateConverter.calculateLineDistance(ori,
+                                    new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                            float end_distance = CoordinateConverter.calculateLineDistance(dest,
+                                    new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                            Log.e(TAG, "start_distance="+start_distance+"\nend_distance"+end_distance);
+
+                            if(end_distance <= dest_warn && isAlter){
                                 // 即将到达
                                 sendNotice();
                                 isAlter = true;
-                                Toast.makeText(MainActivity.this, "即将到达", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "即将到达"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
+                            }
+
+                            if(end_distance <= dest_r){
+                                Toast.makeText(MainActivity.this, "进入终点范围"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
+                            }
+
+                            if(start_distance <= ori_r){
+                                Toast.makeText(MainActivity.this, "进入起点范围"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
                             }
 
                             if(location != null
@@ -231,21 +226,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                     changeTaskState(currentTask.getTransportTaskId(), 3);
                                     currentTask.setState(3);
-                                    Toast.makeText(MainActivity.this, "运输中", Toast.LENGTH_SHORT).show();
+                                    Toast.makeText(MainActivity.this, "运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
                                 }
                             }else{
                                 // 没动 判断是否在起点终点
-                                if (!endGeofenceEventReceiver.getIsEnter() && startGeofenceEventReceiver.getIsEnter()) {
+                                if (start_distance <= ori_r) {
                                     // 在起点的地理围栏处 装卸货
                                     if(currentTask.getState() != 2) {
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
                                         currentTask.setState(2);
-                                        Toast.makeText(MainActivity.this, "在起点的地理围栏处 装卸货", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "在起点的地理围栏处 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
                                     }
-                                } else if (endGeofenceEventReceiver.getIsEnter() && !startGeofenceEventReceiver.getIsEnter()) {
+                                } else if (end_distance <= dest_r || end_distance <= dest_warn) {
                                     // 到达终点 装卸货
                                     if(currentTask.getState() != 2) {
-                                        if(currentTask.getStopOver() && !isStopOver){
+                                        if(end_distance <= dest_warn && currentTask.getStopOver() && !isStopOver){
                                             //经停站
                                             changeTaskState(currentTask.getTransportTaskId(), 5);
                                             currentTask.setState(5);
@@ -255,15 +250,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
                                         currentTask.setState(2);
                                         isEnd = true;
-                                        Toast.makeText(MainActivity.this, "终点 装卸货", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "终点 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
                                     }
                                 } else {
-                                    if(currentTask.getState() != 3 && !isEnd) {
-                                        // 不在起点 终点围栏 运输中
-                                        changeTaskState(currentTask.getTransportTaskId(), 3);
-                                        currentTask.setState(3);
-                                        Toast.makeText(MainActivity.this, "不在起点终点 运输中", Toast.LENGTH_SHORT).show();
-                                    }
+                                    // 不在起点 终点围栏 运输中
+                                    changeTaskState(currentTask.getTransportTaskId(), 3);
+                                    currentTask.setState(3);
+                                    Toast.makeText(MainActivity.this, "不在起点终点 运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance, Toast.LENGTH_SHORT).show();
                                 }
                             }
                         }
@@ -271,13 +264,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         location = aMapLocation;
 
                     }else {
-                        Toast.makeText(MainActivity.this, "location Error, ErrCode:"
-                                + aMapLocation.getErrorCode() + ", errInfo:"
-                                + aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "location Error, ErrCode:" + aMapLocation.getErrorCode()
+                                + ", errInfo:" + aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
                         //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
-                        Log.e("AmapError","location Error, ErrCode:"
-                                + aMapLocation.getErrorCode() + ", errInfo:"
-                                + aMapLocation.getErrorInfo());
+                        Log.e("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
+                                + ", errInfo:" + aMapLocation.getErrorInfo());
                         if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                             waitConnectDialog.dismiss();
                         connectFailDialog.showConnectFailDialog();
@@ -307,6 +298,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }catch (Exception e){
         }
     }
+
 
     private void initGeofenceGaode(){
         GeoFenceListener fenceListenter = new GeoFenceListener() {
@@ -642,6 +634,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     Log.e(TAG, "测试获取经纬度为null，默认2A-1/2出发前往VACON");
                                     Toast.makeText(MainActivity.this, "测试获取经纬度为null，默认2A-1/2出发前往VACON", Toast.LENGTH_SHORT).show();
                                 }
+                                ori = new DPoint(Double.parseDouble(currentTask.getOriginLat()),
+                                        Double.parseDouble(currentTask.getOriginLng()));
+                                ori_r = Float.parseFloat(currentTask.getOriginFenceRange());
+                                dest = new DPoint(Double.parseDouble(currentTask.getDestinationLat()),
+                                        Double.parseDouble(currentTask.getDestinationLng()));
+                                dest_r = Float.parseFloat(currentTask.getDestinationFenceRange());
+                                dest_warn = Float.parseFloat(currentTask.getDestinationWarningRange());
                             }
 
                             if(lang.equals("1")) {
