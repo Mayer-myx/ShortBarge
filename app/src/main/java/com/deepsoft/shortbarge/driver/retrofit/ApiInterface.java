@@ -9,6 +9,8 @@ import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
+import retrofit2.http.Field;
+import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.Multipart;
 import retrofit2.http.POST;
@@ -151,11 +153,11 @@ public interface ApiInterface {
 //    @POST("postNoParamUser")
 //    Call<DriverInfoGson>postNoParamUser();
 //
-//    /*有参POST请求 */
+    /*有参POST请求 */
 //    @FormUrlEncoded
-//    @POST("postParamUser")
-//    Call<DriverInfoGson> postParamUser(@Field("id") int id);
-//
+//    @POST("notice/sendNotice")
+//    Call<ResultGson> sendNotice(@Field("transportTaskId") String transportTaskId);
+
 //    /*JSON化参数POST请求 */
 //    @POST("postObjectParamUser")
 //    Call<DriverInfoGson>postObjectParamUser(@Body DriverInfoGson user);

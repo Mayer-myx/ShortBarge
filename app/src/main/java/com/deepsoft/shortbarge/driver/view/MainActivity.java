@@ -1,9 +1,5 @@
 package com.deepsoft.shortbarge.driver.view;
 
-import static com.amap.api.fence.GeoFenceClient.GEOFENCE_IN;
-import static com.amap.api.fence.GeoFenceClient.GEOFENCE_OUT;
-import static com.amap.api.fence.GeoFenceClient.GEOFENCE_STAYED;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,17 +13,13 @@ import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amap.api.fence.GeoFence;
 import com.amap.api.fence.GeoFenceClient;
-import com.amap.api.fence.GeoFenceListener;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -112,12 +104,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AMapLocation location;
     private AMapLocationClient mLocationClient = null;
     private AMapLocationClientOption mLocationOption = null;
-    private GeoFenceClient mGeoFenceClient;
     private AMapLocationListener aMapLocationListener;
     private AMap aMap;
     private Circle circle1, circle2, circle3;
-    private DPoint ori, dest;
-    private float ori_r, dest_r, dest_warn;
+    private DPoint ori, dest, stop;
+    private float ori_r, dest_r, dest_warn, stop_r;
 
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
@@ -183,7 +174,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void initLocationGaode(){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss", Locale.CHINA);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.CHINA);
         aMapLocationListener = new AMapLocationListener() {
             @Override
             public void onLocationChanged(AMapLocation aMapLocation) {
@@ -198,7 +189,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                             float end_distance = CoordinateConverter.calculateLineDistance(dest,
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                            Log.e(TAG, "start_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy());
+                            float stop_distance = 0.0F;
+                            if(currentTask.getStopOver()){
+                                stop_distance = CoordinateConverter.calculateLineDistance(stop,
+                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                            }
 
                             if(end_distance <= dest_warn && !isAlter){
                                 // 即将到达
@@ -207,57 +202,93 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 Toast.makeText(MainActivity.this, "即将到达"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
                             }
 
-
-                            if (start_distance <= ori_r) {
-                                // 在起点 不动 装卸货
-                                if(currentTask.getState() != 2 && aMapLocation.getSpeed() <= 3) {
-                                    changeTaskState(currentTask.getTransportTaskId(), 2);
-                                    currentTask.setState(2);
-                                    Toast.makeText(MainActivity.this, "起点速度<=3 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
-                                }else if(currentTask.getState() != 3){
-                                    changeTaskState(currentTask.getTransportTaskId(), 3);
-                                    currentTask.setState(3);
-                                    Toast.makeText(MainActivity.this, "起点速度>3 运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
-                                }
-                            } else if (end_distance <= dest_r) {
-                                // 到达终点 不动 装卸货
-                                if(currentTask.getState() != 2 && aMapLocation.getSpeed() <= 3) {
-                                    if(currentTask.getStopOver() && !isStopOver){
-                                        // 经停站
+                            if(currentTask.getStopOver() && stop_distance <= stop_r){
+                                //经停站
+                                if(isStopOver && aMapLocation.getSpeed() <= 5){
+                                    if(currentTask.getState() != 5) {
                                         changeTaskState(currentTask.getTransportTaskId(), 5);
                                         currentTask.setState(5);
                                         isStopOver = true;
                                         Toast.makeText(MainActivity.this, "经停站速度<=3 装卸货", Toast.LENGTH_SHORT).show();
+                                    }else if(!isStopOver){
+                                        if(currentTask.getState() != 6){
+                                            changeTaskState(currentTask.getTransportTaskId(), 6);
+                                            currentTask.setState(6);
+                                            isStopOver = false;
+                                            Toast.makeText(MainActivity.this, "经停站速度>3 继续运输中", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+                                }
+                            }
+
+                            if(aMapLocation.getSpeed() <= 5){
+                                if (start_distance <= ori_r) {//起点
+                                    if(currentTask.getState() != 2) {
+                                        changeTaskState(currentTask.getTransportTaskId(), 2);
                                         currentTask.setState(2);
-                                    }else {
+//                                    Toast.makeText(MainActivity.this, "起点速度<=3 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }else if(end_distance <= dest_r) {//终点
+                                    if(currentTask.getState() != 5) {//不在经停站
                                         isEnd = true;
                                         isUpdate = false;
+                                        changeTaskState(currentTask.getTransportTaskId(), 7);
+                                        currentTask.setState(7);
                                         changeTaskState(currentTask.getTransportTaskId(), 8);
                                         currentTask.setState(8);
                                         LocalTime localTime = LocalTime.now();
                                         main_tv_at.setText(localTime.format(formatter));
-                                        Toast.makeText(MainActivity.this, "终点速度<=3 完成任务!" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance + "\nspeed=" + aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "终点速度<=3 完成任务!", Toast.LENGTH_SHORT).show();
                                     }
-                                }else if(currentTask.getState() != 3){
-                                    if (currentTask.getStopOver()) {//经停站
-                                        changeTaskState(currentTask.getTransportTaskId(), 6);
-                                        currentTask.setState(6);
-                                        Toast.makeText(MainActivity.this, "经停站速度>3 继续运输中", Toast.LENGTH_SHORT).show();
-                                        currentTask.setState(3);
-                                    }else {
+                                }else{//运输 红绿灯
+                                    if(currentTask.getState() == 2) {
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
                                         currentTask.setState(3);
-                                        Toast.makeText(MainActivity.this, "终点速度>3 运输中" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance + "\nspeed=" + aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
                                     }
                                 }
-                            } else {
-                                // 不在起点 终点围栏 运输中
-                                if(currentTask.getState() != 3) {
+                            }else{//运输 动了
+                                if(currentTask.getState() == 2) {
                                     changeTaskState(currentTask.getTransportTaskId(), 3);
                                     currentTask.setState(3);
-                                    Toast.makeText(MainActivity.this, "不在起点终点 运输中" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
                                 }
                             }
+
+//                            if (start_distance <= ori_r) {
+//                                // 在起点 不动 装卸货
+//                                if(currentTask.getState() != 2 && aMapLocation.getSpeed() <= 3) {
+//                                    changeTaskState(currentTask.getTransportTaskId(), 2);
+//                                    currentTask.setState(2);
+////                                    Toast.makeText(MainActivity.this, "起点速度<=3 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
+//                                }else if(currentTask.getState() != 3 && aMapLocation.getSpeed() > 3){
+//                                    changeTaskState(currentTask.getTransportTaskId(), 3);
+//                                    currentTask.setState(3);
+////                                    Toast.makeText(MainActivity.this, "起点速度>3 运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
+//                                }
+//                            } else if (end_distance <= dest_r) {
+//                                // 到达终点 不动 装卸货
+//                                if(currentTask.getState() != 5 && aMapLocation.getSpeed() <= 3) {
+//                                    isEnd = true;
+//                                    isUpdate = false;
+//                                    changeTaskState(currentTask.getTransportTaskId(), 8);
+//                                    currentTask.setState(8);
+//                                    LocalTime localTime = LocalTime.now();
+//                                    main_tv_at.setText(localTime.format(formatter));
+//                                    Toast.makeText(MainActivity.this, "终点速度<=3 完成任务!", Toast.LENGTH_SHORT).show();
+//                                }else if(currentTask.getState() != 5){
+//                                    if (currentTask.getState() != 3 && currentTask.getState() != 6) {
+//                                        changeTaskState(currentTask.getTransportTaskId(), 3);
+//                                        currentTask.setState(3);
+//                                        Toast.makeText(MainActivity.this, "终点速度>3 运输中" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance + "\nspeed=" + aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
+//                                    }
+//                                }
+//                            } else {
+//                                // 不在起点 终点围栏 运输中
+//                                if(currentTask.getState() != 3 && currentTask.getState() != 5 && currentTask.getState() != 6) {
+//                                    changeTaskState(currentTask.getTransportTaskId(), 3);
+//                                    currentTask.setState(3);
+////                                    Toast.makeText(MainActivity.this, "不在起点终点 运输中" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
+//                                }
+//                            }
                         }
 
                         location = aMapLocation;
@@ -299,33 +330,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void initGeofenceGaode(){
+    private void drawGeofenceGaode(){
         LatLng latLng1 = new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng()));
         LatLng latLng2 = new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng()));
-        if(circle1 == null || circle2 == null || circle3 == null){
-            circle1 = aMap.addCircle(new CircleOptions().center(latLng1)
-                    .radius(Double.parseDouble(currentTask.getOriginFenceRange()))
-                    .fillColor(0x500000FF)
-                    .strokeWidth(1f)
-                    .visible(true)
-                    .zIndex(2));
-            circle2 = aMap.addCircle(new CircleOptions().center(latLng2)
-                    .radius(Double.parseDouble(currentTask.getDestinationFenceRange()))
-                    .fillColor(0x50FFFF00)
-                    .strokeWidth(1f)
-                    .visible(true)
-                    .zIndex(3));
-            circle3 = aMap.addCircle(new CircleOptions().center(latLng2)
-                    .radius(Double.parseDouble(currentTask.getDestinationWarningRange()))
-                    .fillColor(0x50F15C58)
-                    .strokeWidth(1f)
-                    .visible(true)
-                    .zIndex(2));
-        }else{
-            circle1.setCenter(latLng1);
-            circle2.setCenter(latLng2);
-            circle3.setCenter(latLng2);
+        if(circle1 != null && circle2 != null && circle3 != null) {
+            aMap.clear();
+            setMaker();
+            Toast.makeText(this, "清空地图所有maker，可能会把定位icon也清空，此处请注意定位icon", Toast.LENGTH_SHORT).show();
         }
+        circle1 = aMap.addCircle(new CircleOptions().center(latLng1)
+                .radius(Double.parseDouble(currentTask.getOriginFenceRange()))
+                .fillColor(0x500000FF)
+                .strokeWidth(1f)
+                .visible(true)
+                .zIndex(2));
+        circle2 = aMap.addCircle(new CircleOptions().center(latLng2)
+                .radius(Double.parseDouble(currentTask.getDestinationFenceRange()))
+                .fillColor(0x50FFFF00)
+                .strokeWidth(1f)
+                .visible(true)
+                .zIndex(3));
+        circle3 = aMap.addCircle(new CircleOptions().center(latLng2)
+                .radius(Double.parseDouble(currentTask.getDestinationWarningRange()))
+                .fillColor(0x50F15C58)
+                .strokeWidth(1f)
+                .visible(true)
+                .zIndex(2));
     }
 
 
@@ -573,11 +603,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     lang = sp.getString("locale_language", "en");
                     lang = lang.equals("en") ? "1" : "2";
                     if (resultGson.getSuccess()) {
+                        taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                        List<TaskGson> tmp = new ArrayList<>();
+
+                        if(!isStart && main_tv_arrive.getText().equals(getString(R.string.task_finish))){
+                            if (taskGsonList != null && taskGsonList.size() != 0) {
+                                main_tv_arrive.setText(R.string.task_start);
+                                main_tv_arrive.setClickable(true);
+                                main_tv_arrive.setAlpha(1.0F);
+                            }
+                        }
 
                         if(isUpdate) {// 暂停轮询更新字段
-                            taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
-                            List<TaskGson> tmp = new ArrayList<>();
-
                             if (taskGsonList != null && taskGsonList.size() != 0) {//任务列表不为空
                                 tmp = new ArrayList<>(taskGsonList);
                                 tmp.remove(0);
@@ -612,6 +649,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 dest_r = Float.parseFloat(currentTask.getDestinationFenceRange());
                                 dest_warn = Float.parseFloat(currentTask.getDestinationWarningRange());
 
+                                if(currentTask.getStopOver()){
+                                    stop = new DPoint(Double.parseDouble(currentTask.getStopLat()),
+                                            Double.parseDouble(currentTask.getStopLng()));
+                                    stop_r = Float.parseFloat(currentTask.getStopFenceRange());
+                                }
+
                                 if (lang.equals("1")) {
                                     main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
                                     main_tv_ec.setText(currentTask.getAdminNameEng());
@@ -623,10 +666,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
                                 main_tv_arrive.setClickable(true);
 
-                                if (taskGsonList.size() != 1) {
-                                    main_tv_arrive.setText(R.string.task_continue);
-                                } else {
-                                    main_tv_arrive.setText(R.string.task_finish);
+                                if(isStart) {
+                                    if (taskGsonList.size() != 1) {
+                                        main_tv_arrive.setText(R.string.task_continue);
+                                    } else {
+                                        main_tv_arrive.setText(R.string.task_finish);
+                                    }
                                 }
                             } else {//任务列表为空
                                 currentTask = null;
@@ -804,11 +849,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void sendNotice(){
         HashMap<String, Object> map = new HashMap<>();
         map.put("transportTaskId", currentTask.getTransportTaskId());
-        RequestBody requestBody = RequestBody.create(MediaType.parse("Content-Type, application/json"), new JSONObject(map).toString());
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
         apiInterface.sendNotice(requestBody).enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                Log.i(TAG, "sendNotice run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                Toast.makeText(MainActivity.this, "sendNotice run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg(), Toast.LENGTH_SHORT).show();
+                Log.i(TAG, "sendNotice run: post同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
                     Log.i(TAG, "sendNotice连接成功 数据申请成功， msg="+resultGson.getMsg());
@@ -821,6 +867,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "sendNotice onFailure:"+t, Toast.LENGTH_SHORT).show();
                 Log.e(TAG, "sendNotice onFailure:"+t);
                 if(t instanceof ConnectException){
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
@@ -874,11 +921,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onClick(View view) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("hh:mm:ss", Locale.CHINA);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss", Locale.CHINA);
         lang = sp.getString("locale_language", "en");
         lang = lang.equals("en") ? "1": "2";
         switch (view.getId()){
             case R.id.main_tv_arrive:
+                isUpdate = true;
                 String btn_text = main_tv_arrive.getText().toString();
                 LocalTime localTime = LocalTime.now();
                 if(btn_text.equals(getString(R.string.task_start))){//开始任务
@@ -889,9 +937,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         isEnd = false;
                         isStopOver = false;
                         isAlter = false;
-                        isUpdate = true;
                         main_tv_st.setText(localTime.format(formatter));
-                        initGeofenceGaode();
+                        drawGeofenceGaode();
 
                         if (taskGsonList.size() != 1) {
                             main_tv_arrive.setText(R.string.task_continue);
@@ -910,9 +957,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         isEnd = false;
                         isStopOver = false;
                         isAlter = false;
-                        isUpdate = true;
                         main_tv_st.setText(localTime.format(formatter));
-                        initGeofenceGaode();
+                        drawGeofenceGaode();
 
                         if (taskGsonList.size() == 1) {
                             main_tv_arrive.setText(R.string.task_finish);
@@ -925,12 +971,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 } else {//完成
                     if(isEnd) {
-                        changeTaskState(currentTask.getTransportTaskId(), 8);
-                        currentTask.setState(8);
-
+                        Toast.makeText(this, "所有任务完成！", Toast.LENGTH_SHORT).show();
                         main_tv_at.setText(localTime.format(formatter));
 
-                        moreTaskAdapter.setList(taskGsonList);
                         currentTask = null;
                         main_tv_dest.setText("null");
                         main_tv_ts.setText("null");
@@ -944,6 +987,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         isStopOver = false;
                         isAlter = false;
 
+                        taskGsonList.remove(0);
                         main_tv_tasknum.setText("" + taskGsonList.size());
                     }else{
                         Toast.makeText(this, getString(R.string.hint_check_load), Toast.LENGTH_SHORT).show();
