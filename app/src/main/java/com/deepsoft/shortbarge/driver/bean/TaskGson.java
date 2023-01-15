@@ -48,7 +48,7 @@ public class TaskGson extends ResultGson {
         res_zh.put(4, "延迟");
         res_zh.put(5, "到达经停站");
         res_zh.put(6, "继续运输");
-        res_zh.put(7, "到达目的地(卸货)");
+        res_zh.put(7, "装卸中");
         res_zh.put(8, "完成");
         res_zh.put(9, "异常换车");
 
@@ -60,7 +60,7 @@ public class TaskGson extends ResultGson {
         res_en.put(4, "Delayed");
         res_en.put(5, "Arrive at the stop");
         res_en.put(6, "Continue shipping");
-        res_en.put(7, "Arrival at destination(unloading)");
+        res_en.put(7, "Loading");
         res_en.put(8, "Finish");
         res_en.put(9, "Abnormal car change");
 

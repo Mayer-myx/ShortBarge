@@ -171,24 +171,12 @@
                 android:id="@+id/main_tv_ec_label"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
                 android:layout_marginLeft="82dp"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="32dp"
                 android:layout_marginBottom="12dp"
                 android:fontFamily="@font/archivo_bold"
                 android:includeFontPadding="false"
                 android:text="@string/emergency_contact"
-                android:textColor="@color/deepsoft_text_gray"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/main_tv_ln_label"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@id/main_tv_ec_label"
-                android:layout_alignLeft="@id/main_tv_ec_label"
-                android:fontFamily="@font/archivo_bold"
-                android:includeFontPadding="false"
-                android:text="@string/license_number_driver"
                 android:textColor="@color/deepsoft_text_gray"
                 android:textSize="14sp" />
             <TextView
@@ -207,7 +195,7 @@
                 android:id="@+id/main_tv_ec"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerVertical="true"
+                android:layout_alignTop="@id/main_tv_ec_label"
                 android:layout_toRightOf="@id/main_tv_ec_label"
                 android:layout_marginRight="5dp"
                 android:layout_marginLeft="10dp"
@@ -216,21 +204,6 @@
                 android:includeFontPadding="false"
                 android:maxLines="1"
                 android:text="WANG XIAO ASD"
-                android:textColor="@color/deepsoft_text_black"
-                android:textSize="14sp" />
-            <TextView
-                android:id="@+id/main_tv_ln"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_above="@id/main_tv_ec"
-                android:layout_alignLeft="@id/main_tv_ec"
-                android:layout_alignTop="@id/main_tv_ln_label"
-                android:layout_toRightOf="@id/main_tv_ln_label"
-                android:ellipsize="end"
-                android:fontFamily="@font/archivo_bold"
-                android:includeFontPadding="false"
-                android:maxLines="1"
-                android:text="Z12345"
                 android:textColor="@color/deepsoft_text_black"
                 android:textSize="14sp" />
             <TextView

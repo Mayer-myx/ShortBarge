@@ -98,6 +98,13 @@ public interface ApiInterface {
     Observable<ResultGson> getDriverTask();
 
     /**
+     * 获取任务列表 一次
+     * @return
+     */
+    @GET("transport/getDriverTask")
+    Call<ResultGson> getDriverTaskOnce();
+
+    /**
      * 天气
      * @return
      */
