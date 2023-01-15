@@ -195,8 +195,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                             }
 
-                            if(end_distance <= dest_warn && !isAlter){
-                                // 即将到达
+                            if(end_distance <= dest_warn && !isAlter && currentTask.getState() > 2){
+                                // 即将到达：经过起点 && 到预警围栏内 && 之前没预警过
                                 sendNotice();
                                 isAlter = true;
                                 Toast.makeText(MainActivity.this, "即将到达"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nacc="+aMapLocation.getAccuracy(), Toast.LENGTH_SHORT).show();
@@ -330,32 +330,27 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void drawGeofenceGaode(){
-        LatLng latLng1 = new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng()));
-        LatLng latLng2 = new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng()));
+    private void drawGeofenceGaode(LatLng latLng1, LatLng latLng2){
         if(circle1 != null && circle2 != null && circle3 != null) {
-            aMap.clear();
-            setMaker();
-            Toast.makeText(this, "清空地图所有maker，可能会把定位icon也清空，此处请注意定位icon", Toast.LENGTH_SHORT).show();
+            circle1.setCenter(latLng1);
+            circle2.setCenter(latLng2);
+            circle3.setCenter(latLng2);
+        }else{
+            circle1 = aMap.addCircle(new CircleOptions().center(latLng1)
+                    .radius(Double.parseDouble(currentTask.getOriginFenceRange()))
+                    .fillColor(0x500000FF)
+                    .strokeWidth(1f));
+            circle2 = aMap.addCircle(new CircleOptions().center(latLng2)
+                    .radius(Double.parseDouble(currentTask.getDestinationFenceRange()))
+                    .fillColor(0x50FFFF00)
+                    .strokeWidth(1f)
+                    .zIndex(2));
+            circle3 = aMap.addCircle(new CircleOptions().center(latLng2)
+                    .radius(Double.parseDouble(currentTask.getDestinationWarningRange()))
+                    .fillColor(0x50F15C58)
+                    .strokeWidth(1f)
+                    .zIndex(1));
         }
-        circle1 = aMap.addCircle(new CircleOptions().center(latLng1)
-                .radius(Double.parseDouble(currentTask.getOriginFenceRange()))
-                .fillColor(0x500000FF)
-                .strokeWidth(1f)
-                .visible(true)
-                .zIndex(2));
-        circle2 = aMap.addCircle(new CircleOptions().center(latLng2)
-                .radius(Double.parseDouble(currentTask.getDestinationFenceRange()))
-                .fillColor(0x50FFFF00)
-                .strokeWidth(1f)
-                .visible(true)
-                .zIndex(3));
-        circle3 = aMap.addCircle(new CircleOptions().center(latLng2)
-                .radius(Double.parseDouble(currentTask.getDestinationWarningRange()))
-                .fillColor(0x50F15C58)
-                .strokeWidth(1f)
-                .visible(true)
-                .zIndex(2));
     }
 
 
@@ -938,7 +933,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         isStopOver = false;
                         isAlter = false;
                         main_tv_st.setText(localTime.format(formatter));
-                        drawGeofenceGaode();
+
+                        drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
+                                new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())));
 
                         if (taskGsonList.size() != 1) {
                             main_tv_arrive.setText(R.string.task_continue);
@@ -958,7 +955,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         isStopOver = false;
                         isAlter = false;
                         main_tv_st.setText(localTime.format(formatter));
-                        drawGeofenceGaode();
+
+                        drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
+                                new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())));
 
                         if (taskGsonList.size() == 1) {
                             main_tv_arrive.setText(R.string.task_finish);
