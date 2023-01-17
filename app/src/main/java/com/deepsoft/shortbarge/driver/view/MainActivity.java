@@ -986,7 +986,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         isStopOver = false;
                         isAlter = false;
 
-                        taskGsonList.remove(0);
+                        if(taskGsonList.size() != 0) {
+                            taskGsonList.remove(0);
+                        }
                         main_tv_tasknum.setText("" + taskGsonList.size());
                     }else{
                         Toast.makeText(this, getString(R.string.hint_check_load), Toast.LENGTH_SHORT).show();
