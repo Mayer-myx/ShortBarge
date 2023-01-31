@@ -31,6 +31,12 @@ public class MessageAdapter extends BaseQuickAdapter<MessageBean, BaseViewHolder
         this.context = context;
     }
 
+
+    public void setResp(String resp){
+        this.resp = resp;
+    }
+
+
     @Override
     protected void convert(@NonNull BaseViewHolder baseViewHolder, MessageBean messageBean) {
         baseViewHolder.setText(R.id.it_tv_y, messageBean.getMsg())

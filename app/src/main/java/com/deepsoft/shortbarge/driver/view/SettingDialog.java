@@ -6,6 +6,8 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.RadioButton;
+import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -34,16 +36,16 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     private ApiInterface apiInterface;
     private Context context;
     private DriverInfoGson driverInfoGson;
-    private String gps, server;
+    private String server;
 
-    private TextView dialog_set_tv_serset, dialog_set_tv_logout, dialog_set_tv_lang,
-            dialog_set_tv_dn, dialog_set_tv_pn, dialog_set_tv_ln, dialog_set_tv_cn,
-            dialog_set_tv_ln2, dialog_set_tv_gps, dialog_set_tv_server, dialog_set_tv_lang_label;
+    private TextView dialog_set_tv_cancel, dialog_set_tv_logout, dialog_set_tv_edit, dialog_set_tv_switch,
+            dialog_set_tv_dn, dialog_set_tv_account, dialog_set_tv_car, dialog_set_tv_ln,
+            dialog_set_tv_lang_label, dialog_set_tv_server, dialog_set_tv_lang;
+
 
     public SettingDialog(@NonNull Context context) {
         super(context);
         this.driverInfoGson = new DriverInfoGson();
-        this.gps = context.getString(R.string.state_connected);
         this.server = context.getString(R.string.state_connected);
         this.context = context;
     }
@@ -53,18 +55,6 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     }
 
 
-//    private SettingDialog() {}
-
-//    public static SettingDialog getInstance(){
-//        if(settingDialog == null){
-//            synchronized (SettingDialog.class){
-//                if(settingDialog == null)
-//                    settingDialog = new SettingDialog();
-//            }
-//        }
-//        return settingDialog;
-//    }
-
     public void showSettingDialog(Context context, LayoutInflater layoutInflater){
         View dialog_setting = layoutInflater.inflate(R.layout.dialog_setting, null);
         this.setContentView(dialog_setting);
@@ -72,40 +62,38 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
 
         this.context = context;
 
-        dialog_set_tv_serset = dialog_setting.findViewById(R.id.dialog_set_tv_serset);
-        dialog_set_tv_serset.setOnClickListener(this);
-        PressUtil.setPressChange(context, dialog_set_tv_serset);
+        dialog_set_tv_switch = dialog_setting.findViewById(R.id.dialog_set_tv_switch);
+        dialog_set_tv_switch.setOnClickListener(this);
+        dialog_set_tv_cancel = dialog_setting.findViewById(R.id.dialog_set_tv_switch);
+        dialog_set_tv_edit = dialog_setting.findViewById(R.id.dialog_set_tv_edit);
+        dialog_set_tv_edit.setOnClickListener(this);
+        PressUtil.setPressChange(context, dialog_set_tv_edit);
+        dialog_set_tv_cancel = dialog_setting.findViewById(R.id.dialog_set_tv_cancel);
+        dialog_set_tv_cancel.setOnClickListener(this);
+        PressUtil.setPressChange(context, dialog_set_tv_cancel);
         dialog_set_tv_logout = dialog_setting.findViewById(R.id.dialog_set_tv_logout);
         dialog_set_tv_logout.setOnClickListener(this);
         PressUtil.setPressChange(context, dialog_set_tv_logout);
-        dialog_set_tv_lang = dialog_setting.findViewById(R.id.dialog_set_tv_lang);
-        dialog_set_tv_lang.setOnClickListener(this);
 
         dialog_set_tv_dn = dialog_setting.findViewById(R.id.dialog_set_tv_dn);
-        dialog_set_tv_pn = dialog_setting.findViewById(R.id.dialog_set_tv_pn);
-        dialog_set_tv_pn.setText(driverInfoGson.getPhone());
+        dialog_set_tv_account = dialog_setting.findViewById(R.id.dialog_set_tv_account);
+        dialog_set_tv_account.setText(driverInfoGson.getNameEng());
+        dialog_set_tv_car = dialog_setting.findViewById(R.id.dialog_set_tv_car);
+        dialog_set_tv_car.setText(""+driverInfoGson.getTruckId());
         dialog_set_tv_ln = dialog_setting.findViewById(R.id.dialog_set_tv_ln);
         dialog_set_tv_ln.setText(driverInfoGson.getLicense());
-
-        String driverId = ""+driverInfoGson.getDriverId();
-        if(driverId.length() == 1) driverId = "0"+driverId;
-        dialog_set_tv_cn = dialog_setting.findViewById(R.id.dialog_set_tv_cn);
-        dialog_set_tv_cn.setText(driverId);
-        dialog_set_tv_ln2 = dialog_setting.findViewById(R.id.dialog_set_tv_ln2);
-        dialog_set_tv_ln2.setText(driverInfoGson.getLicensePlate());
-        dialog_set_tv_gps = dialog_setting.findViewById(R.id.dialog_set_tv_gps);
-        dialog_set_tv_gps.setText(gps);
         dialog_set_tv_server = dialog_setting.findViewById(R.id.dialog_set_tv_server);
         dialog_set_tv_server.setText(server);
+        dialog_set_tv_lang = dialog_setting.findViewById(R.id.dialog_set_tv_lang);
 
-        dialog_set_tv_lang_label = findViewById(R.id.dialog_set_tv_lang_label);
+        dialog_set_tv_lang_label = dialog_setting.findViewById(R.id.dialog_set_tv_lang_label);
         String lang = dialog_set_tv_lang_label.getText().toString();
         if(lang.equals("Language")){
-            dialog_set_tv_lang.setText("English");
             dialog_set_tv_dn.setText(driverInfoGson.getNameEng());
+            dialog_set_tv_lang.setText("English");
         }else{
-            dialog_set_tv_lang.setText("中文");
             dialog_set_tv_dn.setText(driverInfoGson.getName());
+            dialog_set_tv_lang.setText("中文");
         }
     }
 
@@ -130,20 +118,25 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
     @Override
     public void onClick(View view) {
         switch (view.getId()){
-            case R.id.dialog_set_tv_serset:
-                context.startActivity(new Intent(context, ServerConfigActivity.class));
+            case R.id.dialog_set_tv_cancel:
+                this.dismiss();
                 break;
             case R.id.dialog_set_tv_logout:
                 getLogout();
                 break;
-            case R.id.dialog_set_tv_lang:
-                String lang = dialog_set_tv_lang.getText().toString();
-                if(lang.equals("English")){
-                    dialog_set_tv_lang.setText("中文");
+            case R.id.dialog_set_tv_edit:
+                context.startActivity(new Intent(context, ServerConfigActivity.class));
+                break;
+            case R.id.dialog_set_tv_switch:
+                String lang = dialog_set_tv_lang_label.getText().toString();
+                if(lang.equals("Language")){
                     changeLanguage("zh", "CN");
-                }else if(lang.equals("中文")){
+                    dialog_set_tv_dn.setText(driverInfoGson.getNameEng());
                     dialog_set_tv_lang.setText("English");
+                }else{
                     changeLanguage("en", "US");
+                    dialog_set_tv_dn.setText(driverInfoGson.getName());
+                    dialog_set_tv_lang.setText("中文");
                 }
                 break;
         }
@@ -168,10 +161,6 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         BaseApplication.getContext().startActivity(intent);
         android.os.Process.killProcess(android.os.Process.myPid());
-    }
-
-    public void setGps(String gps) {
-        this.gps = gps;
     }
 
     public void setServer(String server) {

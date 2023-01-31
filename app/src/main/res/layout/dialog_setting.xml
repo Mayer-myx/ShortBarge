@@ -6,7 +6,7 @@
     android:background="#00ffffff">
     <RelativeLayout
         android:layout_width="500dp"
-        android:layout_height="360dp"
+        android:layout_height="320dp"
         android:background="@drawable/round_rectangle_white">
 
         <ImageView
@@ -26,23 +26,34 @@
             android:textColor="@color/deepsoft_text_black"
             android:textSize="14sp" />
         <TextView
-            android:id="@+id/dialog_set_tv_pn"
+            android:id="@+id/dialog_set_tv_account"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="12dp"
             android:layout_alignLeft="@id/dialog_set_tv_dn"
             android:layout_below="@id/dialog_set_tv_dn"
             android:includeFontPadding="false"
-            android:text="13879485454"
+            android:text="zhangsan"
+            android:textColor="@color/deepsoft_text_black"
+            android:textSize="14sp" />
+        <TextView
+            android:id="@+id/dialog_set_tv_car"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_alignLeft="@id/dialog_set_tv_dn"
+            android:layout_below="@id/dialog_set_tv_account"
+            android:includeFontPadding="false"
+            android:text="05"
             android:textColor="@color/deepsoft_text_black"
             android:textSize="14sp" />
         <TextView
             android:id="@+id/dialog_set_tv_ln"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="12dp"
             android:layout_alignLeft="@id/dialog_set_tv_dn"
-            android:layout_below="@id/dialog_set_tv_pn"
+            android:layout_below="@id/dialog_set_tv_car"
             android:includeFontPadding="false"
             android:text="Z1123"
             android:textColor="@color/deepsoft_text_black"
@@ -60,10 +71,19 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignTop="@id/dialog_set_tv_pn"
+            android:layout_alignTop="@id/dialog_set_tv_account"
             android:layout_alignLeft="@id/dialog_set_tv_dn_label"
             android:includeFontPadding="false"
-            android:text="@string/phone_number"
+            android:text="@string/account"
+            android:textColor="@color/deepsoft_text_gray"
+            android:textSize="14sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@id/dialog_set_tv_dn_label"
+            android:layout_alignTop="@id/dialog_set_tv_car"
+            android:includeFontPadding="false"
+            android:text="@string/car_no"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
@@ -72,14 +92,15 @@
             android:layout_alignLeft="@id/dialog_set_tv_dn_label"
             android:layout_alignTop="@id/dialog_set_tv_ln"
             android:includeFontPadding="false"
-            android:text="@string/license_number_driver"
+            android:gravity="center_vertical"
+            android:text="@string/license_number_truck"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
 
 
         <View
             android:layout_width="457dp"
-            android:layout_height="137dp"
+            android:layout_height="97dp"
             android:layout_marginTop="150dp"
             android:layout_marginLeft="23dp"
             android:background="@drawable/round_line_rect_red"/>
@@ -87,114 +108,76 @@
 
         <TextView
             android:id="@+id/dialog_set_tv_lang"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@id/dialog_set_tv_dn"
-            android:layout_below="@id/dialog_set_tv_ln"
-            android:layout_marginTop="20dp"
-            android:gravity="center"
-            android:padding="2dp"
-            android:background="@drawable/line_round_white_bg"
-            android:includeFontPadding="false"
-            android:text="English"
-            android:textColor="@color/deepsoft_config_color_black"
-            android:textSize="14sp" />
-        <TextView
-            android:id="@+id/dialog_set_tv_lang_label"
-            android:layout_width="100dp"
-            android:layout_height="wrap_content"
-            android:padding="2dp"
-            android:gravity="center"
-            android:layout_alignLeft="@id/dialog_set_tv_dn_label"
-            android:layout_alignTop="@id/dialog_set_tv_lang"
-            android:background="@drawable/line_round_white_bg"
-            android:includeFontPadding="false"
-            android:text="@string/language"
-            android:textColor="@color/deepsoft_config_color_black"
-            android:textSize="14sp" />
-
-
-        <TextView
-            android:id="@+id/dialog_set_tv_cn"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="25dp"
             android:layout_marginLeft="217dp"
             android:layout_marginTop="168dp"
             android:includeFontPadding="false"
-            android:text="1123"
-            android:textColor="@color/deepsoft_text_black"
-            android:textSize="14sp" />
-        <TextView
-            android:id="@+id/dialog_set_tv_ln2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_alignLeft="@id/dialog_set_tv_cn"
-            android:layout_below="@id/dialog_set_tv_cn"
-            android:includeFontPadding="false"
-            android:text="浙A123456"
-            android:textColor="@color/deepsoft_text_black"
-            android:textSize="14sp" />
-        <TextView
-            android:id="@+id/dialog_set_tv_gps"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:layout_alignLeft="@id/dialog_set_tv_cn"
-            android:layout_below="@id/dialog_set_tv_ln2"
-            android:includeFontPadding="false"
-            android:text="Connected/Lost/Reconnecting"
+            android:gravity="center"
+            android:text="中文"
             android:textColor="@color/deepsoft_text_black"
             android:textSize="14sp" />
         <TextView
             android:id="@+id/dialog_set_tv_server"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="25dp"
             android:layout_marginTop="12dp"
-            android:layout_alignLeft="@id/dialog_set_tv_cn"
-            android:layout_below="@id/dialog_set_tv_gps"
+            android:layout_alignLeft="@id/dialog_set_tv_lang"
+            android:layout_below="@id/dialog_set_tv_lang"
             android:includeFontPadding="false"
-            android:text="Connected/Lost/Reconnecting"
+            android:gravity="center"
+            android:text="Connected"
             android:textColor="@color/deepsoft_text_black"
             android:textSize="14sp" />
 
         <TextView
-            android:id="@+id/dialog_set_tv_cn_label"
+            android:id="@+id/dialog_set_tv_lang_label"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignTop="@id/dialog_set_tv_cn"
+            android:layout_height="25dp"
+            android:layout_alignTop="@id/dialog_set_tv_lang"
             android:layout_marginLeft="48dp"
             android:includeFontPadding="false"
-            android:text="@string/car_name"
+            android:gravity="center"
+            android:text="@string/language"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
         <TextView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@id/dialog_set_tv_cn_label"
-            android:layout_alignTop="@id/dialog_set_tv_ln2"
-            android:includeFontPadding="false"
-            android:text="@string/license_number_truck"
-            android:textColor="@color/deepsoft_text_gray"
-            android:textSize="14sp" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@id/dialog_set_tv_cn_label"
-            android:layout_alignTop="@id/dialog_set_tv_gps"
-            android:includeFontPadding="false"
-            android:text="@string/gps_link_status"
-            android:textColor="@color/deepsoft_text_gray"
-            android:textSize="14sp" />
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignLeft="@id/dialog_set_tv_cn_label"
+            android:layout_height="25dp"
+            android:layout_alignLeft="@id/dialog_set_tv_lang_label"
             android:layout_alignTop="@id/dialog_set_tv_server"
             android:includeFontPadding="false"
+            android:gravity="center"
             android:text="@string/server_link_status"
             android:textColor="@color/deepsoft_text_gray"
             android:textSize="14sp" />
+
+        <TextView
+            android:id="@+id/dialog_set_tv_switch"
+            android:layout_width="75dp"
+            android:layout_height="25dp"
+            android:layout_marginLeft="360dp"
+            android:layout_alignTop="@id/dialog_set_tv_lang"
+            android:background="@drawable/round_rectangle_red"
+            android:gravity="center"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="@string/lang_switch"
+            android:textColor="@color/deepsoft_config_color_white"
+            android:textSize="15sp" />
+        <TextView
+            android:id="@+id/dialog_set_tv_edit"
+            android:layout_width="75dp"
+            android:layout_height="25dp"
+            android:layout_alignLeft="@id/dialog_set_tv_switch"
+            android:layout_alignTop="@id/dialog_set_tv_server"
+            android:background="@drawable/round_rectangle_red"
+            android:gravity="center"
+            android:paddingLeft="15dp"
+            android:paddingRight="15dp"
+            android:text="@string/edit"
+            android:textColor="@color/deepsoft_config_color_white"
+            android:textSize="15sp" />
 
 
         <TextView
@@ -212,8 +195,8 @@
             android:background="@drawable/round_rectangle_red"/>
 
         <TextView
-            android:id="@+id/dialog_set_tv_serset"
-            android:layout_width="wrap_content"
+            android:id="@+id/dialog_set_tv_cancel"
+            android:layout_width="90dp"
             android:layout_height="30dp"
             android:layout_alignParentBottom="true"
             android:layout_marginRight="10dp"
@@ -223,7 +206,7 @@
             android:gravity="center"
             android:paddingLeft="15dp"
             android:paddingRight="15dp"
-            android:text="@string/server_configuration"
+            android:text="@string/cancel"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="15sp" />
 

@@ -29,6 +29,10 @@
         <item name="imageButtonStyle">@style/ImageButton</item>
     </style>
 
+    <style name="MyRadioButton" parent="Theme.AppCompat.Light">
+        <item name="colorControlNormal">@color/deepsoft_text_gray</item>
+        <item name="colorControlActivated">@color/deepsoft_main_red</item>
+    </style>
 
     <!--窗体背景，这个背景能在第一时间显示, 避免启动时白屏，黑屏问题-->
     <style name="Theme.ShortBarge.Launch">

@@ -28,6 +28,9 @@ public class RetrofitUtil {
 
     //返回Retrofit
     public Retrofit getRetrofit() {
+        if(baseUrl == null){
+            baseUrl = "http://221.12.170.99:8081/";
+        }
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)
                 .client(OkHttpUtil.getOkHttpClient())

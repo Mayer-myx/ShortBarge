@@ -269,7 +269,6 @@
             android:layout_marginLeft="20dp"
             android:layout_marginTop="42dp"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
             android:text="@string/start_time"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -279,9 +278,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/main_tv_st_label"
             android:layout_alignLeft="@id/main_tv_st_label"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
             android:text="@string/arrival_time"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -291,9 +289,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/main_tv_at_label"
             android:layout_alignLeft="@id/main_tv_at_label"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
             android:text="@string/destination"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -303,9 +300,8 @@
             android:layout_height="wrap_content"
             android:layout_below="@id/main_tv_d_label"
             android:layout_alignLeft="@id/main_tv_d_label"
-            android:layout_marginTop="10dp"
+            android:layout_marginTop="8dp"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
             android:text="@string/task_status"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -315,11 +311,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignTop="@id/main_tv_ts_label"
+            android:layout_alignBottom="@id/main_tv_ts_label"
+            android:gravity="center_vertical"
             android:layout_toRightOf="@id/main_tv_ts_label"
             android:layout_marginLeft="15dp"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
-            android:text="delay"
+            android:text="delay 5minutes"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
         <TextView
@@ -328,9 +325,10 @@
             android:layout_height="wrap_content"
             android:layout_alignLeft="@id/main_tv_ts"
             android:layout_alignTop="@id/main_tv_d_label"
+            android:layout_alignBottom="@id/main_tv_d_label"
+            android:gravity="center_vertical"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
-            android:text="5 minutes"
+            android:text="车间1 5 minutes"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
         <TextView
@@ -339,8 +337,9 @@
             android:layout_height="wrap_content"
             android:layout_alignLeft="@id/main_tv_ts"
             android:layout_alignTop="@id/main_tv_at_label"
+            android:layout_alignBottom="@id/main_tv_at_label"
+            android:gravity="center_vertical"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
             android:text="8:00 p.m, October 1"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />
@@ -350,8 +349,9 @@
             android:layout_height="wrap_content"
             android:layout_alignLeft="@id/main_tv_ts"
             android:layout_alignTop="@id/main_tv_st_label"
+            android:layout_alignBottom="@id/main_tv_st_label"
+            android:gravity="center_vertical"
             android:fontFamily="@font/archivo_bold"
-            android:includeFontPadding="false"
             android:text="delay"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="14sp" />

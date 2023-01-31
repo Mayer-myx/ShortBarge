@@ -179,10 +179,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onLocationChanged(AMapLocation aMapLocation) {
                 if (aMapLocation != null) {
+                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
+                        waitConnectDialog.dismiss();
                     if (aMapLocation.getErrorCode() == 0) {
-                        if(waitConnectDialog != null && waitConnectDialog.getIsShow())
-                            waitConnectDialog.dismiss();
-                        settingDialog.setGps(getString(R.string.state_connected));
 
                         if(isStart && !isEnd && currentTask != null) {
                             float start_distance = CoordinateConverter.calculateLineDistance(ori,
@@ -226,7 +225,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     if(currentTask.getState() != 2) {
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
                                         currentTask.setState(2);
-//                                    Toast.makeText(MainActivity.this, "起点速度<=3 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
                                     }
                                 }else if(end_distance <= dest_r) {//终点
                                     if(currentTask.getState() != 5) {//不在经停站
@@ -252,57 +250,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     currentTask.setState(3);
                                 }
                             }
-
-//                            if (start_distance <= ori_r) {
-//                                // 在起点 不动 装卸货
-//                                if(currentTask.getState() != 2 && aMapLocation.getSpeed() <= 3) {
-//                                    changeTaskState(currentTask.getTransportTaskId(), 2);
-//                                    currentTask.setState(2);
-////                                    Toast.makeText(MainActivity.this, "起点速度<=3 装卸货"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
-//                                }else if(currentTask.getState() != 3 && aMapLocation.getSpeed() > 3){
-//                                    changeTaskState(currentTask.getTransportTaskId(), 3);
-//                                    currentTask.setState(3);
-////                                    Toast.makeText(MainActivity.this, "起点速度>3 运输中"+"\nstart_distance="+start_distance+"\nend_distance"+end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
-//                                }
-//                            } else if (end_distance <= dest_r) {
-//                                // 到达终点 不动 装卸货
-//                                if(currentTask.getState() != 5 && aMapLocation.getSpeed() <= 3) {
-//                                    isEnd = true;
-//                                    isUpdate = false;
-//                                    changeTaskState(currentTask.getTransportTaskId(), 8);
-//                                    currentTask.setState(8);
-//                                    LocalTime localTime = LocalTime.now();
-//                                    main_tv_at.setText(localTime.format(formatter));
-//                                    Toast.makeText(MainActivity.this, "终点速度<=3 完成任务!", Toast.LENGTH_SHORT).show();
-//                                }else if(currentTask.getState() != 5){
-//                                    if (currentTask.getState() != 3 && currentTask.getState() != 6) {
-//                                        changeTaskState(currentTask.getTransportTaskId(), 3);
-//                                        currentTask.setState(3);
-//                                        Toast.makeText(MainActivity.this, "终点速度>3 运输中" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance + "\nspeed=" + aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
-//                                    }
-//                                }
-//                            } else {
-//                                // 不在起点 终点围栏 运输中
-//                                if(currentTask.getState() != 3 && currentTask.getState() != 5 && currentTask.getState() != 6) {
-//                                    changeTaskState(currentTask.getTransportTaskId(), 3);
-//                                    currentTask.setState(3);
-////                                    Toast.makeText(MainActivity.this, "不在起点终点 运输中" + "\nstart_distance=" + start_distance + "\nend_distance" + end_distance+"\nspeed="+aMapLocation.getSpeed(), Toast.LENGTH_SHORT).show();
-//                                }
-//                            }
                         }
 
                         location = aMapLocation;
                     }else {
-                        Toast.makeText(MainActivity.this, "location Error, ErrCode:" + aMapLocation.getErrorCode()
-                                + ", errInfo:" + aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(MainActivity.this, "location Error, ErrCode:" + aMapLocation.getErrorCode()
+                        //        + ", errInfo:" + aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
                         //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
                         Log.e("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
                                 + ", errInfo:" + aMapLocation.getErrorInfo());
-
-                        if(waitConnectDialog != null && waitConnectDialog.getIsShow())
-                            waitConnectDialog.dismiss();
-                        connectFailDialog.showConnectFailDialog();
-                        settingDialog.setGps(getString(R.string.state_lost));
                     }
                 }
             }
@@ -330,51 +286,41 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void drawGeofenceGaode(LatLng latLng1, LatLng latLng2){
-        if(circle1 != null && circle2 != null && circle3 != null) {
-            circle1.setCenter(latLng1);
-            circle2.setCenter(latLng2);
-            circle3.setCenter(latLng2);
-        }else{
+    private void drawGeofenceGaode(LatLng latLng1, LatLng latLng2, double r1, double r2, double r3){
+        if(circle1 == null && circle2 == null && circle3 == null) {
+            Log.e(TAG, "null");
             circle1 = aMap.addCircle(new CircleOptions().center(latLng1)
-                    .radius(Double.parseDouble(currentTask.getOriginFenceRange()))
+                    .radius(r1)
                     .fillColor(0x500000FF)
                     .strokeWidth(1f));
             circle2 = aMap.addCircle(new CircleOptions().center(latLng2)
-                    .radius(Double.parseDouble(currentTask.getDestinationFenceRange()))
+                    .radius(r2)
                     .fillColor(0x50FFFF00)
                     .strokeWidth(1f)
                     .zIndex(2));
             circle3 = aMap.addCircle(new CircleOptions().center(latLng2)
-                    .radius(Double.parseDouble(currentTask.getDestinationWarningRange()))
+                    .radius(r3)
                     .fillColor(0x50F15C58)
                     .strokeWidth(1f)
                     .zIndex(1));
+        }else{
+            circle1.setCenter(latLng1);
+            circle1.setRadius(r1);
+            circle2.setCenter(latLng2);
+            circle2.setRadius(r2);
+            circle3.setCenter(latLng2);
+            circle3.setRadius(r3);
+            Log.e(TAG, "circle1="+circle1.getCenter()+" "+circle1.getRadius());
+            Log.e(TAG, "circle2="+circle2.getCenter()+" "+circle2.getRadius());
+            Log.e(TAG, "circle3="+circle3.getCenter()+" "+circle3.getRadius());
         }
     }
 
 
     private void regestBroadcast(){
-//        localBroadcastManager = LocalBroadcastManager.getInstance(this);
-
         startGeofenceEventReceiver = new StartGeofenceEventReceiver();
-
-//        IntentFilter intentFilter1 = new IntentFilter();
-//        intentFilter1.addAction(ACTION_TRIGGER_GEOFENCE_START);
-//        localBroadcastManager.registerReceiver(startGeofenceEventReceiver, intentFilter1);
-
         endGeofenceEventReceiver = new EndGeofenceEventReceiver();
-//        IntentFilter intentFilter2 = new IntentFilter();
-//        intentFilter2.addAction(ACTION_TRIGGER_GEOFENCE_END);
-//        localBroadcastManager.registerReceiver(endGeofenceEventReceiver, intentFilter2);
-
         arrivalGeofenceEventReceiver = new ArrivalGeofenceEventReceiver();
-//        IntentFilter intentFilter3 = new IntentFilter();
-//        intentFilter3.addAction(ACTION_TRIGGER_GEOFENCE_ARRIVAL);
-//        localBroadcastManager.registerReceiver(arrivalGeofenceEventReceiver, intentFilter3);
-
-//        geofenceManager = new TencentGeofenceManager(this);
-//        builder = new TencentGeofence.Builder();
 
         List<ResolveInfo> resolveInfos = getPackageManager().queryBroadcastReceivers(new Intent().setAction(ACTION_TRIGGER_GEOFENCE_START), 0);
         if(resolveInfos != null && !resolveInfos.isEmpty()){
@@ -405,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);
         aMap.setMyLocationStyle(myLocationStyle);
         aMap.setMyLocationEnabled(true);
-        aMap.moveCamera(CameraUpdateFactory.zoomTo(13));
+        aMap.moveCamera(CameraUpdateFactory.zoomTo(15));
     }
 
 
@@ -501,7 +447,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                     connectFailDialog.showConnectFailDialog();
-                    settingDialog.setGps(getString(R.string.state_lost));
                 }
             }
         });
@@ -546,7 +491,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     /**
-     * 5s 轮询任务列表
+     * 15s 轮询任务列表
      */
     private void getDriverTask(){
         observable = apiInterface.getDriverTask();
@@ -580,8 +525,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
                     @Override
                     public ObservableSource<?> apply(@NonNull Object throwable) throws Exception {
-                        // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 5s），以实现轮询间间隔设置
-                        return Observable.just(1).delay(5 , TimeUnit.SECONDS);
+                        // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 15s），以实现轮询间间隔设置
+                        return Observable.just(1).delay(15 , TimeUnit.SECONDS);
                     }
                 });
             }
@@ -600,6 +545,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (resultGson.getSuccess()) {
                         taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
                         List<TaskGson> tmp = new ArrayList<>();
+                        Log.e(TAG, ""+resultGson.getData());
 
                         if(!isStart && main_tv_arrive.getText().equals(getString(R.string.task_finish))){
                             if (taskGsonList != null && taskGsonList.size() != 0) {
@@ -635,7 +581,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     Log.e(TAG, "测试获取经纬度为null，默认2A-1/2出发前往VACON");
                                     Toast.makeText(MainActivity.this, "测试获取经纬度为null，默认2A-1/2出发前往VACON", Toast.LENGTH_SHORT).show();
                                 }
-
                                 ori = new DPoint(Double.parseDouble(currentTask.getOriginLat()),
                                         Double.parseDouble(currentTask.getOriginLng()));
                                 ori_r = Float.parseFloat(currentTask.getOriginFenceRange());
@@ -731,8 +676,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 || (!currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId()))){
 
                             currentTask = taskGsonList.get(0);
-                            if(currentTask.getOriginLat().equals("") || currentTask.getOriginLat() == null
-                                    || currentTask.getDestinationLat().equals("") || currentTask.getDestinationLat() == null){
+                            if (currentTask.getOriginLat().equals("") || currentTask.getOriginLat() == null
+                                    || currentTask.getDestinationLat().equals("") || currentTask.getDestinationLat() == null) {
                                 currentTask.setOriginLat("30.5569");
                                 currentTask.setOriginLng("120.929712");
                                 currentTask.setOriginFenceRange("500");//2A-1/2
@@ -743,7 +688,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 Log.e(TAG, "测试获取经纬度为null，默认2A-1/2出发前往VACON");
                                 Toast.makeText(MainActivity.this, "测试获取经纬度为null，默认2A-1/2出发前往VACON", Toast.LENGTH_SHORT).show();
                             }
-
                             ori = new DPoint(Double.parseDouble(currentTask.getOriginLat()),
                                     Double.parseDouble(currentTask.getOriginLng()));
                             ori_r = Float.parseFloat(currentTask.getOriginFenceRange());
@@ -767,12 +711,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
                         main_tv_arrive.setClickable(true);
 
-                        if(taskGsonList.size() != 1){
-                            main_tv_arrive.setText(R.string.task_continue);
-                        } else {
-                            main_tv_arrive.setText(R.string.task_finish);
+                        if(isStart) {
+                            if (taskGsonList.size() != 1) {
+                                main_tv_arrive.setText(R.string.task_continue);
+                            } else {
+                                main_tv_arrive.setText(R.string.task_finish);
+                            }
                         }
-
                     }else{//任务列表为空
                         currentTask = null;
                         main_tv_dest.setText("null");
@@ -935,7 +880,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         main_tv_st.setText(localTime.format(formatter));
 
                         drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
-                                new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())));
+                                new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())),
+                                Double.parseDouble(currentTask.getOriginFenceRange()),
+                                Double.parseDouble(currentTask.getDestinationFenceRange()),
+                                Double.parseDouble(currentTask.getDestinationWarningRange()));
 
                         if (taskGsonList.size() != 1) {
                             main_tv_arrive.setText(R.string.task_continue);
@@ -957,7 +905,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         main_tv_st.setText(localTime.format(formatter));
 
                         drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
-                                new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())));
+                                new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())),
+                                Double.parseDouble(currentTask.getOriginFenceRange()),
+                                Double.parseDouble(currentTask.getDestinationFenceRange()),
+                                Double.parseDouble(currentTask.getDestinationWarningRange()));
 
                         if (taskGsonList.size() == 1) {
                             main_tv_arrive.setText(R.string.task_finish);
@@ -999,10 +950,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.main_tv_vm:
-                if(main_v_isvm.getVisibility() == View.VISIBLE) {
-                    messageDialog.showMessageDialog(this, getLayoutInflater());
-                    main_v_isvm.setVisibility(View.INVISIBLE);
-                }
+                messageDialog.showMessageDialog(this, getLayoutInflater());
+                main_v_isvm.setVisibility(View.INVISIBLE);
                 break;
             case R.id.main_iv_setting:
                 settingDialog.showSettingDialog(this, getLayoutInflater());
@@ -1059,6 +1008,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             TextView dialog_fail_tv_retry = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_retry);
             dialog_fail_tv_retry.setOnClickListener(v->{
                 this.dismiss();
+                isUpdate = true;
+                getDriverTaskOnce();
                 getDriverInfo();
                 getDriverTask();
                 getWeatherInfo();
