@@ -48,7 +48,7 @@ public class TaskGson extends ResultGson {
         res_zh.put(4, "延迟");//不用
         res_zh.put(5, "装卸中");//实际在经停站停下了
         res_zh.put(6, "运输中");//从经停站走了
-        res_zh.put(7, "装卸中");//终点卸货
+        res_zh.put(7, "运输中");//终点卸货
         res_zh.put(8, "运输中");//终点任务完成
         res_zh.put(9, "异常换车");
 

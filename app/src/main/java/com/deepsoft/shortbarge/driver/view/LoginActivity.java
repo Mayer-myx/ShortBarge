@@ -175,11 +175,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
                 } else {
                     if(!resultGson.getSuccess()){
-                        if(lang.equals("1")){
-                            Toast.makeText(LoginActivity.this, resultGson.getMsg() + "Please check the network", Toast.LENGTH_SHORT).show();
-                        }else{
-                            Toast.makeText(LoginActivity.this, resultGson.getMsg() + "请检查网络", Toast.LENGTH_SHORT).show();
-                        }
+                        Toast.makeText(LoginActivity.this, resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                     }else if (login_chances == 0) {
                         if(lang.equals("1")){
                             Toast.makeText(LoginActivity.this, "Locked, contact your administrator.", Toast.LENGTH_SHORT).show();

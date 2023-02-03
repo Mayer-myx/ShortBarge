@@ -108,4 +108,7 @@ dependencies {
     // eventbus
     implementation "org.greenrobot:eventbus:3.2.0"
     annotationProcessor "org.greenrobot:eventbus-annotation-processor:3.2.0"
+
+    // utils
+    implementation 'com.blankj:utilcodex:1.31.1'
 }

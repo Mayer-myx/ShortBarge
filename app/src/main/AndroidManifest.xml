@@ -5,6 +5,7 @@
 
     <uses-permission android:name="android.intent.action.BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.MANAGE_WRITE_SETTINGS" />
+    <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
@@ -75,27 +76,6 @@
         <!--<receiver android:name=".service.BootReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>-->
-        <receiver android:name=".broadcast.StartGeofenceEventReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.deepsoft.shortbarge.driver.broadcast.StartGeofenceEventReceiver"/>
-            </intent-filter>
-        </receiver>
-        <!--<receiver android:name=".broadcast.EndGeofenceEventReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.deepsoft.shortbarge.driver.broadcast.EndGeofenceEventReceiver"/>
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".broadcast.ArrivalGeofenceEventReceiver"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="com.deepsoft.shortbarge.driver.broadcast.ArrivalGeofenceEventReceiver"/>
             </intent-filter>
         </receiver>-->
 

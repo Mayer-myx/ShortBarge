@@ -4,23 +4,15 @@ import android.app.Application;
 import android.content.Context;
 
 import com.deepsoft.shortbarge.driver.constant.ConstantGlobal;
+import com.deepsoft.shortbarge.driver.utils.CrashHandler;
 import com.deepsoft.shortbarge.driver.utils.MultiLanguageUtil;
 import com.deepsoft.shortbarge.driver.utils.SpUtil;
 import com.deepsoft.shortbarge.driver.callback.ForegroundCallbacks;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -63,6 +55,8 @@ public class BaseApplication extends Application {
         //在Application创建时,读取Application
         application = this;
         context = getApplicationContext();
+        
+        CrashHandler.getInstance(getApplicationContext()).setCrashLogDir(getCrashLogDir());
 
         initAppStatusListener();
         //注册Activity生命周期监听回调，此部分一定加上，因为有些版本不加的话多语言切换不回来
@@ -70,7 +64,12 @@ public class BaseApplication extends Application {
         changeLanguage();
     }
 
-
+    protected String getCrashLogDir() {
+        String sb = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/log";
+        return sb;
+    }
+    
+    
     private void changeLanguage() {
         String spLanguage = SpUtil.getString(getApplicationContext(), ConstantGlobal.LOCALE_LANGUAGE);
         String spCountry = SpUtil.getString(getApplicationContext(), ConstantGlobal.LOCALE_COUNTRY);

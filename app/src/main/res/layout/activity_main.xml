@@ -73,20 +73,23 @@
             android:id="@+id/main_iv_wea"
             android:layout_width="18dp"
             android:layout_height="18dp"
-            android:layout_marginLeft="417.5dp"
+            android:layout_marginLeft="20dp"
             android:layout_marginTop="25dp"
+            android:layout_toRightOf="@id/main_tv_wea"
             android:adjustViewBounds="true"
             android:scaleType="fitXY"
             android:src="@mipmap/weather" />
 
         <!-- 日期 -->
-        <TextView
+        <TextClock
             android:id="@+id/main_tv_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="454.5dp"
+            android:layout_toRightOf="@id/main_iv_wea"
+            android:layout_marginLeft="20dp"
             android:layout_marginTop="25dp"
-            android:text="October 29,200"
+            android:format12Hour="MM/dd/yyyy HH:mm:ss"
+            android:format24Hour="MM/dd/yyyy HH:mm:ss"
             android:textColor="@color/deepsoft_config_color_white"
             android:textSize="15sp" />
 
