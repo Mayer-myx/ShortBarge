@@ -199,46 +199,42 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     if(!isStopOver && currentTask.getState() != 5) {
                                         changeTaskState(currentTask.getTransportTaskId(), 5);
                                         isStopOver = true;
-                                        Toast.makeText(MainActivity.this, "经停站速度<=3 装卸货", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "经停站装卸货", Toast.LENGTH_SHORT).show();
                                     }
                                 }else{
                                     if(isStopOver && currentTask.getState() != 6){
                                         changeTaskState(currentTask.getTransportTaskId(), 6);
                                         isStopOver = false;
-                                        Toast.makeText(MainActivity.this, "经停站速度>3 继续运输中", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "经停站继续运输", Toast.LENGTH_SHORT).show();
                                     }
                                 }
                             }
 
                             if(aMapLocation.getSpeed() <= 3){
                                 if (start_distance <= ori_r) {//起点
-                                    if(currentTask.getState() != 2) {
+                                    if(currentTask.getState() == 1) {
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
-                                        Toast.makeText(MainActivity.this, "起点速度<=3 起点装卸货ing", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
                                     }
                                 }else if(end_distance <= dest_r) {//终点
                                     if(currentTask.getState() != 5) {//不在经停站
                                         changeTaskState(currentTask.getTransportTaskId(), 7);
-                                        LocalTime localTime = LocalTime.now();
-                                        main_tv_at.setText(localTime.format(formatter));
+                                        main_tv_at.setText(LocalTime.now().format(formatter));
 
                                         isEnd = true;
                                         isUpdate = false;
                                         currentTask = null;
                                         getDriverTaskSingle();
 
-//                                        main_tv_ts.setText(R.string.task_finish);
-                                        Toast.makeText(MainActivity.this, "终点速度<=3 完成任务!", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, currentTask.getTransportTaskId()+"完成任务", Toast.LENGTH_SHORT).show();
                                     }
                                 }else{//运输 红绿灯
-                                    if(currentTask.getState() == 2) {
+                                    if(currentTask.getState() == 2)
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
-                                    }
                                 }
                             }else{//运输 动了
-                                if(currentTask.getState() == 2) {
+                                if(currentTask.getState() == 2)
                                     changeTaskState(currentTask.getTransportTaskId(), 3);
-                                }
                             }
                         }
 
@@ -280,6 +276,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         if(circle1 != null) circle1.remove();
         if(circle2 != null) circle2.remove();
         if(circle3 != null) circle3.remove();
+        circle1 = null;
+        circle2 = null;
+        circle3 = null;
     }
 
 
@@ -633,26 +632,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void getDriverTaskSingle(){
-        apiInterface.getDriverTaskOnce().enqueue(new Callback<ResultGson>() {
-            @Override
-            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                ResultGson resultGson = response.body();
-                if (resultGson.getSuccess()) {
-                    taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
-                    if (taskGsonList != null && taskGsonList.size() != 0) //任务列表不为空
-                        currentTask = taskGsonList.get(0);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResultGson> call, Throwable t) {
-
-            }
-        });
-    }
-
-
     private void getDriverTaskOnce(String startTime){
         lang = sp.getString("locale_language", "en");
         lang = lang.equals("en") ? "1": "2";
@@ -737,6 +716,58 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    private void getDriverTaskSingle(){
+        apiInterface.getDriverTaskOnce().enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                    if (taskGsonList != null && taskGsonList.size() != 0) //任务列表不为空
+                        currentTask = taskGsonList.get(0);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+
+            }
+        });
+    }
+
+
+    private void getDriverTaskUpdate(){
+        apiInterface.getDriverTaskOnce().enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                    lang = sp.getString("locale_language", "en");
+                    lang = lang.equals("en") ? "1": "2";
+                    if (taskGsonList != null && taskGsonList.size() != 0) { //任务列表不为空
+                        currentTask = taskGsonList.get(0);
+                        if (lang.equals("1")) {
+                            main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
+                            main_tv_ec.setText(currentTask.getAdminNameEng());
+                        } else {
+                            main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
+                            main_tv_ec.setText(currentTask.getAdminName());
+                        }
+                        main_tv_pn.setText(currentTask.getAdminPhone());
+                        main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+
+            }
+        });
+    }
+
+
     private void changeTaskState(String transportTaskId, Integer state){
         apiInterface.changeTaskState(transportTaskId, state).enqueue(new Callback<ResultGson>() {
             @Override
@@ -748,21 +779,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (resultGson.getSuccess()) {
                     if(state != 8 && currentTask != null) {
                         currentTask.setState(state);
-                        getDriverTaskSingle();
-                        if (lang.equals("1")) {
-                            main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
-                            main_tv_ec.setText(currentTask.getAdminNameEng());
-                        } else {
-                            main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
-                            main_tv_ec.setText(currentTask.getAdminName());
-                        }
-                        main_tv_pn.setText(currentTask.getAdminPhone());
-                        main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
+                        getDriverTaskUpdate();
                     }
                     if(state == 7) changeTaskState(transportTaskId, 8);
-
-                    if(state == 8)
-                        Toast.makeText(MainActivity.this, transportTaskId+"任务完成 提交成功", Toast.LENGTH_SHORT).show();
                 }else{
                     if(state == 8)
                         Toast.makeText(MainActivity.this, transportTaskId+"任务完成 提交失败"+resultGson.getMsg(), Toast.LENGTH_SHORT).show();
@@ -902,7 +921,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(isEnd) {
                         Toast.makeText(this, "当前所有任务完成！", Toast.LENGTH_SHORT).show();
                         main_tv_at.setText(localTime.format(formatter));
-//                        clearCircle();
+                        clearCircle();
 
                         main_tv_dest.setText("null");
                         main_tv_ts.setText("null");
