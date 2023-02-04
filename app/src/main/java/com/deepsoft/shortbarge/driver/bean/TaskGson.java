@@ -48,8 +48,8 @@ public class TaskGson extends ResultGson {
         res_zh.put(4, "延迟");//不用
         res_zh.put(5, "装卸中");//实际在经停站停下了
         res_zh.put(6, "运输中");//从经停站走了
-        res_zh.put(7, "已完成");//终点卸货
-        res_zh.put(8, "已完成");//终点任务完成
+        res_zh.put(7, "运输中");//终点卸货
+        res_zh.put(8, "运输中");//终点任务完成
         res_zh.put(9, "异常换车");//不用
 
         Map<Integer, String> res_en = new HashMap<>();
@@ -60,8 +60,8 @@ public class TaskGson extends ResultGson {
         res_en.put(4, "Delayed");
         res_en.put(5, "Loading");
         res_en.put(6, "In Transit");
-        res_en.put(7, "Finish");
-        res_en.put(8, "Finish");
+        res_en.put(7, "In Transit");
+        res_en.put(8, "In Transit");
         res_en.put(9, "Abnormal car change");
 
         String res;

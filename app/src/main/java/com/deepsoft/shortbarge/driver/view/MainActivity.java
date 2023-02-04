@@ -9,7 +9,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ResolveInfo;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
@@ -20,7 +19,6 @@ import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.amap.api.fence.GeoFenceClient;
 import com.amap.api.location.AMapLocation;
 import com.amap.api.location.AMapLocationClient;
 import com.amap.api.location.AMapLocationClientOption;
@@ -104,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
-    private String truckId, driverId, lang;
+    private String truckNo, driverId, lang;
     private int currentRetryCount = 0, waitRetryTime = 0, maxConnectCount = 10;// 当前已重试次数// 重试等待时间 //最大重试次数
     private static boolean isStart = false, isStopOver = false, isEnd = false, isAlter = false, isUpdate = true;//是否到达起始点
 
@@ -114,7 +112,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private MapView main_mv_map;
     private TextView main_tv_arrive, main_tv_vm, main_tv_ts, main_tv_dest, main_tv_at, main_tv_st,
             main_tv_ec, main_tv_pn, main_tv_truck, main_tv_driver, main_tv_tasknum, main_tv_wea;
-    private TextClock main_tv_date;
     private ImageView main_iv_wea, main_iv_setting;
     private RecyclerView main_rv_tasks;
     private View main_v_isvm;
@@ -353,7 +350,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         // 顶部信息
         main_tv_driver = findViewById(R.id.main_tv_driver);
-        main_tv_date = findViewById(R.id.main_tv_date);
         main_tv_wea = findViewById(R.id.main_tv_wea);
         main_iv_wea = findViewById(R.id.main_iv_wea);
         main_iv_setting = findViewById(R.id.main_iv_setting);
@@ -392,12 +388,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }else {
                         main_tv_driver.setText(driverInfoGson.getName());
                     }
-                    truckId = ""+driverInfoGson.getTruckId();
-                    if(truckId.length() == 1) truckId = "0"+truckId;
+                    truckNo = ""+driverInfoGson.getTruckNo();
+                    if(truckNo.length() == 1) truckNo = "0"+ truckNo;
                     driverId = ""+driverInfoGson.getDriverId();
                     if(driverId.length() == 1) driverId = "0"+driverId;
-                    main_tv_truck.setText(truckId);
-                    messageDialog = new MessageDialog(MainActivity.this, truckId, driverId);
+                    main_tv_truck.setText(truckNo);
+                    messageDialog = new MessageDialog(MainActivity.this, truckNo, driverId);
 
                     if(settingDialog != null) {
                         settingDialog.setDriverInfoGson(currentDriverInfo);
@@ -643,7 +639,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (resultGson.getSuccess()) {
                     taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
 
-                    if(taskGsonList != null && taskGsonList.size() != 0) {//任务列表不为空
+                    if(taskGsonList != null && taskGsonList.size() != 0) {
                         whiteTaskList = new ArrayList<>(taskGsonList);
                         whiteTaskList.remove(0);
 
@@ -693,11 +689,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     main_tv_tasknum.setText("" + taskGsonList.size());
                     moreTaskAdapter.setList(whiteTaskList);
 
-                    if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
                 }else{
                     Log.i(TAG, "getDriverTaskOnce连接成功 数据申请失败， msg="+resultGson.getMsg());
-                    if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
                 }
+                if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
 
                 if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();

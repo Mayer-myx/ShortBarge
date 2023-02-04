@@ -155,7 +155,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 Log.i(TAG, "getDriverInfo run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
                 Gson gson = new Gson();
-                if (resultGson.getSuccess() && login_chances >= 0) {
+                if (resultGson.getCode().equals("1000") && login_chances >= 0) {
                     LoginInfoGson loginInfoGson = gson.fromJson(resultGson.getData().toString(), LoginInfoGson.class);
                     editor.putString("token", loginInfoGson.getToken());
                     if (is_rem_pwd) {
@@ -174,14 +174,17 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     LoginActivity.this.finish();
                     startActivity(new Intent(LoginActivity.this, MainActivity.class));
                 } else {
-                    if(!resultGson.getSuccess()){
+                    if(resultGson.getCode().equals("1004")){
+                        login_et_username.setText("");
+                        login_et_pwd.setText("");
+                        Toast.makeText(LoginActivity.this, getString(R.string.account_relogin), Toast.LENGTH_SHORT).show();
+                    }else if(!resultGson.getCode().equals("1000")){
                         Toast.makeText(LoginActivity.this, resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                     }else if (login_chances == 0) {
-                        if(lang.equals("1")){
+                        if(lang.equals("1"))
                             Toast.makeText(LoginActivity.this, "Locked, contact your administrator.", Toast.LENGTH_SHORT).show();
-                        }else{
+                        else
                             Toast.makeText(LoginActivity.this, "已锁定，请联系管理员。", Toast.LENGTH_SHORT).show();
-                        }
                     } else if (login_chances > 0){
                         login_chances--;
                         editor.putInt("login_chances", login_chances);

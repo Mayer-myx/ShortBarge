@@ -63,4 +63,5 @@
     <string name="account">Account:</string>
     <string name="edit">Edit</string>
     <string name="lang_switch">Switch</string>
+    <string name="account_relogin">The account is logged in</string>
 </resources>
