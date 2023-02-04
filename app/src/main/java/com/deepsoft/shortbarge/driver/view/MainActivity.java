@@ -736,7 +736,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void getDriverTaskUpdate(){
+    private void getDriverTaskUpdate(Integer state){
         apiInterface.getDriverTaskOnce().enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
@@ -747,14 +747,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     lang = lang.equals("en") ? "1": "2";
                     if (taskGsonList != null && taskGsonList.size() != 0) { //任务列表不为空
                         currentTask = taskGsonList.get(0);
-                        if (lang.equals("1")) {
-                            main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
-                            main_tv_ec.setText(currentTask.getAdminNameEng());
-                        } else {
-                            main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
-                            main_tv_ec.setText(currentTask.getAdminName());
+                        if (state != 7) {
+                            if (lang.equals("1"))
+                                main_tv_ec.setText(currentTask.getAdminNameEng());
+                            else
+                                main_tv_ec.setText(currentTask.getAdminName());
+                            main_tv_pn.setText(currentTask.getAdminPhone());
                         }
-                        main_tv_pn.setText(currentTask.getAdminPhone());
+
+                        if (lang.equals("1"))
+                            main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
+                        else
+                            main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
                         main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
                     }
                 }
@@ -779,7 +783,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 if (resultGson.getSuccess()) {
                     if(state != 8 && currentTask != null) {
                         currentTask.setState(state);
-                        getDriverTaskUpdate();
+                        getDriverTaskUpdate(state);
                     }
                     if(state == 7) changeTaskState(transportTaskId, 8);
                 }else{

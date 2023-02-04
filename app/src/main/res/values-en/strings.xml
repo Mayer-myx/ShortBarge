@@ -59,7 +59,7 @@
     <string name="task_finish">Finished</string>
     <string name="task_arrive">Arrived</string>
     <string name="hint_serverc_config">Please check that the input is complete</string>
-    <string name="hint_check_load">Please load/unload the goods at the end first</string>
+    <string name="hint_check_load">Please check that you have arrived at destination for loading/unloading</string>
     <string name="car_no">Truck\'s NO.:</string>
     <string name="account">Account:</string>
     <string name="edit">Edit</string>

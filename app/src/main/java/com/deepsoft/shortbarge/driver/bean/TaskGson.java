@@ -108,7 +108,7 @@ public class TaskGson extends ResultGson {
 
     public String getNextStation() {
         String res = "null";
-        if(nextStation != null){
+        if(nextStation != null || nextStation.equals("")){
             res = nextStation + "\t\t";
         }
         return res;
@@ -120,7 +120,7 @@ public class TaskGson extends ResultGson {
 
     public String getNextStationEng() {
         String res = "null";
-        if(nextStationEng != null){
+        if(nextStationEng != null || nextStationEng.equals("")){
             res = nextStationEng + "\t\t";
         }
         return res;
