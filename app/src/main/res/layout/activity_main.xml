@@ -166,10 +166,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/deepsoft_config_color_white"
-                android:text="99"
+                android:text="9999"
                 android:textSize="10sp"
                 android:layout_marginTop="40dp"
-                android:layout_marginLeft="40dp"/>
+                android:layout_marginLeft="35dp"/>
             <TextView
                 android:id="@+id/main_tv_ec_label"
                 android:layout_width="wrap_content"

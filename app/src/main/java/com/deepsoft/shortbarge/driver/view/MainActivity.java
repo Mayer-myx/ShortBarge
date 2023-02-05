@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private WaitConnectDialog waitConnectDialog;
     private ConnectFailDialog connectFailDialog;
 
-    private AMapLocation location;
+    private AMapLocation location = null;
     private AMapLocationClient mLocationClient = null;
     private AMapLocationClientOption mLocationOption = null;
     private AMapLocationListener aMapLocationListener;
@@ -172,16 +172,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         waitConnectDialog.dismiss();
 
                     if (aMapLocation.getErrorCode() == 0) {
+                        location = aMapLocation;
                         if(currentTask != null){
                             float start_distance = CoordinateConverter.calculateLineDistance(ori,
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                             float end_distance = CoordinateConverter.calculateLineDistance(dest,
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                             float stop_distance = 0.0F;
-                            if(currentTask.getStopOver()){
+                            if(currentTask.getStopOver())
                                 stop_distance = CoordinateConverter.calculateLineDistance(stop,
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                            }
 
                             if(isStart && !isEnd) {
                                 if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2) {
@@ -235,8 +235,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
                                 }
                             }
-
-                            location = aMapLocation;
                         }
                     }else {
                         //Toast.makeText(MainActivity.this, "location Error, ErrCode:" + aMapLocation.getErrorCode()
@@ -635,7 +633,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     /**
-     * 30s 轮询更新状态
+     * 30s 轮询更新状态和更多任务
      */
     private void getDriverTaskState(){
         observable = apiInterface.getDriverTask();
@@ -699,6 +697,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     if (lang.equals("1")) main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
                                     else main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
                                     main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
+                                    main_tv_tasknum.setText("" + taskGsonList.size());
+                                    moreTaskAdapter.setList(whiteTaskList);
                                 }
                             }
 
@@ -1015,7 +1015,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             isUpdate2 = true;
                             isUpdate = false;
 
-                            getDriverTaskOnce(localTime.format(formatter));
+                            new Thread() {
+                                @Override
+                                public void run() {
+                                    super.run();
+                                    try {
+                                        Thread.sleep(500);
+                                        getDriverTaskOnce(localTime.format(formatter));
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }.start();
+
                         }else{
                             Toast.makeText(this, "还未获取当前定位或任务有问题", Toast.LENGTH_SHORT).show();
                         }
@@ -1068,12 +1080,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(MessageResponse messageResponse){
-        if(messageResponse.getType() == 1 && location != null && currentDriverInfo != null){
-            //返回经纬度
-            WsManager.getInstance().sendReq(new Action("{\"driverId\":"+currentDriverInfo.getDriverId()
-                    +",\"truckId\":"+currentDriverInfo.getTruckId()
-                    +",\"lng\":"+ location.getLongitude()
-                    +",\"lat\":"+ location.getLatitude()+"}", 1, null));
+        if(messageResponse.getType() == 1){//返回经纬度
+            if(location != null && currentDriverInfo != null) {
+                WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
+                        + ",\"truckId\":" + currentDriverInfo.getTruckId()
+                        + ",\"lng\":" + location.getLongitude()
+                        + ",\"lat\":" + location.getLatitude() + "}", 1, null));
+            }
         }else if(messageResponse.getType() == 2){
             //聊天消息
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
