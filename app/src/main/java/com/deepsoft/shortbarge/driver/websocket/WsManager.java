@@ -43,7 +43,7 @@ public class WsManager {
 //    private static final String DEF_TEST_URL = "测试服地址";//测试服默认地址
 //    private static final String DEF_RELEASE_URL = "正式服地址";//正式服默认地址
 //private static final String DEF_URL = BuildConfig.DEBUG ? DEF_TEST_URL : DEF_RELEASE_URL;
-    private static final long HEARTBEAT_INTERVAL = 30000;//心跳间隔
+    private static final long HEARTBEAT_INTERVAL = 30000;//心跳间隔30s
     private static final int REQUEST_TIMEOUT = 10000;//请求超时时间
     private static String DEF_URL = "ws://221.12.170.99:8081/websocket/wsDriver/";
     private final int SUCCESS_HANDLE = 0x01;
@@ -136,7 +136,7 @@ public class WsManager {
     };
 
     private int reconnectCount = 0;//重连次数
-    private long minInterval = 1000;//重连最小时间间隔
+    private long minInterval = 5000;//重连最小时间间隔
     private long maxInterval = 60000;//重连最大时间间隔
 
 
@@ -153,7 +153,7 @@ public class WsManager {
 
             reconnectCount++;
             setStatus(WsStatus.CONNECTING);
-            cancelHeartbeat();//取消心跳
+//            cancelHeartbeat();//取消心跳
 
             long reconnectTime = minInterval;
             if (reconnectCount > 3) {
@@ -375,7 +375,7 @@ public class WsManager {
         mHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                Action action = new Action("sync", -1, null);
+                Action action = new Action("", 0, null);
                 sendReq(action, new ICallback() {
                     @Override
                     public void onSuccess(Object o) { }
@@ -403,7 +403,7 @@ public class WsManager {
     private Runnable heartbeatTask = new Runnable() {
         @Override
         public void run() {
-            Action action = new Action("heartbeat", -1, null);
+            Action action = new Action("", 0, null);
             sendReq(action, new ICallback() {
                 @Override
                 public void onSuccess(Object o) {
@@ -429,7 +429,7 @@ public class WsManager {
             Log.d(TAG, "授权成功");
             setStatus(WsStatus.AUTH_SUCCESS);
             startHeartbeat();
-            delaySyncData();
+//            delaySyncData();
         }
 
         @Override

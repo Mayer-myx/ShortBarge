@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                             float end_distance = CoordinateConverter.calculateLineDistance(dest,
                                     new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                            float stop_distance = 0.0F;
+                            float stop_distance = -1.0F;
                             if(currentTask.getStopOver())
                                 stop_distance = CoordinateConverter.calculateLineDistance(stop,
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
@@ -192,8 +192,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                                 if (aMapLocation.getSpeed() <= 4) {
                                     // 有经停站 && 在经停站范围内 && 未停过 && 速度小
-                                    if (currentTask.getStopOver() && stop_distance <= stop_r && !isStopOver) {
-                                        if(currentTask.getState() != 5) {
+                                    if (currentTask.getStopOver() && stop_distance >= 0 && stop_distance <= stop_r) {
+                                        if(currentTask.getState() != 5 && !isStopOver) {
                                             changeTaskState(currentTask.getTransportTaskId(), 5);
                                             isStopOver = true;
                                             Toast.makeText(MainActivity.this, "经停站装卸货", Toast.LENGTH_SHORT).show();
