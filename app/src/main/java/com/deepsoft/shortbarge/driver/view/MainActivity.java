@@ -881,9 +881,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
                             }
                             main_tv_pn.setText(currentTask.getAdminPhone());
+                            main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
                         }
 
-                        main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
                     }
                 }
             }
