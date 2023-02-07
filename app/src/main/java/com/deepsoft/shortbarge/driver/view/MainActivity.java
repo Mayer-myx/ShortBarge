@@ -36,6 +36,8 @@ import com.amap.api.maps2d.model.Circle;
 import com.amap.api.maps2d.model.CircleOptions;
 import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.MyLocationStyle;
+import com.amap.api.maps2d.model.Polyline;
+import com.amap.api.maps2d.model.PolylineOptions;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
 import com.deepsoft.shortbarge.driver.constant.Action;
@@ -366,6 +368,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    private void drawLine(){
+        List<LatLng> latLngs = new ArrayList<LatLng>();
+        latLngs.add(new LatLng(30.54995, 120.922067));
+        latLngs.add(new LatLng(30.548846, 120.923982));
+        latLngs.add(new LatLng(30.547312, 120.926642));
+        latLngs.add(new LatLng(30.548606, 120.927844));
+        latLngs.add(new LatLng(30.545963, 120.931835));
+        latLngs.add(new LatLng(30.551803, 120.945997));
+        latLngs.add(new LatLng(30.549881, 120.945997));
+        latLngs.add(new LatLng(30.549493, 120.954323));
+        latLngs.add(new LatLng(30.548116, 120.954205));
+        aMap.addPolyline(new PolylineOptions().
+                addAll(latLngs).width(10).color(Color.rgb(226, 0, 15)));
+    }
+
+
     private void setMaker(){
         BitmapDescriptor custom = BitmapDescriptorFactory.fromResource(R.mipmap.scatter_car);
         MyLocationStyle myLocationStyle = new MyLocationStyle();
@@ -374,6 +392,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         myLocationStyle.myLocationType(MyLocationStyle.LOCATION_TYPE_FOLLOW);
         aMap.setMyLocationStyle(myLocationStyle);
         aMap.setMyLocationEnabled(true);
+        drawLine();
         if(!currentTask.getOriginLat().equals("") && currentTask.getOriginLat() != null)
             aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0.5*Double.parseDouble(currentTask.getOriginLat()) + 0.5*Double.parseDouble(currentTask.getDestinationLat()),
                     0.5*Double.parseDouble(currentTask.getOriginLng()) + 0.5*Double.parseDouble(currentTask.getDestinationLng())), 15));
