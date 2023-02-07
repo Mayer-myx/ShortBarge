@@ -1043,11 +1043,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             //聊天消息
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
             Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
+            LogHandler.writeFile(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
             main_v_isvm.setVisibility(View.VISIBLE);
             main_tv_vm.setAlpha(1F);
             messageDialog.addData(messageResponse);
         }else{
             Log.e(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
+            LogHandler.writeFile(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
         }
     }
 

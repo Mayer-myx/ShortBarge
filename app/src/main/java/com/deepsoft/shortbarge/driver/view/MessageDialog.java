@@ -1,7 +1,6 @@
 package com.deepsoft.shortbarge.driver.view;
 
 import android.content.Context;
-import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Environment;
 import android.util.Log;
@@ -23,11 +22,11 @@ import com.deepsoft.shortbarge.driver.bean.ResultGson;
 import com.deepsoft.shortbarge.driver.bean.message.MessageResponse;
 import com.deepsoft.shortbarge.driver.bean.message.ReceiveMessage;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
-import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
+import com.deepsoft.shortbarge.driver.widget.LogHandler;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
 import com.google.gson.Gson;
 
@@ -57,7 +56,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
     private String filename, name, resp, driver;
     private int fileTime;
     private long startTime, endTime;
-    private List<MessageBean> messageBeans = new ArrayList<>();
+    private List<MessageBean> messageBeansList = new ArrayList<>();
 
     private MessageAdapter messageAdapter = null;
     private LinearLayoutManager layoutManager;
@@ -81,20 +80,6 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         this.driver = driver;
     }
 
-//    private MessageDialog(){
-//    }
-//
-//
-//    public static MessageDialog getInstance(){
-//        if(messageDialog == null){
-//            synchronized (MessageDialog.class){
-//                if(messageDialog == null)
-//                    messageDialog = new MessageDialog();
-//            }
-//        }
-//        return messageDialog;
-//    }
-
 
     public void showMessageDialog(Context context, LayoutInflater layoutInflater){
         View dialog_message = layoutInflater.inflate(R.layout.dialog_voice_message, null);
@@ -108,8 +93,10 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         mFile = new File(BaseApplication.getApplication().getExternalFilesDir(Environment.DIRECTORY_MUSIC), "record");
         if(mFile.exists()){
             Log.i(TAG, "Directory exist");
+            LogHandler.writeFile(TAG, "Directory exist");
         } else if (mFile == null || !mFile.mkdirs()) {
             Log.e(TAG, "Directory not created");
+            LogHandler.writeFile(TAG, "Directory not created");
         }
 
         dialog_vm_iv_close = dialog_message.findViewById(R.id.dialog_vm_iv_close);
@@ -138,8 +125,8 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                             sb.append(" ");
                         MessageBean messageBean2 = new MessageBean(sb.toString()+fileTime+"″", true);
                         messageBean2.setUrl(filename);
-                        messageBeans.add(messageBean2);
-                        messageAdapter.notifyItemChanged(messageBeans.size()-1);
+                        messageBeansList.add(messageBean2);
+                        messageAdapter.setList(messageBeansList);
                         layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
                         break;
                 }
@@ -150,7 +137,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         dialog_vm_rv = dialog_message.findViewById(R.id.dialog_vm_rv);
         layoutManager = new LinearLayoutManager(context);
         dialog_vm_rv.setLayoutManager(layoutManager);
-        messageAdapter = new MessageAdapter(R.layout.item_message, messageBeans, context, resp, driver);
+        messageAdapter = new MessageAdapter(R.layout.item_message, messageBeansList, context, resp, driver);
         dialog_vm_rv.setAdapter(messageAdapter);
         layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
     }
@@ -177,6 +164,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 ResultGson resultGson = response.body();
                 Log.i(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
+                LogHandler.writeFile(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
 
                 //聊天消息
                 WsManager.getInstance().sendReq(new Action("{\"msg\":\""+resultGson.getData().toString()
@@ -185,6 +173,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.i(TAG, "uploadFile onFailure: "+t);
+                LogHandler.writeFile(TAG, "uploadFile onFailure: "+t);
             }
         });
     }
@@ -212,6 +201,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             mMediaRecorder.prepare();
         } catch (IOException e) {
             Log.e(TAG, "prepare()failed");
+            LogHandler.writeFile(TAG, filename+"prepare()failed");
             e.printStackTrace();
         }
         mMediaRecorder.start();
@@ -227,7 +217,8 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             mMediaRecorder.release();
             File[] files = mFile.listFiles();
             for(File f : files){
-                Log.i(TAG, "initPath: "+f.getName()+"\n");
+                Log.i(TAG, "initPath: "+f.getName());
+                LogHandler.writeFile(TAG, "initPath: "+f.getName());
             }
             mMediaRecorder = null;
         }
@@ -238,9 +229,9 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         Gson gson = new Gson();
         ReceiveMessage receiveMessage = gson.fromJson(messageResponse.getMessage(), ReceiveMessage.class);
         MessageBean messageBean = new MessageBean(receiveMessage.getMsg(), false);
-        messageBeans.add(messageBean);
+        messageBeansList.add(messageBean);
         if(messageAdapter != null) {
-            messageAdapter.notifyItemChanged(messageBeans.size()-1);
+            messageAdapter.setList(messageBeansList);
         }
     }
 }
