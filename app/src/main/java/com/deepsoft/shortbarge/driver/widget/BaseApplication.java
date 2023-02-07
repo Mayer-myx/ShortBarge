@@ -11,11 +11,19 @@ import com.deepsoft.shortbarge.driver.callback.ForegroundCallbacks;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 
 import android.app.Activity;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.text.TextUtils;
+import android.text.format.Time;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
+import java.io.File;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 public class BaseApplication extends Application {
@@ -47,6 +55,7 @@ public class BaseApplication extends Application {
      * 对于一个应用来说 android入口并不是Activity中的OnCreate()而是Application里面的Oncreate()
      * 也就相当于是java中的Main方法，只不过这个方法被封装了
      **/
+    @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     public void onCreate() {
         // TODO Auto-generated method stub
@@ -55,8 +64,10 @@ public class BaseApplication extends Application {
         //在Application创建时,读取Application
         application = this;
         context = getApplicationContext();
-        
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-hh:mm:ss");
         CrashHandler.getInstance(getApplicationContext()).setCrashLogDir(getCrashLogDir());
+        LogHandler.initLogFile(new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/log" + "/goods_" + LocalDateTime.now().format(formatter) + ".log"));
 
         initAppStatusListener();
         //注册Activity生命周期监听回调，此部分一定加上，因为有些版本不加的话多语言切换不回来
