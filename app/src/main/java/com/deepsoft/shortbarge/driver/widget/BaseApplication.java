@@ -65,7 +65,7 @@ public class BaseApplication extends Application {
         application = this;
         context = getApplicationContext();
 
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd-hh:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         CrashHandler.getInstance(getApplicationContext()).setCrashLogDir(getCrashLogDir());
         LogHandler.initLogFile(new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/log" + "/goods_" + LocalDateTime.now().format(formatter) + ".log"));
 
