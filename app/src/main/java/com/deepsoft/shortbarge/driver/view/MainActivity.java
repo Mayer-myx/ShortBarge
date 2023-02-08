@@ -102,13 +102,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AMap aMap;
     private Circle circle1, circle2, circle3, circle4;
     private DPoint ori, dest, stop;
-    private float ori_r, dest_r, dest_warn, stop_r;
+    private float ori_r, dest_r, dest_warn, stop_r, start_distance = -1.0F, end_distance = -1.0F, stop_distance = -1.0F;
 
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
     private String truckNo, driverId, lang;
     private int currentRetryCount = 0, waitRetryTime = 0, maxConnectCount = 10;// 当前已重试次数// 重试等待时间 //最大重试次数
-    private static boolean isStart = false, isStopOver = false, isEnd = false, isAlter = false;
+    private static boolean isStart = false, isStopOver = false, isAlter = false;//, isEnd = false;
 
     private List<TaskGson> taskGsonList = new ArrayList<>(), whiteTaskList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -177,19 +177,21 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if (aMapLocation.getErrorCode() == 0 && aMapLocation.getAccuracy() <= 500) {
                         location = aMapLocation;
                         LogHandler.writeFile(TAG, "acc=" + aMapLocation.getAccuracy()+" type="+aMapLocation.getLocationType());
-                        float start_distance = CoordinateConverter.calculateLineDistance(ori,
+                        start_distance = CoordinateConverter.calculateLineDistance(ori,
                                 new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                        float end_distance = CoordinateConverter.calculateLineDistance(dest,
+                        end_distance = CoordinateConverter.calculateLineDistance(dest,
                                 new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                        float stop_distance = -1.0F;
 
                         if(currentTask != null) {
                             if (currentTask.getStopOver())
                                 stop_distance = CoordinateConverter.calculateLineDistance(stop,
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
 
-                            LogHandler.writeFile(TAG, "isStart=" + isStart + " isEnd=" + isEnd + " currentTask.getState()=" + currentTask.getState());
-                            if (isStart && !isEnd) {
+                            LogHandler.writeFile(TAG, "start="+start_distance+" end="+end_distance+" stop="+stop_distance);
+                            LogHandler.writeFile(TAG, "isStart=" + isStart + " currentTask.getState()=" + currentTask.getState());
+
+                            if (isStart) {
+                            //if (isStart && !isEnd) {
                                 // 即将到达：经过起点 && 到预警围栏内 && 之前没预警过
                                 if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2) {
                                     LogHandler.writeFile(TAG, "即将到达 预警");
@@ -198,60 +200,38 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     Toast.makeText(MainActivity.this, "即将到达", Toast.LENGTH_SHORT).show();
                                 }
 
-                                if (aMapLocation.getSpeed() <= 4) {
-                                    // 有经停站 && 在经停站范围内 && 未停过 && 速度小
-                                    if (currentTask.getStopOver() && stop_distance >= 0 && stop_distance <= stop_r) {
-                                        if (currentTask.getState() != 2 && currentTask.getState() != 5 && !isStopOver) {
+                                // 有经停站
+                                if (currentTask.getStopOver()){
+                                    if(aMapLocation.getSpeed() <= 4) {
+                                        // 经停站装卸货5：在经停站范围内 && 未停过 && 速度小 && 运输中3
+                                        if (stop_distance >= 0 && stop_distance <= stop_r && currentTask.getState() == 3 && !isStopOver) {
                                             LogHandler.writeFile(TAG, "经停站装卸货");
                                             changeTaskState(currentTask.getTransportTaskId(), 5);
                                             isStopOver = true;
                                             Toast.makeText(MainActivity.this, "经停站装卸货", Toast.LENGTH_SHORT).show();
                                         }
-                                    }
-
-                                    if (start_distance <= ori_r) {//起点
-                                        if (currentTask.getState() == 1) {
-                                            LogHandler.writeFile(TAG, "起点装卸货");
-                                            changeTaskState(currentTask.getTransportTaskId(), 2);
-                                            Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
-                                        }
-                                    } else if (end_distance <= dest_r) {//终点 预警过
-                                        if (currentTask.getState() != 2 && currentTask.getState() != 5 && currentTask.getState() != 7 && isAlter) {
-                                            LogHandler.writeFile(TAG, "到达终点");
-                                            isEnd = true;
-                                            Toast.makeText(MainActivity.this, "到达终点", Toast.LENGTH_SHORT).show();
-                                        }
-                                    } else {//运输 红绿灯
-                                        if (currentTask.getState() == 2) {
-                                            LogHandler.writeFile(TAG, "运输中");
-                                            changeTaskState(currentTask.getTransportTaskId(), 3);
-                                        }
-                                    }
-                                    LogHandler.writeFile(TAG, "if速度=" + aMapLocation.getSpeed() + "state=" + currentTask.getState());
-                                } else {
-                                    // 有经停站 && 已停过 && 速度大
-                                    if (currentTask.getStopOver() && isStopOver) {
-                                        if (currentTask.getState() == 5) {
+                                    } else {// 经停站继续运输6：停过了 && 状态5
+                                        if (currentTask.getState() == 5 && isStopOver) {
                                             LogHandler.writeFile(TAG, "经停站继续运输");
                                             changeTaskState(currentTask.getTransportTaskId(), 6);
                                             Toast.makeText(MainActivity.this, "经停站继续运输", Toast.LENGTH_SHORT).show();
                                         }
                                     }
-
-                                    if (start_distance <= ori_r) {//起点
-                                        if (currentTask.getState() == 1) {
-                                            LogHandler.writeFile(TAG, "起点装卸货");
-                                            changeTaskState(currentTask.getTransportTaskId(), 2);
-                                            Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
-                                        }
-                                    } else {
-                                        if (currentTask.getState() == 2) {
-                                            changeTaskState(currentTask.getTransportTaskId(), 3);
-                                            LogHandler.writeFile(TAG, "else运输中2 state=" + currentTask.getState());
-                                        }
-                                    }
-                                    LogHandler.writeFile(TAG, "else速度=" + aMapLocation.getSpeed() + "state=" + currentTask.getState());
                                 }
+
+                                if (start_distance <= ori_r) {//起点
+                                    if (currentTask.getState() == 1) {
+                                        LogHandler.writeFile(TAG, "起点装卸货");
+                                        changeTaskState(currentTask.getTransportTaskId(), 2);
+                                        Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {//运输 红绿灯
+                                    if (currentTask.getState() == 2) {
+                                        LogHandler.writeFile(TAG, "运输中");
+                                        changeTaskState(currentTask.getTransportTaskId(), 3);
+                                    }
+                                }
+
                             }
                         }
                     }else {
@@ -579,7 +559,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 if (taskGsonList.size() != 1) main_tv_arrive.setText(R.string.task_continue);
                                 else main_tv_arrive.setText(R.string.task_finish);
                                 isStart = true;
-                                isEnd = false;
+//                                isEnd = false;
                                 main_tv_arrive.setClickable(true);
                                 main_tv_arrive.setAlpha(1.0F);
                             }
@@ -829,10 +809,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         getDriverTaskUpdate();
                     }
                     else {
-                        LogHandler.writeFile(TAG, "changeTaskState getSuccess"+transportTaskId+" state="+state+" isEnd="+isEnd+" isAlter="+isAlter+" isStopOver="+isStopOver);
+                        LogHandler.writeFile(TAG, "changeTaskState getSuccess"+transportTaskId+" state="+state+" isAlter="+isAlter+" isStopOver="+isStopOver);
                         main_tv_at.setText(LocalTime.now().format(formatter));
                         isStopOver = false;
-                        isEnd = false;
+//                        isEnd = false;
                         isAlter = false;
                         if(main_tv_arrive.getText().toString().equals(getString(R.string.task_continue))){//继续
                             LogHandler.writeFile(TAG, "继续"+transportTaskId);
@@ -878,10 +858,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         LogHandler.writeFile(TAG, "当前状态码" + currentTask.getState() + "\n" + transportTaskId + "任务 状态码" + state + " 提交失败" + resultGson.getMsg());
                         Toast.makeText(MainActivity.this, "当前状态码" + currentTask.getState() + "\n"
                                 + transportTaskId + "任务 状态码" + state + " 提交失败" + resultGson.getMsg(), Toast.LENGTH_SHORT).show();
-                    }
-                    if(state == 7){
-                        isAlter = false;
-                        isEnd = false;
                     }
 //                    if(state == 7) changeTaskState(transportTaskId, state);
                     Log.i(TAG, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg());
@@ -988,7 +964,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(location != null && currentTask != null) {
                         isStart = true;
                         isStopOver = false;
-                        isEnd = false;
+//                        isEnd = false;
                         isAlter = false;
 
                         getDriverTaskOnce(LocalTime.now().format(formatter));
@@ -996,7 +972,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Toast.makeText(this, "还未获取当前定位或任务有问题", Toast.LENGTH_SHORT).show();
                     }
                 } else {//继续 完成
-                    changeTaskState(currentTask.getTransportTaskId(), 7);
+                    end_distance = CoordinateConverter.calculateLineDistance(dest,
+                            new DPoint(location.getLatitude(), location.getLongitude()));
+                    if(end_distance <= dest_r) changeTaskState(currentTask.getTransportTaskId(), 7);
+                    else Toast.makeText(this, "没到终点", Toast.LENGTH_SHORT).show();
+                    LogHandler.writeFile(TAG, "点击继续/完成 end_distance="+end_distance+" dest_r"+dest_r+" end_distance <= dest_r?"+(end_distance <= dest_r));
                 }
                 break;
             case R.id.main_tv_vm:
