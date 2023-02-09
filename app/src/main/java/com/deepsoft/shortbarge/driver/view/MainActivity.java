@@ -16,7 +16,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
-import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -36,7 +35,6 @@ import com.amap.api.maps2d.model.Circle;
 import com.amap.api.maps2d.model.CircleOptions;
 import com.amap.api.maps2d.model.LatLng;
 import com.amap.api.maps2d.model.MyLocationStyle;
-import com.amap.api.maps2d.model.Polyline;
 import com.amap.api.maps2d.model.PolylineOptions;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MoreTaskAdapter;
@@ -102,13 +100,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AMap aMap;
     private Circle circle1, circle2, circle3, circle4;
     private DPoint ori, dest, stop;
+    private LatLng latLng1 = new LatLng(30.548730,120.954280),
+            latLng2 = new LatLng(30.549946763571644, 120.94785337363145),
+            latLng3 = new LatLng(30.549520, 120.922812);
     private float ori_r, dest_r, dest_warn, stop_r, start_distance = -1.0F, end_distance = -1.0F, stop_distance = -1.0F;
 
     private DriverInfoGson currentDriverInfo;
     private TaskGson currentTask;
     private String truckNo, driverId, lang;
     private int currentRetryCount = 0, waitRetryTime = 0, maxConnectCount = 10;// 当前已重试次数// 重试等待时间 //最大重试次数
-    private static boolean isStart = false, isStopOver = false, isAlter = false;//, isEnd = false;
+    private static boolean isStart = false, isStopOver = false, isAlter = false;
 
     private List<TaskGson> taskGsonList = new ArrayList<>(), whiteTaskList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -191,13 +192,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             LogHandler.writeFile(TAG, "isStart=" + isStart + " currentTask.getState()=" + currentTask.getState());
 
                             if (isStart) {
-                            //if (isStart && !isEnd) {
                                 // 即将到达：经过起点 && 到预警围栏内 && 之前没预警过
                                 if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2) {
                                     LogHandler.writeFile(TAG, "即将到达 预警");
                                     sendNotice();
                                     isAlter = true;
-                                    Toast.makeText(MainActivity.this, "即将到达", Toast.LENGTH_SHORT).show();
                                 }
 
                                 // 有经停站
@@ -219,19 +218,31 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 }
 
-                                if (start_distance <= ori_r) {//起点
+                                float dis1 = CoordinateConverter.calculateLineDistance(new DPoint(30.548730,120.954280),
+                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                                float dis2 = CoordinateConverter.calculateLineDistance(new DPoint(30.549946763571644, 120.94785337363145),
+                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                                float dis3 = CoordinateConverter.calculateLineDistance(new DPoint(30.549520, 120.922812),
+                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                                if(dis1 <= 30 || dis2 <= 30 || dis3 <= 30) {
+                                    if (currentTask.getState() == 2) {
+                                        LogHandler.writeFile(TAG, "进入辅助围栏 运输中");
+                                        changeTaskState(currentTask.getTransportTaskId(), 3);
+                                        Toast.makeText(MainActivity.this, "进入辅助围栏", Toast.LENGTH_SHORT).show();
+                                    }
+                                }else if (start_distance <= ori_r) {//起点
                                     if (currentTask.getState() == 1) {//待运输
                                         LogHandler.writeFile(TAG, "起点装卸货");
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
                                         Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
                                     }
-                                } else {//运输
-                                    if (currentTask.getState() == 2) {//起点装卸货
-                                        LogHandler.writeFile(TAG, "运输中");
-                                        changeTaskState(currentTask.getTransportTaskId(), 3);
-                                    }
                                 }
-
+//                                else {//运输
+//                                    if (currentTask.getState() == 2) {//起点装卸货
+//                                        LogHandler.writeFile(TAG, "运输中");
+//                                        changeTaskState(currentTask.getTransportTaskId(), 3);
+//                                    }
+//                                }
                             }
                         }
                     }else {
@@ -351,11 +362,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         aMap.setMyLocationStyle(myLocationStyle);
         aMap.setMyLocationEnabled(true);
         drawLine();
+        helpCirecle();
         if(!currentTask.getOriginLat().equals("") && currentTask.getOriginLat() != null)
             aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0.5*Double.parseDouble(currentTask.getOriginLat()) + 0.5*Double.parseDouble(currentTask.getDestinationLat()),
                     0.5*Double.parseDouble(currentTask.getOriginLng()) + 0.5*Double.parseDouble(currentTask.getDestinationLng())), 15));
         else
             aMap.moveCamera(CameraUpdateFactory.zoomTo(15));
+    }
+
+
+    private void helpCirecle(){
+        aMap.addCircle(new CircleOptions().center(latLng1)
+                .radius(30)
+                .fillColor(0x50FF00FF)
+                .strokeWidth(1f));
+        aMap.addCircle(new CircleOptions().center(latLng2)
+                .radius(30)
+                .fillColor(0x50FF00FF)
+                .strokeWidth(1f));
+        aMap.addCircle(new CircleOptions().center(latLng3)
+                .radius(30)
+                .fillColor(0x50FF00FF)
+                .strokeWidth(1f));
     }
 
 
@@ -559,7 +587,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 if (taskGsonList.size() != 1) main_tv_arrive.setText(R.string.task_continue);
                                 else main_tv_arrive.setText(R.string.task_finish);
                                 isStart = true;
-//                                isEnd = false;
                                 main_tv_arrive.setClickable(true);
                                 main_tv_arrive.setAlpha(1.0F);
                             }
@@ -812,7 +839,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         LogHandler.writeFile(TAG, "changeTaskState getSuccess"+transportTaskId+" state="+state+" isAlter="+isAlter+" isStopOver="+isStopOver);
                         main_tv_at.setText(LocalTime.now().format(formatter));
                         isStopOver = false;
-//                        isEnd = false;
                         isAlter = false;
                         if(main_tv_arrive.getText().toString().equals(getString(R.string.task_continue))){//继续
                             LogHandler.writeFile(TAG, "继续"+transportTaskId);
@@ -966,7 +992,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(location != null && currentTask != null) {
                         isStart = true;
                         isStopOver = false;
-//                        isEnd = false;
                         isAlter = false;
 
                         getDriverTaskOnce(LocalTime.now().format(formatter));

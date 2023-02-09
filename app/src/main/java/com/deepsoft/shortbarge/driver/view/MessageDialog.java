@@ -9,6 +9,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -151,6 +152,8 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                             + "\",\"msgType\":2}", 2, null));
 
                     getChatMsgList(msgSize);
+                }else{
+                    Toast.makeText(context, "语音消息上传失败", Toast.LENGTH_SHORT).show();
                 }
             }
             @Override
@@ -228,7 +231,19 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
      */
     public void stopSound() {
         if (mMediaRecorder != null) {
-            mMediaRecorder.stop();
+            try {
+                mMediaRecorder.setOnErrorListener(null);
+                mMediaRecorder.setOnInfoListener(null);
+                mMediaRecorder.setPreviewDisplay(null);
+                mMediaRecorder.stop();
+            } catch (IllegalStateException e) {
+                e.printStackTrace();
+            } catch (RuntimeException e) {
+                e.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             mMediaRecorder.release();
             File[] files = mFile.listFiles();
             for(File f : files){
