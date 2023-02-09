@@ -11,44 +11,51 @@ import androidx.annotation.Nullable;
 
 import com.chad.library.adapter.base.BaseQuickAdapter;
 import com.chad.library.adapter.base.viewholder.BaseViewHolder;
-import com.deepsoft.shortbarge.driver.bean.message.MessageBean;
 
 import java.io.IOException;
 import java.util.List;
-import com.deepsoft.shortbarge.driver.R;
+import java.util.concurrent.TimeUnit;
 
-public class MessageAdapter extends BaseQuickAdapter<MessageBean, BaseViewHolder> {
+import com.deepsoft.shortbarge.driver.R;
+import com.deepsoft.shortbarge.driver.bean.message.MessageGson;
+import com.deepsoft.shortbarge.driver.utils.PressUtil;
+
+public class MessageAdapter extends BaseQuickAdapter<MessageGson, BaseViewHolder> {
 
     private Context context;
-    private String resp, driver;
     private MediaPlayer mediaPlayer;
 
-    public MessageAdapter(int layoutResId, @Nullable List<MessageBean> data, Context context,
-                          String resp, String driver) {
+    public MessageAdapter(int layoutResId, @Nullable List<MessageGson> data, Context context) {
         super(layoutResId, data);
-        this.resp = resp;
-        this.driver = driver;
         this.context = context;
     }
 
 
-    public void setResp(String resp){
-        this.resp = resp;
-    }
-
-
     @Override
-    protected void convert(@NonNull BaseViewHolder baseViewHolder, MessageBean messageBean) {
-        baseViewHolder.setText(R.id.it_tv_y, messageBean.getMsg())
-                .setText(R.id.it_tv_m, messageBean.getMsg())
-                .setText(R.id.item_tv_resp, resp)
-                .setText(R.id.item_tv_car, driver);
+    protected void convert(@NonNull BaseViewHolder baseViewHolder, MessageGson messageGson) {
+        StringBuilder sb = new StringBuilder("");
+        if(messageGson.getMsgType() == 2) {
+            long duration = getAudioTime("http://"+messageGson.getMsg());
+            long minutes = TimeUnit.MILLISECONDS.toMinutes(duration);
+            long seconds = TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(minutes);
+            seconds += minutes * 60;
+            long len = seconds > 60 ? 60 : seconds;
+            for (int j = 0; j < len; j++)
+                sb.append(" ");
+            sb = new StringBuilder(sb.toString()+seconds+"”");
+        }
+        Log.i("MessageAdapter", "id="+messageGson.getChatMessageId()+" time="+sb+" msg="+messageGson.getMsg());
 
-        if(getItemPosition(messageBean) == 0){
+        baseViewHolder.setText(R.id.it_tv_y, messageGson.getMsg())
+                .setText(R.id.it_tv_m, sb.toString())
+                .setText(R.id.item_tv_resp, ""+messageGson.getFrom())
+                .setText(R.id.item_tv_car, ""+messageGson.getFrom());
+
+        if(getItemPosition(messageGson) == 0){
             baseViewHolder.findView(R.id.item_mess).setPadding(0, 20, 0, 0);
         }
 
-        if(messageBean.getType()){
+        if(messageGson.getMsgType() == 2){
             baseViewHolder.findView(R.id.it_mes_y_layout).setVisibility(View.GONE);
             baseViewHolder.findView(R.id.it_mes_m_layout).setVisibility(View.VISIBLE);
         }else{
@@ -56,9 +63,30 @@ public class MessageAdapter extends BaseQuickAdapter<MessageBean, BaseViewHolder
             baseViewHolder.findView(R.id.it_mes_m_layout).setVisibility(View.GONE);
         }
 
+        PressUtil.setPressChange(context, baseViewHolder.findView(R.id.it_tv_m));
+        PressUtil.setPressChange(context, baseViewHolder.findView(R.id.it_tv_y));
         baseViewHolder.findView(R.id.it_tv_m).setOnClickListener(v->{
-            playSound(messageBean.getUrl());
+            playSound("http://"+messageGson.getMsg());
         });
+    }
+
+
+    private long getAudioTime(String fileName){
+        mediaPlayer = new MediaPlayer();
+        long mediaPlayerDuration = 0L;
+        if(fileName != null && !fileName.equals("")) {
+            try {
+                mediaPlayer.setDataSource(fileName);
+                mediaPlayer.prepare();
+                mediaPlayerDuration = mediaPlayer.getDuration();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }else{
+            Toast.makeText(context, "没有音频",Toast.LENGTH_SHORT).show();
+        }
+
+        return mediaPlayerDuration;
     }
 
 
@@ -91,7 +119,7 @@ public class MessageAdapter extends BaseQuickAdapter<MessageBean, BaseViewHolder
                 e.printStackTrace();
             }
         }else{
-            Toast.makeText(context, "当前没有音频",Toast.LENGTH_SHORT).show();
+            Toast.makeText(context, "没有音频",Toast.LENGTH_SHORT).show();
         }
     }
 }

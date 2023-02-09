@@ -61,6 +61,8 @@
             android:textSize="11sp"
             android:textColor="@color/deepsoft_text_black"
             android:background="@drawable/line_round_white_bg"
+            android:lines="1"
+            android:singleLine="true"
             android:layout_centerHorizontal="true"
             android:layout_marginTop="73dp"
             android:paddingLeft="11dp"/>
@@ -77,6 +79,8 @@
             android:textColorHint="@color/deepsoft_text_hint_gray"
             android:textSize="11sp"
             android:textColor="@color/deepsoft_text_black"
+            android:lines="1"
+            android:singleLine="true"
             android:background="@drawable/line_round_white_bg"
             android:layout_marginTop="17dp"
             android:paddingLeft="11dp"/>

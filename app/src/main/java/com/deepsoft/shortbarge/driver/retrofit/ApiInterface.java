@@ -149,6 +149,9 @@ public interface ApiInterface {
     Call<ResultGson> sendNotice(@Body RequestBody body);
 
 
+    @POST("chat/getChatMsgList")
+    Call<ResultGson> getChatMsgList(@Body RequestBody body);
+
 //    /*无参POST请求 */
 //    @POST("postNoParamUser")
 //    Call<DriverInfoGson>postNoParamUser();

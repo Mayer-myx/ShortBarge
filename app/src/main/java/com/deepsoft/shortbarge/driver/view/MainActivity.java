@@ -220,13 +220,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
 
                                 if (start_distance <= ori_r) {//起点
-                                    if (currentTask.getState() == 1) {
+                                    if (currentTask.getState() == 1) {//待运输
                                         LogHandler.writeFile(TAG, "起点装卸货");
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
                                         Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
                                     }
-                                } else {//运输 红绿灯
-                                    if (currentTask.getState() == 2) {
+                                } else {//运输
+                                    if (currentTask.getState() == 2) {//起点装卸货
                                         LogHandler.writeFile(TAG, "运输中");
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
                                     }
@@ -430,7 +430,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     driverId = ""+driverInfoGson.getDriverId();
                     if(driverId.length() == 1) driverId = "0"+driverId;
                     main_tv_truck.setText(truckNo);
-                    messageDialog = new MessageDialog(MainActivity.this, truckNo, driverId);
+                    messageDialog = new MessageDialog(MainActivity.this, driverId);
 
                     if(settingDialog != null) {
                         settingDialog.setDriverInfoGson(currentDriverInfo);
@@ -892,8 +892,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
                     Log.i(TAG, "sendNotice连接成功 数据申请成功， msg="+resultGson.getMsg());
+                    LogHandler.writeFile(TAG, "sendNotice连接成功 数据申请成功， msg="+resultGson.getMsg());
                 }else{
                     Log.i(TAG, "sendNotice连接成功 数据申请失败， msg="+resultGson.getMsg());
+                    LogHandler.writeFile(TAG, "sendNotice连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
                 if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
@@ -972,11 +974,16 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Toast.makeText(this, "还未获取当前定位或任务有问题", Toast.LENGTH_SHORT).show();
                     }
                 } else {//继续 完成
-                    end_distance = CoordinateConverter.calculateLineDistance(dest,
-                            new DPoint(location.getLatitude(), location.getLongitude()));
-                    if(end_distance <= dest_r) changeTaskState(currentTask.getTransportTaskId(), 7);
-                    else Toast.makeText(this, "没到终点", Toast.LENGTH_SHORT).show();
-                    LogHandler.writeFile(TAG, "点击继续/完成 end_distance="+end_distance+" dest_r"+dest_r+" end_distance <= dest_r?"+(end_distance <= dest_r));
+                    if (location != null && currentTask != null) {
+                        end_distance = CoordinateConverter.calculateLineDistance(dest,
+                                new DPoint(location.getLatitude(), location.getLongitude()));
+                        if (end_distance <= dest_r)
+                            changeTaskState(currentTask.getTransportTaskId(), 7);
+                        else Toast.makeText(this, "没到终点", Toast.LENGTH_SHORT).show();
+                        LogHandler.writeFile(TAG, "点击继续/完成 end_distance=" + end_distance + " dest_r" + dest_r + " end_distance <= dest_r?" + (end_distance <= dest_r));
+                    }else{
+                        Toast.makeText(this, "还未获取当前定位或任务有问题", Toast.LENGTH_SHORT).show();
+                    }
                 }
                 break;
             case R.id.main_tv_vm:
@@ -1015,7 +1022,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             LogHandler.writeFile(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
             main_v_isvm.setVisibility(View.VISIBLE);
             main_tv_vm.setAlpha(1F);
-            messageDialog.addData(messageResponse);
         }else{
             Log.e(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
             LogHandler.writeFile(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());

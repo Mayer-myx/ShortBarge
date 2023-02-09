@@ -16,25 +16,28 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.adapter.MessageAdapter;
+import com.deepsoft.shortbarge.driver.bean.message.MessageGson;
+import com.deepsoft.shortbarge.driver.bean.message.MessageList;
 import com.deepsoft.shortbarge.driver.constant.Action;
-import com.deepsoft.shortbarge.driver.bean.message.MessageBean;
 import com.deepsoft.shortbarge.driver.bean.ResultGson;
-import com.deepsoft.shortbarge.driver.bean.message.MessageResponse;
-import com.deepsoft.shortbarge.driver.bean.message.ReceiveMessage;
 import com.deepsoft.shortbarge.driver.retrofit.ApiInterface;
+import com.deepsoft.shortbarge.driver.utils.GsonConvertUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.deepsoft.shortbarge.driver.widget.LogHandler;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
-import com.google.gson.Gson;
+
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -53,10 +56,9 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
 
     private MediaRecorder mMediaRecorder;
     private File mFile;
-    private String filename, name, resp, driver;
-    private int fileTime;
-    private long startTime, endTime;
-    private List<MessageBean> messageBeansList = new ArrayList<>();
+    private String filename, name, driverId;
+    private int msgSize;
+    private List<MessageGson> messageGsonList = new ArrayList<>();
 
     private MessageAdapter messageAdapter = null;
     private LinearLayoutManager layoutManager;
@@ -65,19 +67,9 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
     private RecyclerView dialog_vm_rv;
 
 
-    public MessageDialog(@NonNull Context context) {
+    public MessageDialog(@NonNull Context context, String driverId){
         super(context);
-    }
-
-    public MessageDialog(@NonNull Context context, int themeResId) {
-        super(context, themeResId);
-    }
-
-
-    public MessageDialog(@NonNull Context context, String resp, String driver){
-        super(context);
-        this.resp = resp;
-        this.driver = driver;
+        this.driverId = driverId;
     }
 
 
@@ -87,9 +79,9 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         this.setCanceledOnTouchOutside(false);
         this.show();
 
+        msgSize = 15;
+
         this.context = context;
-        startTime = System.currentTimeMillis();
-        endTime = System.currentTimeMillis();
         mFile = new File(BaseApplication.getApplication().getExternalFilesDir(Environment.DIRECTORY_MUSIC), "record");
         if(mFile.exists()){
             Log.i(TAG, "Directory exist");
@@ -109,25 +101,13 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                 switch (motionEvent.getAction()){
                     case MotionEvent.ACTION_DOWN:
                         view.setAlpha(0.6f);
-                        startTime = System.currentTimeMillis();
                         startSound();
                         break;
                     case MotionEvent.ACTION_UP:
                         view.setAlpha(1.0f);
-                        endTime = System.currentTimeMillis();
-                        fileTime = (int) (endTime - startTime) / 1000;
+                        msgSize++;
                         stopSound();
                         uploadFile();
-
-                        StringBuilder sb = new StringBuilder("");
-                        int len = fileTime > 60 ? 60 : fileTime;
-                        for(int j = 0; j < len; j++)
-                            sb.append(" ");
-                        MessageBean messageBean2 = new MessageBean(sb.toString()+fileTime+"″", true);
-                        messageBean2.setUrl(filename);
-                        messageBeansList.add(messageBean2);
-                        messageAdapter.setList(messageBeansList);
-                        layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
                         break;
                 }
                 return true;
@@ -137,9 +117,9 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         dialog_vm_rv = dialog_message.findViewById(R.id.dialog_vm_rv);
         layoutManager = new LinearLayoutManager(context);
         dialog_vm_rv.setLayoutManager(layoutManager);
-        messageAdapter = new MessageAdapter(R.layout.item_message, messageBeansList, context, resp, driver);
+        messageAdapter = new MessageAdapter(R.layout.item_message, messageGsonList, context);
         dialog_vm_rv.setAdapter(messageAdapter);
-        layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
+        getChatMsgList(msgSize);
     }
 
 
@@ -157,8 +137,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         File file = new File(filename);
         RequestBody requestFile = RequestBody.create(MediaType.parse("multipart/form-data"), file);
         MultipartBody.Part body = MultipartBody.Part.createFormData("file", filename, requestFile);
-
-        ApiInterface apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
         apiInterface.uploadFile(body).enqueue(new Callback<ResultGson>() {
             @Override
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
@@ -166,9 +145,13 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                 Log.i(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
                 LogHandler.writeFile(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
 
-                //聊天消息
-                WsManager.getInstance().sendReq(new Action("{\"msg\":\""+resultGson.getData().toString()
-                        +"\",\"msgType\":2}", 2, null));
+                if(resultGson.getSuccess()) {
+                    //聊天消息
+                    WsManager.getInstance().sendReq(new Action("{\"msg\":\"" + resultGson.getData().toString()
+                            + "\",\"msgType\":2}", 2, null));
+
+                    getChatMsgList(msgSize);
+                }
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
@@ -178,6 +161,38 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         });
     }
 
+
+    private void getChatMsgList(int pageSize){
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("pageNo", 1);
+        map.put("pageSize", pageSize);
+        map.put("driverId", driverId);
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
+        apiInterface = RetrofitUtil.getInstance().getRetrofit().create(ApiInterface.class);
+        apiInterface.getChatMsgList(requestBody).enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                ResultGson resultGson = response.body();
+                if(resultGson.getSuccess()){
+                    List<MessageList> list = GsonConvertUtil.performTransform(resultGson.getData(), MessageList.class);
+                    messageGsonList = GsonConvertUtil.performTransform(list.get(0).getList(), MessageGson.class);
+                    Collections.reverse(messageGsonList);
+                    Log.e(TAG, "getChatMsgList连接成功 resultGson.getData()="+resultGson.getData());
+                    LogHandler.writeFile(TAG, "getChatMsgList连接成功 resultGson.getData()="+resultGson.getData());
+                    messageAdapter.setList(messageGsonList);
+                    layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
+                }else{
+                    Log.i(TAG, "getChatMsgList连接成功 数据申请失败， msg="+resultGson.getMsg());
+                    LogHandler.writeFile(TAG, "getChatMsgList连接成功 数据申请失败， msg="+resultGson.getMsg());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.e(TAG, "getChatMsgList onFailure:"+t);
+            }
+        });
+    }
 
     /**
      * 开始录制
@@ -221,17 +236,6 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                 LogHandler.writeFile(TAG, "initPath: "+f.getName());
             }
             mMediaRecorder = null;
-        }
-    }
-
-
-    public void addData(MessageResponse messageResponse){
-        Gson gson = new Gson();
-        ReceiveMessage receiveMessage = gson.fromJson(messageResponse.getMessage(), ReceiveMessage.class);
-        MessageBean messageBean = new MessageBean(receiveMessage.getMsg(), false);
-        messageBeansList.add(messageBean);
-        if(messageAdapter != null) {
-            messageAdapter.setList(messageBeansList);
         }
     }
 }
