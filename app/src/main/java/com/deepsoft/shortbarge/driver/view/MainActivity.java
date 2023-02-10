@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TaskGson currentTask;
     private String truckNo, driverId, lang;
     private int currentRetryCount = 0, waitRetryTime = 0, maxConnectCount = 10;// 当前已重试次数// 重试等待时间 //最大重试次数
-    private static boolean isStart = false, isStopOver = false, isAlter = false;
+    private static boolean isStart = false, isStopOver = false, isAlter = false, isChange = false;
 
     private List<TaskGson> taskGsonList = new ArrayList<>(), whiteTaskList = new ArrayList<>();
     private MoreTaskAdapter moreTaskAdapter;
@@ -189,14 +189,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
 
                             LogHandler.writeFile(TAG, "start="+start_distance+" end="+end_distance+" stop="+stop_distance);
-                            LogHandler.writeFile(TAG, "isStart=" + isStart + " currentTask.getState()=" + currentTask.getState());
+                            LogHandler.writeFile(TAG, "isStart=" + isStart + " isChange="+isChange+" currentTask.getState()=" + currentTask.getState());
 
                             if (isStart) {
                                 // 即将到达：经过起点 && 到预警围栏内 && 之前没预警过
-                                if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2) {
+                                if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2 && isChange) {
                                     LogHandler.writeFile(TAG, "即将到达 预警");
-                                    sendNotice();
+                                    sendNotice(currentTask.getTransportTaskId());
                                     isAlter = true;
+                                    isChange = false;
                                 }
 
                                 // 有经停站
@@ -228,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     if (currentTask.getState() == 2) {
                                         LogHandler.writeFile(TAG, "进入辅助围栏 运输中");
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
+                                        isChange = true;
                                         Toast.makeText(MainActivity.this, "进入辅助围栏", Toast.LENGTH_SHORT).show();
                                     }
                                 }else if (start_distance <= ori_r) {//起点
@@ -631,6 +633,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             main_tv_arrive.setClickable(true);
 
                             if(currentTask.getState() != 1){
+                                if(currentTask.getState() > 2) isChange = true;
                                 clearCircle();
                                 drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
                                         new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())),
@@ -840,6 +843,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         main_tv_at.setText(LocalTime.now().format(formatter));
                         isStopOver = false;
                         isAlter = false;
+                        isChange = false;
                         if(main_tv_arrive.getText().toString().equals(getString(R.string.task_continue))){//继续
                             LogHandler.writeFile(TAG, "继续"+transportTaskId);
                             Toast.makeText(MainActivity.this, transportTaskId + "完成任务", Toast.LENGTH_SHORT).show();
@@ -907,9 +911,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private void sendNotice(){
+    private void sendNotice(String transportTaskId){
         HashMap<String, Object> map = new HashMap<>();
-        map.put("transportTaskId", currentTask.getTransportTaskId());
+        map.put("transportTaskId", transportTaskId);
         RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
         apiInterface.sendNotice(requestBody).enqueue(new Callback<ResultGson>() {
             @Override

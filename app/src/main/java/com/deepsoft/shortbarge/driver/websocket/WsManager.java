@@ -18,6 +18,7 @@ import com.deepsoft.shortbarge.driver.constant.Action;
 import com.deepsoft.shortbarge.driver.constant.WsStatus;
 import com.deepsoft.shortbarge.driver.bean.message.MessageResponse;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
+import com.deepsoft.shortbarge.driver.widget.LogHandler;
 import com.google.gson.Gson;
 import com.neovisionaries.ws.client.WebSocket;
 import com.neovisionaries.ws.client.WebSocketAdapter;
@@ -96,6 +97,7 @@ public class WsManager {
                     .connectAsynchronously();//异步连接
             setStatus(WsStatus.CONNECTING);
             Log.d(TAG, "第一次连接");
+            LogHandler.writeFile(TAG, "websocket 第一次连接");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,6 +115,7 @@ public class WsManager {
 
 
     public void disconnect() {
+        LogHandler.writeFile(TAG, "websocket disconnect 取消连接");
         if (ws != null) {
             ws.disconnect();
         }
@@ -343,6 +346,7 @@ public class WsManager {
                 throws Exception {
             super.onConnected(websocket, headers);
             Log.d(TAG, "连接成功");
+            LogHandler.writeFile(TAG, "websocket 连接成功");
             setStatus(WsStatus.CONNECT_SUCCESS);
             cancelReconnect();//连接成功的时候取消重连,初始化连接次数
 //            sendReq(Action.LOGIN, iCallback);
@@ -353,6 +357,7 @@ public class WsManager {
                 throws Exception {
             super.onConnectError(websocket, exception);
             Log.d(TAG, "连接错误");
+            LogHandler.writeFile(TAG, "websocket 连接错误");
             setStatus(WsStatus.CONNECT_FAIL);
             reconnect();//连接错误的时候调用重连方法
         }
@@ -364,6 +369,7 @@ public class WsManager {
                 throws Exception {
             super.onDisconnected(websocket, serverCloseFrame, clientCloseFrame, closedByServer);
             Log.d(TAG, "断开连接");
+            LogHandler.writeFile(TAG, "websocket 断开连接");
             setStatus(WsStatus.CONNECT_FAIL);
             reconnect();//连接断开的时候调用重连方法
         }

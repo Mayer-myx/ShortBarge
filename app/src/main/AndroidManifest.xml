@@ -53,10 +53,6 @@
             android:exported="false"
             android:screenOrientation="landscape" />
         <activity
-            android:name=".view.TestActivity"
-            android:exported="false"
-            android:screenOrientation="landscape" />
-        <activity
             android:name=".view.LoginActivity"
             android:exported="true"
             android:screenOrientation="landscape" >

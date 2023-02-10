@@ -9,6 +9,7 @@ import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -21,6 +22,7 @@ import com.deepsoft.shortbarge.driver.utils.MultiLanguageUtil;
 import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.utils.SpUtil;
+import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
 
@@ -104,9 +106,14 @@ public class SettingDialog extends MyDialog implements View.OnClickListener{
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 ResultGson resultGson = response.body();
                 Log.i(TAG, "getLogout onResponse: "+resultGson.getMsg());
-                dismiss();
-                ((MainActivity)context).finish();
-                context.startActivity(new Intent(context, LoginActivity.class));
+                if(resultGson.getSuccess()) {
+                    dismiss();
+                    WsManager.getInstance().disconnect();
+                    ((MainActivity) context).finish();
+                    context.startActivity(new Intent(context, LoginActivity.class));
+                }else{
+                    Toast.makeText(context, "登出失败", Toast.LENGTH_SHORT).show();
+                }
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
