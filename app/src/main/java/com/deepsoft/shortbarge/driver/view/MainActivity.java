@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private DPoint ori, dest, stop;
     private LatLng latLng1 = new LatLng(30.548730,120.954280),
             latLng2 = new LatLng(30.549946763571644, 120.94785337363145),
-            latLng3 = new LatLng(30.549520, 120.922812);
+            latLng3 = new LatLng(30.549113, 120.923496);
     private float ori_r, dest_r, dest_warn, stop_r, start_distance = -1.0F, end_distance = -1.0F, stop_distance = -1.0F;
 
     private DriverInfoGson currentDriverInfo;
@@ -223,7 +223,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                                 float dis2 = CoordinateConverter.calculateLineDistance(new DPoint(30.549946763571644, 120.94785337363145),
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                                float dis3 = CoordinateConverter.calculateLineDistance(new DPoint(30.549520, 120.922812),
+                                float dis3 = CoordinateConverter.calculateLineDistance(new DPoint(30.549113, 120.923496),
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                                 if(dis1 <= 30 || dis2 <= 30 || dis3 <= 30) {
                                     if (currentTask.getState() == 2) {
@@ -472,6 +472,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
+                if(connectFailDialog != null && connectFailDialog.getIsShow())
+                    connectFailDialog.dismiss();
+
             }
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
@@ -508,6 +511,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
+                if(connectFailDialog != null && connectFailDialog.getIsShow())
+                    connectFailDialog.dismiss();
             }
 
             @Override
@@ -534,21 +539,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
                     @Override
                     public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
-                        if(currentRetryCount < maxConnectCount) {
-                            if(waitConnectDialog != null && !waitConnectDialog.getIsShow())
-                                waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
-                            Log.d(TAG, "发生异常 = " + throwable.toString());
-                            currentRetryCount++;
-                            Log.d(TAG, "重试次数 = " + currentRetryCount);
-                            waitRetryTime = 1 + currentRetryCount;
-                            Log.d(TAG, "等待时间 = " + waitRetryTime);
-                            return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
-                        }else{
+//                        if(currentRetryCount < maxConnectCount) {
+                        if(throwable instanceof ConnectException){
                             if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                                 waitConnectDialog.dismiss();
                             connectFailDialog.showConnectFailDialog();
-                            return Observable.error(new Throwable("重试次数已超过设置次数 = " +currentRetryCount  + "，即不再重试"));
+                        }else{
+                            if(waitConnectDialog != null && !waitConnectDialog.getIsShow())
+                                waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
                         }
+                        Log.d(TAG, "发生异常 = " + throwable.toString());
+                        currentRetryCount++;
+                        Log.d(TAG, "重试次数 = " + currentRetryCount);
+                        waitRetryTime = 1 + currentRetryCount;
+                        Log.d(TAG, "等待时间 = " + waitRetryTime);
+                        LogHandler.writeFile(TAG, "发生异常 = " + throwable.toString()+"重试次数 = " + currentRetryCount+"等待时间 = " + waitRetryTime);
+                        return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
+//                        }else{
+//                            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
+//                                waitConnectDialog.dismiss();
+//                            connectFailDialog.showConnectFailDialog();
+//                            return Observable.error(new Throwable("重试次数已超过设置次数 = " +currentRetryCount  + "，即不再重试"));
+//                        }
                     }
                 });
             }
@@ -676,6 +688,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
+                    if(connectFailDialog != null && connectFailDialog.getIsShow())
+                        connectFailDialog.dismiss();
                 }
 
                 @Override
@@ -1063,6 +1077,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private class ConnectFailDialog extends MyDialog {
 
+        private boolean isShow = false;
+
         public ConnectFailDialog(@NonNull Context context) {
             super(context);
         }
@@ -1071,10 +1087,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             super(context, themeResId);
         }
 
+        public boolean getIsShow(){
+            return isShow;
+        }
+
         public void showConnectFailDialog(){
             View dialog_wait_connect = getLayoutInflater().inflate(R.layout.dialog_connect_fail, null);
             this.setContentView(dialog_wait_connect);
             this.show();
+            isShow = true;
 
             TextView dialog_fail_tv_exit = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_exit);
             dialog_fail_tv_exit.setOnClickListener(v->{
@@ -1085,10 +1106,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             TextView dialog_fail_tv_retry = dialog_wait_connect.findViewById(R.id.dialog_fail_tv_retry);
             dialog_fail_tv_retry.setOnClickListener(v->{
                 this.dismiss();
+                Looper.prepare();
                 getDriverInfo();
                 getDriverTask();
                 getWeatherInfo();
             });
+        }
+
+
+        @Override
+        public void dismiss() {
+            this.isShow = false;
+            super.dismiss();
         }
     }
 }
