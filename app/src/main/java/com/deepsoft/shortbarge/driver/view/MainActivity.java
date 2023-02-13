@@ -588,6 +588,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     lang = sp.getString("locale_language", "en");
                     lang = lang.equals("en") ? "1" : "2";
                     if (resultGson.getSuccess()) {
+
+                        WsManager.getInstance().disconnect();
+                        String token = sp.getString("token", "");
+                        WsManager.getInstance().init(token);
+
                         taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
                         Log.e(TAG, ""+resultGson.getData());
 
@@ -666,6 +671,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 else main_tv_arrive.setText(R.string.task_finish);
                             }
                         } else {//任务列表为空
+                            whiteTaskList = new ArrayList<>();
                             currentTask = null;
                             main_tv_dest.setText("null");
                             main_tv_ts.setText("null");
@@ -1022,7 +1028,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 new DPoint(location.getLatitude(), location.getLongitude()));
                         if (end_distance <= dest_r)
                             changeTaskState(currentTask.getTransportTaskId(), 7);
-                        else Toast.makeText(this, "没到终点", Toast.LENGTH_SHORT).show();
+                        else Toast.makeText(this, "本任务还未到达终点", Toast.LENGTH_SHORT).show();
                         LogHandler.writeFile(TAG, "点击继续/完成 end_distance=" + end_distance + " dest_r" + dest_r + " end_distance <= dest_r?" + (end_distance <= dest_r));
                     }else{
                         Toast.makeText(this, "还未获取当前定位或任务有问题", Toast.LENGTH_SHORT).show();

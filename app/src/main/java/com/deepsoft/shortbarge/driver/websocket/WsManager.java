@@ -96,8 +96,8 @@ public class WsManager {
                     .addListener(mListener = new WsListener())//添加回调监听
                     .connectAsynchronously();//异步连接
             setStatus(WsStatus.CONNECTING);
-            Log.d(TAG, "第一次连接");
-            LogHandler.writeFile(TAG, "websocket 第一次连接");
+            Log.d(TAG, "连接");
+            LogHandler.writeFile(TAG, "websocket 连接");
         } catch (IOException e) {
             e.printStackTrace();
         }
