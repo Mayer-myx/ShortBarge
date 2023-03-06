@@ -67,7 +67,7 @@ public class BaseApplication extends Application {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
         CrashHandler.getInstance(getApplicationContext()).setCrashLogDir(getCrashLogDir());
-        LogHandler.initLogFile(new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/log" + "/goods_" + LocalDateTime.now().format(formatter) + ".log"));
+//        LogHandler.initLogFile(new File(getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) + "/log" + "/goods_" + LocalDateTime.now().format(formatter) + ".log"));
 
         initAppStatusListener();
         //注册Activity生命周期监听回调，此部分一定加上，因为有些版本不加的话多语言切换不回来

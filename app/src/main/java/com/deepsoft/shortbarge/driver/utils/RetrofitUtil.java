@@ -29,7 +29,7 @@ public class RetrofitUtil {
     //返回Retrofit
     public Retrofit getRetrofit() {
         if(baseUrl == null){
-            baseUrl = "http://221.12.170.99:8081/";
+            baseUrl = "http://124.222.31.205:8081/";
         }
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl(baseUrl)

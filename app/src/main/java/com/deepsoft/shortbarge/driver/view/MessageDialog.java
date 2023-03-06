@@ -27,7 +27,7 @@ import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
-import com.deepsoft.shortbarge.driver.widget.LogHandler;
+//import com.deepsoft.shortbarge.driver.widget.LogHandler;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
 
 import org.json.JSONObject;
@@ -86,10 +86,10 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
         mFile = new File(BaseApplication.getApplication().getExternalFilesDir(Environment.DIRECTORY_MUSIC), "record");
         if(mFile.exists()){
             Log.i(TAG, "Directory exist");
-            LogHandler.writeFile(TAG, "Directory exist");
+//            LogHandler.writeFile(TAG, "Directory exist");
         } else if (mFile == null || !mFile.mkdirs()) {
             Log.e(TAG, "Directory not created");
-            LogHandler.writeFile(TAG, "Directory not created");
+//            LogHandler.writeFile(TAG, "Directory not created");
         }
 
         dialog_vm_iv_close = dialog_message.findViewById(R.id.dialog_vm_iv_close);
@@ -144,7 +144,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
                 ResultGson resultGson = response.body();
                 Log.i(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
-                LogHandler.writeFile(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
+//                LogHandler.writeFile(TAG, "uploadFile onResponse: "+resultGson.getMsg()+resultGson.getData());
 
                 if(resultGson.getSuccess()) {
                     //聊天消息
@@ -159,7 +159,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.i(TAG, "uploadFile onFailure: "+t);
-                LogHandler.writeFile(TAG, "uploadFile onFailure: "+t);
+//                LogHandler.writeFile(TAG, "uploadFile onFailure: "+t);
             }
         });
     }
@@ -181,12 +181,12 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
                     messageGsonList = GsonConvertUtil.performTransform(list.get(0).getList(), MessageGson.class);
                     Collections.reverse(messageGsonList);
                     Log.e(TAG, "getChatMsgList连接成功 resultGson.getData()="+resultGson.getData());
-                    LogHandler.writeFile(TAG, "getChatMsgList连接成功 resultGson.getData()="+resultGson.getData());
+//                    LogHandler.writeFile(TAG, "getChatMsgList连接成功 resultGson.getData()="+resultGson.getData());
                     messageAdapter.setList(messageGsonList);
                     layoutManager.scrollToPositionWithOffset(messageAdapter.getItemCount() - 1, Integer.MIN_VALUE);
                 }else{
                     Log.i(TAG, "getChatMsgList连接成功 数据申请失败， msg="+resultGson.getMsg());
-                    LogHandler.writeFile(TAG, "getChatMsgList连接成功 数据申请失败， msg="+resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getChatMsgList连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
             }
 
@@ -219,7 +219,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             mMediaRecorder.prepare();
         } catch (IOException e) {
             Log.e(TAG, "prepare()failed");
-            LogHandler.writeFile(TAG, filename+"prepare()failed");
+//            LogHandler.writeFile(TAG, filename+"prepare()failed");
             e.printStackTrace();
         }
         mMediaRecorder.start();
@@ -248,7 +248,7 @@ public class MessageDialog extends MyDialog implements View.OnClickListener{
             File[] files = mFile.listFiles();
             for(File f : files){
                 Log.i(TAG, "initPath: "+f.getName());
-                LogHandler.writeFile(TAG, "initPath: "+f.getName());
+//                LogHandler.writeFile(TAG, "initPath: "+f.getName());
             }
             mMediaRecorder = null;
         }

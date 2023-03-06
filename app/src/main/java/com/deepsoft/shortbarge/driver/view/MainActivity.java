@@ -51,7 +51,7 @@ import com.deepsoft.shortbarge.driver.utils.PressUtil;
 import com.deepsoft.shortbarge.driver.utils.RetrofitUtil;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
 import com.deepsoft.shortbarge.driver.widget.BaseApplication;
-import com.deepsoft.shortbarge.driver.widget.LogHandler;
+//import com.deepsoft.shortbarge.driver.widget.LogHandler;
 import com.deepsoft.shortbarge.driver.widget.MyDialog;
 
 import org.greenrobot.eventbus.EventBus;
@@ -177,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                     if (aMapLocation.getErrorCode() == 0 && aMapLocation.getAccuracy() <= 500) {
                         location = aMapLocation;
-                        LogHandler.writeFile(TAG, "acc=" + aMapLocation.getAccuracy()+" type="+aMapLocation.getLocationType());
+//                        LogHandler.writeFile(TAG, "acc=" + aMapLocation.getAccuracy()+" type="+aMapLocation.getLocationType());
                         start_distance = CoordinateConverter.calculateLineDistance(ori,
                                 new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                         end_distance = CoordinateConverter.calculateLineDistance(dest,
@@ -188,13 +188,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 stop_distance = CoordinateConverter.calculateLineDistance(stop,
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
 
-                            LogHandler.writeFile(TAG, "start="+start_distance+" end="+end_distance+" stop="+stop_distance);
-                            LogHandler.writeFile(TAG, "isStart=" + isStart + " isChange="+isChange+" currentTask.getState()=" + currentTask.getState());
+//                            LogHandler.writeFile(TAG, "start="+start_distance+" end="+end_distance+" stop="+stop_distance);
+//                            LogHandler.writeFile(TAG, "isStart=" + isStart + " isChange="+isChange+" currentTask.getState()=" + currentTask.getState());
 
                             if (isStart) {
                                 // 即将到达：经过起点 && 到预警围栏内 && 之前没预警过
                                 if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2 && isChange) {
-                                    LogHandler.writeFile(TAG, "即将到达 预警");
+//                                    LogHandler.writeFile(TAG, "即将到达 预警");
                                     sendNotice(currentTask.getTransportTaskId());
                                     isAlter = true;
                                     isChange = false;
@@ -205,14 +205,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     if(aMapLocation.getSpeed() <= 4) {
                                         // 经停站装卸货5：在经停站范围内 && 未停过 && 速度小 && 运输中3
                                         if (stop_distance >= 0 && stop_distance <= stop_r && currentTask.getState() == 3 && !isStopOver) {
-                                            LogHandler.writeFile(TAG, "经停站装卸货");
+//                                            LogHandler.writeFile(TAG, "经停站装卸货");
                                             changeTaskState(currentTask.getTransportTaskId(), 5);
                                             isStopOver = true;
                                             Toast.makeText(MainActivity.this, "经停站装卸货", Toast.LENGTH_SHORT).show();
                                         }
                                     } else {// 经停站继续运输6：停过了 && 状态5
                                         if (currentTask.getState() == 5 && isStopOver) {
-                                            LogHandler.writeFile(TAG, "经停站继续运输");
+//                                            LogHandler.writeFile(TAG, "经停站继续运输");
                                             changeTaskState(currentTask.getTransportTaskId(), 6);
                                             Toast.makeText(MainActivity.this, "经停站继续运输", Toast.LENGTH_SHORT).show();
                                         }
@@ -227,14 +227,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                                 if(dis1 <= 30 || dis2 <= 30 || dis3 <= 30) {
                                     if (currentTask.getState() == 2) {
-                                        LogHandler.writeFile(TAG, "进入辅助围栏 运输中");
+//                                        LogHandler.writeFile(TAG, "进入辅助围栏 运输中");
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
                                         isChange = true;
                                         Toast.makeText(MainActivity.this, "进入辅助围栏", Toast.LENGTH_SHORT).show();
                                     }
                                 }else if (start_distance <= ori_r) {//起点
                                     if (currentTask.getState() == 1) {//待运输
-                                        LogHandler.writeFile(TAG, "起点装卸货");
+//                                        LogHandler.writeFile(TAG, "起点装卸货");
                                         changeTaskState(currentTask.getTransportTaskId(), 2);
                                         Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
                                     }
@@ -253,8 +253,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
                         Log.e("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
                                 + ", errInfo:" + aMapLocation.getErrorInfo());
-                        LogHandler.writeFile("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
-                                + ", errInfo:" + aMapLocation.getErrorInfo());
+//                        LogHandler.writeFile("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
+//                                + ", errInfo:" + aMapLocation.getErrorInfo());
                     }
                 }
             }
@@ -553,7 +553,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         Log.d(TAG, "重试次数 = " + currentRetryCount);
                         waitRetryTime = 1 + currentRetryCount;
                         Log.d(TAG, "等待时间 = " + waitRetryTime);
-                        LogHandler.writeFile(TAG, "发生异常 = " + throwable.toString()+"重试次数 = " + currentRetryCount+"等待时间 = " + waitRetryTime);
+//                        LogHandler.writeFile(TAG, "发生异常 = " + throwable.toString()+"重试次数 = " + currentRetryCount+"等待时间 = " + waitRetryTime);
                         return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
 //                        }else{
 //                            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
@@ -689,7 +689,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }else{
                         if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                         Log.i(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
-                        LogHandler.writeFile(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
+//                        LogHandler.writeFile(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
                     }
 
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
@@ -701,7 +701,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void onError(Throwable e) {
                     Log.e(TAG, "getDriverTask onFailure:"+e.toString());
-                    LogHandler.writeFile(TAG, "getDriverTask onFailure:"+e.toString());
+//                    LogHandler.writeFile(TAG, "getDriverTask onFailure:"+e.toString());
                     if(e instanceof ConnectException){
                         if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                             waitConnectDialog.dismiss();
@@ -787,7 +787,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     else main_tv_arrive.setText(R.string.task_finish);
                 }else{
                     Log.i(TAG, "getDriverTaskOnce连接成功 数据申请失败， msg="+resultGson.getMsg());
-                    LogHandler.writeFile(TAG, "getDriverTaskOnce连接成功 数据申请失败， msg="+resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getDriverTaskOnce连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
 
                 if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
@@ -799,7 +799,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "getDriverTaskOnce onFailure:"+t);
-                LogHandler.writeFile(TAG, "getDriverTaskOnce onFailure:"+t);
+//                LogHandler.writeFile(TAG, "getDriverTaskOnce onFailure:"+t);
                 if(t instanceof ConnectException){
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
@@ -859,13 +859,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         getDriverTaskUpdate();
                     }
                     else {
-                        LogHandler.writeFile(TAG, "changeTaskState getSuccess"+transportTaskId+" state="+state+" isAlter="+isAlter+" isStopOver="+isStopOver);
+//                        LogHandler.writeFile(TAG, "changeTaskState getSuccess"+transportTaskId+" state="+state+" isAlter="+isAlter+" isStopOver="+isStopOver);
                         main_tv_at.setText(LocalTime.now().format(formatter));
                         isStopOver = false;
                         isAlter = false;
                         isChange = false;
                         if(main_tv_arrive.getText().toString().equals(getString(R.string.task_continue))){//继续
-                            LogHandler.writeFile(TAG, "继续"+transportTaskId);
+//                            LogHandler.writeFile(TAG, "继续"+transportTaskId);
                             Toast.makeText(MainActivity.this, transportTaskId + "完成任务", Toast.LENGTH_SHORT).show();
 
                             new Thread() {
@@ -882,7 +882,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 }
                             }.start();
                         }else{//完成
-                            LogHandler.writeFile(TAG, "完成"+transportTaskId);
+//                            LogHandler.writeFile(TAG, "完成"+transportTaskId);
                             Toast.makeText(MainActivity.this, "当前所有任务完成！", Toast.LENGTH_SHORT).show();
                             clearCircle();
 
@@ -905,13 +905,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 } else {
                     if(currentTask != null) {
-                        LogHandler.writeFile(TAG, "当前状态码" + currentTask.getState() + "\n" + transportTaskId + "任务 状态码" + state + " 提交失败" + resultGson.getMsg());
+//                        LogHandler.writeFile(TAG, "当前状态码" + currentTask.getState() + "\n" + transportTaskId + "任务 状态码" + state + " 提交失败" + resultGson.getMsg());
                         Toast.makeText(MainActivity.this, "当前状态码" + currentTask.getState() + "\n"
                                 + transportTaskId + "任务 状态码" + state + " 提交失败" + resultGson.getMsg(), Toast.LENGTH_SHORT).show();
                     }
 //                    if(state == 7) changeTaskState(transportTaskId, state);
                     Log.i(TAG, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg());
-                    LogHandler.writeFile(TAG, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "changeTaskState连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
                 if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
@@ -920,7 +920,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public void onFailure(Call<ResultGson> call, Throwable t) {
                 Log.e(TAG, "changeTaskState onFailure:"+t);
-                LogHandler.writeFile(TAG, "changeTaskState onFailure:"+t);
+//                LogHandler.writeFile(TAG, "changeTaskState onFailure:"+t);
                 if(t instanceof ConnectException){
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
@@ -942,10 +942,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
                     Log.i(TAG, "sendNotice连接成功 数据申请成功， msg="+resultGson.getMsg());
-                    LogHandler.writeFile(TAG, "sendNotice连接成功 数据申请成功， msg="+resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "sendNotice连接成功 数据申请成功， msg="+resultGson.getMsg());
                 }else{
                     Log.i(TAG, "sendNotice连接成功 数据申请失败， msg="+resultGson.getMsg());
-                    LogHandler.writeFile(TAG, "sendNotice连接成功 数据申请失败， msg="+resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "sendNotice连接成功 数据申请失败， msg="+resultGson.getMsg());
                 }
                 if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                     waitConnectDialog.dismiss();
@@ -1029,7 +1029,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                         if (end_distance <= dest_r)
                             changeTaskState(currentTask.getTransportTaskId(), 7);
                         else Toast.makeText(this, "本任务还未到达终点", Toast.LENGTH_SHORT).show();
-                        LogHandler.writeFile(TAG, "点击继续/完成 end_distance=" + end_distance + " dest_r" + dest_r + " end_distance <= dest_r?" + (end_distance <= dest_r));
+//                        LogHandler.writeFile(TAG, "点击继续/完成 end_distance=" + end_distance + " dest_r" + dest_r + " end_distance <= dest_r?" + (end_distance <= dest_r));
                     }else{
                         Toast.makeText(this, "还未获取当前定位或任务有问题", Toast.LENGTH_SHORT).show();
                     }
@@ -1055,25 +1055,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             + ",\"truckId\":" + currentDriverInfo.getTruckId()
                             + ",\"lng\":" + location.getLongitude()
                             + ",\"lat\":" + location.getLatitude() + "}", 1, null));
-                    LogHandler.writeFile(TAG, "经纬度 发送真实信息");
+//                    LogHandler.writeFile(TAG, "经纬度 发送真实信息");
                 }else {
                     WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
                             + ",\"truckId\":" + currentDriverInfo.getTruckId()
                             + ",\"lng\":" + currentTask.getOriginLng()
                             + ",\"lat\":" + currentTask.getOriginLat() + "}", 1, null));
-                    LogHandler.writeFile(TAG, "经纬度 发送起点信息");
+//                    LogHandler.writeFile(TAG, "经纬度 发送起点信息");
                 }
             }
         }else if(messageResponse.getType() == 2){
             //聊天消息
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
             Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
-            LogHandler.writeFile(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
+//            LogHandler.writeFile(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
             main_v_isvm.setVisibility(View.VISIBLE);
             main_tv_vm.setAlpha(1F);
         }else{
             Log.e(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
-            LogHandler.writeFile(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
+//            LogHandler.writeFile(TAG, "else收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
         }
     }
 
