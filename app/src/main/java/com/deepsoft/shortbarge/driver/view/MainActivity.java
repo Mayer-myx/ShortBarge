@@ -692,6 +692,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 //                        LogHandler.writeFile(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
                     }
 
+                    if(location != null) {
+                        String lng = "" + location.getLongitude();
+                        String lat = "" + location.getLatitude();
+                        if (currentTask == null || currentTask.getState() == 2) {
+                            lng = currentTask.getOriginLng();
+                            lat = currentTask.getOriginLat();
+                        }
+                        HashMap<String, Object> map = new HashMap<>();
+                        map.put("lng", lng);
+                        map.put("lat", lat);
+                        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
+                        apiInterface.sendNotice(requestBody).enqueue(new Callback<ResultGson>() {
+                            @Override
+                            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                                Log.i(TAG, "getTruckGPS run: post同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
+                                ResultGson resultGson = value;
+                                if (resultGson.getSuccess()) {
+                                    Log.i(TAG, "getTruckGPS连接成功 数据申请成功， msg=" + resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请成功， msg="+resultGson.getMsg());
+                                } else {
+                                    Log.i(TAG, "getTruckGPS连接成功 数据申请失败， msg=" + resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请失败， msg="+resultGson.getMsg());
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<ResultGson> call, Throwable t) {
+                                Log.i(TAG, "getTruckGPS onFailure， t=" + t.getMessage());
+                            }
+                        });
+                    }else{
+                        Log.i(TAG, "getTruckGPS location = null");
+                        if(currentTask != null) {
+                            String lng = currentTask.getOriginLng();
+                            String lat = currentTask.getOriginLat();
+                            HashMap<String, Object> map = new HashMap<>();
+                            map.put("lng", lng);
+                            map.put("lat", lat);
+                            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
+                            apiInterface.sendNotice(requestBody).enqueue(new Callback<ResultGson>() {
+                                @Override
+                                public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                                    Log.i(TAG, "getTruckGPS run: post同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
+                                    ResultGson resultGson = value;
+                                    if (resultGson.getSuccess()) {
+                                        Log.i(TAG, "getTruckGPS连接成功 数据申请成功， msg=" + resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请成功， msg="+resultGson.getMsg());
+                                    } else {
+                                        Log.i(TAG, "getTruckGPS连接成功 数据申请失败， msg=" + resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请失败， msg="+resultGson.getMsg());
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<ResultGson> call, Throwable t) {
+                                    Log.i(TAG, "getTruckGPS onFailure， t=" + t.getMessage());
+                                }
+                            });
+                        }else{
+                            Log.i(TAG, "getTruckGPS else");
+                        }
+                    }
+
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
                     if(connectFailDialog != null && connectFailDialog.getIsShow())
@@ -1048,23 +1111,24 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(MessageResponse messageResponse){
-        if(messageResponse.getType() == 1){//返回经纬度
-            if(location != null && currentDriverInfo != null) {
-                if(currentTask == null || currentTask.getState() != 2){
-                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
-                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
-                            + ",\"lng\":" + location.getLongitude()
-                            + ",\"lat\":" + location.getLatitude() + "}", 1, null));
-//                    LogHandler.writeFile(TAG, "经纬度 发送真实信息");
-                }else {
-                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
-                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
-                            + ",\"lng\":" + currentTask.getOriginLng()
-                            + ",\"lat\":" + currentTask.getOriginLat() + "}", 1, null));
-//                    LogHandler.writeFile(TAG, "经纬度 发送起点信息");
-                }
-            }
-        }else if(messageResponse.getType() == 2){
+//        if(messageResponse.getType() == 1){//返回经纬度
+//            if(location != null && currentDriverInfo != null) {
+//                if(currentTask == null || currentTask.getState() != 2){
+//                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
+//                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
+//                            + ",\"lng\":" + location.getLongitude()
+//                            + ",\"lat\":" + location.getLatitude() + "}", 1, null));
+////                    LogHandler.writeFile(TAG, "经纬度 发送真实信息");
+//                }else {
+//                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
+//                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
+//                            + ",\"lng\":" + currentTask.getOriginLng()
+//                            + ",\"lat\":" + currentTask.getOriginLat() + "}", 1, null));
+////                    LogHandler.writeFile(TAG, "经纬度 发送起点信息");
+//                }
+//            }
+//        }else
+            if(messageResponse.getType() == 2){
             //聊天消息
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
             Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());

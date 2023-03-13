@@ -152,6 +152,9 @@ public interface ApiInterface {
     @POST("chat/getChatMsgList")
     Call<ResultGson> getChatMsgList(@Body RequestBody body);
 
+
+    @POST("truck/getTruckGPS")
+    Observable<ResultGson> getTruckGPS(@Body RequestBody body);
 //    /*无参POST请求 */
 //    @POST("postNoParamUser")
 //    Call<DriverInfoGson>postNoParamUser();
