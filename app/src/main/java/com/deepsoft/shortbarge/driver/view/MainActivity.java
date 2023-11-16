@@ -100,7 +100,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AMap aMap;
     private Circle circle1, circle2, circle3, circle4;
     private DPoint ori, dest, stop;
-    private LatLng latLng1 = new LatLng(30.548730,120.954280),
+    private LatLng latLng1 = new LatLng(30.555825, 120.960806),//原大门：30.548730,120.954280
             latLng2 = new LatLng(30.549946763571644, 120.94785337363145),
             latLng3 = new LatLng(30.549113, 120.923496);
     private float ori_r, dest_r, dest_warn, stop_r, start_distance = -1.0F, end_distance = -1.0F, stop_distance = -1.0F;
@@ -219,7 +219,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 }
 
-                                float dis1 = CoordinateConverter.calculateLineDistance(new DPoint(30.548730,120.954280),
+                                float dis1 = CoordinateConverter.calculateLineDistance(new DPoint(30.555825, 120.960806),
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                                 float dis2 = CoordinateConverter.calculateLineDistance(new DPoint(30.549946763571644, 120.94785337363145),
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
