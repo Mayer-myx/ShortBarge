@@ -10,8 +10,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.View;
@@ -88,10 +90,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ApiInterface apiInterface;
     private SharedPreferences sp;
     private Observable<ResultGson> observable;//轮询任务用的观察者
+    private Handler mHandler = new Handler();
     private MessageDialog messageDialog;
     private SettingDialog settingDialog;
     private WaitConnectDialog waitConnectDialog;
     private ConnectFailDialog connectFailDialog;
+    private MediaPlayer mediaPlayer;
 
     private AMapLocation location = null;
     private AMapLocationClient mLocationClient = null;
@@ -120,6 +124,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ImageView main_iv_wea, main_iv_setting;
     private RecyclerView main_rv_tasks;
     private View main_v_isvm;
+
+
 
 
     @RequiresApi(api = Build.VERSION_CODES.O)
@@ -151,11 +157,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         initView();
         main_mv_map.onCreate(savedInstanceState);
 
+        initMediaPlayer();
         initLocationGaode();
 
         getDriverInfo();
         getDriverTask();
         getWeatherInfo();
+
+        mHandler = new Handler();
+        mHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                mHandler.postDelayed(this, 3 * 1000);
+                if(location != null) {
+                    String lng = "" + location.getLongitude();
+                    String lat = "" + location.getLatitude();
+                    if (currentTask != null && currentTask.getState() == 2) {
+                        lng = currentTask.getOriginLng();
+                        lat = currentTask.getOriginLat();
+                    }
+                    Log.e(TAG, "mHandler lat="+lat+" lng="+lng);
+                    getTruckGPS(lat, lng);
+                } else {
+                    Log.i(TAG, "location = null");
+                    if(currentTask != null) {
+                        String lng = currentTask.getOriginLng();
+                        String lat = currentTask.getOriginLat();
+                        Log.e(TAG, "mHandler lat="+lat+" lng="+lng);
+                        getTruckGPS(lat, lng);
+                    }else{
+                        Log.i(TAG, "currentTask != null");
+                    }
+                }
+            }
+        }, 0);
     }
 
 
@@ -175,7 +210,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     if(waitConnectDialog != null && waitConnectDialog.getIsShow())
                         waitConnectDialog.dismiss();
 
-                    if (aMapLocation.getErrorCode() == 0 && aMapLocation.getAccuracy() <= 500) {
+                    if (aMapLocation.getErrorCode() == 0 && aMapLocation.getAccuracy() <= 200) {
                         location = aMapLocation;
 //                        LogHandler.writeFile(TAG, "acc=" + aMapLocation.getAccuracy()+" type="+aMapLocation.getLocationType());
                         start_distance = CoordinateConverter.calculateLineDistance(ori,
@@ -375,15 +410,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void helpCirecle(){
         aMap.addCircle(new CircleOptions().center(latLng1)
-                .radius(30)
+                .radius(50)
                 .fillColor(0x50FF00FF)
                 .strokeWidth(1f));
         aMap.addCircle(new CircleOptions().center(latLng2)
-                .radius(30)
+                .radius(50)
                 .fillColor(0x50FF00FF)
                 .strokeWidth(1f));
         aMap.addCircle(new CircleOptions().center(latLng3)
-                .radius(30)
+                .radius(50)
                 .fillColor(0x50FF00FF)
                 .strokeWidth(1f));
     }
@@ -534,248 +569,185 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void getDriverTask(){
         observable = apiInterface.getDriverTask();
         observable.retryWhen(new Function<Observable<Throwable>, ObservableSource<?>>() {
-            @Override
-            public ObservableSource<?> apply(Observable<Throwable> throwableObservable) throws Exception {
-                return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
                     @Override
-                    public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
+                    public ObservableSource<?> apply(Observable<Throwable> throwableObservable) throws Exception {
+                        return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
+                            @Override
+                            public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
 //                        if(currentRetryCount < maxConnectCount) {
-                        if(throwable instanceof ConnectException){
-                            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
-                                waitConnectDialog.dismiss();
-                            connectFailDialog.showConnectFailDialog();
-                        }else{
-                            if(waitConnectDialog != null && !waitConnectDialog.getIsShow())
-                                waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
-                        }
-                        Log.d(TAG, "发生异常 = " + throwable.toString());
-                        currentRetryCount++;
-                        Log.d(TAG, "重试次数 = " + currentRetryCount);
-                        waitRetryTime = 1 + currentRetryCount;
-                        Log.d(TAG, "等待时间 = " + waitRetryTime);
+                                if(throwable instanceof ConnectException){
+                                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
+                                        waitConnectDialog.dismiss();
+                                    connectFailDialog.showConnectFailDialog();
+                                }else{
+                                    if(waitConnectDialog != null && !waitConnectDialog.getIsShow())
+                                        waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
+                                }
+                                Log.d(TAG, "发生异常 = " + throwable.toString());
+                                currentRetryCount++;
+                                Log.d(TAG, "重试次数 = " + currentRetryCount);
+                                waitRetryTime = 1 + currentRetryCount;
+                                Log.d(TAG, "等待时间 = " + waitRetryTime);
 //                        LogHandler.writeFile(TAG, "发生异常 = " + throwable.toString()+"重试次数 = " + currentRetryCount+"等待时间 = " + waitRetryTime);
-                        return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
+                                return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
 //                        }else{
 //                            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
 //                                waitConnectDialog.dismiss();
 //                            connectFailDialog.showConnectFailDialog();
 //                            return Observable.error(new Throwable("重试次数已超过设置次数 = " +currentRetryCount  + "，即不再重试"));
 //                        }
-                    }
-                });
-            }
-        }).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
-            @Override
-            public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
-                return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
-                    @Override
-                    public ObservableSource<?> apply(@NonNull Object throwable) throws Exception {
-                        // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 30s），以实现轮询间间隔设置
-                        return Observable.just(1).delay(30 , TimeUnit.SECONDS);
-                    }
-                });
-            }
-        }).subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe(new Observer<ResultGson>() {
-                @Override
-                public void onSubscribe(Disposable d) { }
-
-                @Override
-                public void onNext(ResultGson value) {
-                    Log.i(TAG, "getDriverTask run: get同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
-                    ResultGson resultGson = value;
-                    lang = sp.getString("locale_language", "en");
-                    lang = lang.equals("en") ? "1" : "2";
-                    if (resultGson.getSuccess()) {
-
-                        WsManager.getInstance().disconnect();
-                        String token = sp.getString("token", "");
-                        WsManager.getInstance().init(token);
-
-                        taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
-                        Log.e(TAG, ""+resultGson.getData());
-
-                        if(!isStart && taskGsonList != null && taskGsonList.size() != 0){
-                            if (main_tv_arrive.getText().equals(getString(R.string.task_finish))) {
-                                main_tv_arrive.setText(R.string.task_start);
-                                main_tv_arrive.setClickable(true);
-                                main_tv_arrive.setAlpha(1.0F);
-                            }
-                            if (taskGsonList.get(0).getState() != 1) {
-                                if (taskGsonList.size() != 1) main_tv_arrive.setText(R.string.task_continue);
-                                else main_tv_arrive.setText(R.string.task_finish);
-                                isStart = true;
-                                main_tv_arrive.setClickable(true);
-                                main_tv_arrive.setAlpha(1.0F);
-                            }
-                        }
-
-                        if (taskGsonList != null && taskGsonList.size() != 0) {//任务列表不为空
-                            whiteTaskList = new ArrayList<>(taskGsonList);
-                            whiteTaskList.remove(0);
-
-                            //更新数据
-                            if (currentTask == null //当前任务和请求任务列表的第一个是不同的
-                                    || !currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId())) {
-
-                                main_tv_st.setText(taskGsonList.get(0).getStartTime());
-                                main_tv_at.setText(taskGsonList.get(0).getArrivalTime());
-                            }
-
-                            currentTask = taskGsonList.get(0);
-                            ori = new DPoint(Double.parseDouble(currentTask.getOriginLat()),
-                                    Double.parseDouble(currentTask.getOriginLng()));
-                            ori_r = Float.parseFloat(currentTask.getOriginFenceRange());
-                            dest = new DPoint(Double.parseDouble(currentTask.getDestinationLat()),
-                                    Double.parseDouble(currentTask.getDestinationLng()));
-                            dest_r = Float.parseFloat(currentTask.getDestinationFenceRange());
-                            dest_warn = Float.parseFloat(currentTask.getDestinationWarningRange());
-
-                            if(currentTask.getStopOver()){
-                                stop = new DPoint(Double.parseDouble(currentTask.getStopLat()),
-                                        Double.parseDouble(currentTask.getStopLng()));
-                                stop_r = Float.parseFloat(currentTask.getStopFenceRange());
-                            }
-
-                            if (lang.equals("1")) {
-                                main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
-                                main_tv_ec.setText(currentTask.getAdminNameEng());
-                            } else {
-                                main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
-                                main_tv_ec.setText(currentTask.getAdminName());
-                            }
-                            main_tv_pn.setText(currentTask.getAdminPhone());
-                            main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
-                            main_tv_arrive.setClickable(true);
-
-                            if(currentTask.getState() != 1){
-                                if(currentTask.getState() > 2) isChange = true;
-                                clearCircle();
-                                drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
-                                        new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())),
-                                        Double.parseDouble(currentTask.getOriginFenceRange()),
-                                        Double.parseDouble(currentTask.getDestinationFenceRange()),
-                                        Double.parseDouble(currentTask.getDestinationWarningRange()));
-                                if(currentTask.getStopOver())
-                                    drawGeofenceStop(new LatLng(Double.parseDouble(currentTask.getStopLat()),Double.parseDouble(currentTask.getStopLng())),
-                                            Double.parseDouble(currentTask.getStopFenceRange()));
-                            }
-
-                            if(aMap != null)
-                                aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0.5*Double.parseDouble(currentTask.getOriginLat()) + 0.5*Double.parseDouble(currentTask.getDestinationLat()),
-                                        0.5*Double.parseDouble(currentTask.getOriginLng()) + 0.5*Double.parseDouble(currentTask.getDestinationLng())), 15));
-
-                            if(isStart) {
-                                if (taskGsonList.size() != 1) main_tv_arrive.setText(R.string.task_continue);
-                                else main_tv_arrive.setText(R.string.task_finish);
-                            }
-                        } else {//任务列表为空
-                            whiteTaskList = new ArrayList<>();
-                            currentTask = null;
-                            main_tv_dest.setText("null");
-                            main_tv_ts.setText("null");
-                            main_tv_st.setText("null");
-                            main_tv_at.setText("null");
-                            main_tv_arrive.setText(R.string.task_finish);
-                            main_tv_arrive.setClickable(false);
-                            main_tv_arrive.setAlpha(0.5F);
-                        }
-
-                        main_tv_tasknum.setText("" + taskGsonList.size());
-                        moreTaskAdapter.setList(whiteTaskList);
-
-                        if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
-                    }else{
-                        if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
-                        Log.i(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
-//                        LogHandler.writeFile(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
-                    }
-
-                    if(location != null) {
-                        String lng = "" + location.getLongitude();
-                        String lat = "" + location.getLatitude();
-                        if (currentTask == null || currentTask.getState() == 2) {
-                            lng = currentTask.getOriginLng();
-                            lat = currentTask.getOriginLat();
-                        }
-                        HashMap<String, Object> map = new HashMap<>();
-                        map.put("lng", lng);
-                        map.put("lat", lat);
-                        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
-                        apiInterface.sendNotice(requestBody).enqueue(new Callback<ResultGson>() {
-                            @Override
-                            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                                Log.i(TAG, "getTruckGPS run: post同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
-                                ResultGson resultGson = value;
-                                if (resultGson.getSuccess()) {
-                                    Log.i(TAG, "getTruckGPS连接成功 数据申请成功， msg=" + resultGson.getMsg());
-//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请成功， msg="+resultGson.getMsg());
-                                } else {
-                                    Log.i(TAG, "getTruckGPS连接成功 数据申请失败， msg=" + resultGson.getMsg());
-//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请失败， msg="+resultGson.getMsg());
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Call<ResultGson> call, Throwable t) {
-                                Log.i(TAG, "getTruckGPS onFailure， t=" + t.getMessage());
                             }
                         });
-                    }else{
-                        Log.i(TAG, "getTruckGPS location = null");
-                        if(currentTask != null) {
-                            String lng = currentTask.getOriginLng();
-                            String lat = currentTask.getOriginLat();
-                            HashMap<String, Object> map = new HashMap<>();
-                            map.put("lng", lng);
-                            map.put("lat", lat);
-                            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
-                            apiInterface.sendNotice(requestBody).enqueue(new Callback<ResultGson>() {
-                                @Override
-                                public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
-                                    Log.i(TAG, "getTruckGPS run: post同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
-                                    ResultGson resultGson = value;
-                                    if (resultGson.getSuccess()) {
-                                        Log.i(TAG, "getTruckGPS连接成功 数据申请成功， msg=" + resultGson.getMsg());
-//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请成功， msg="+resultGson.getMsg());
-                                    } else {
-                                        Log.i(TAG, "getTruckGPS连接成功 数据申请失败， msg=" + resultGson.getMsg());
-//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请失败， msg="+resultGson.getMsg());
-                                    }
+                    }
+                }).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
+                        return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
+                            @Override
+                            public ObservableSource<?> apply(@NonNull Object throwable) throws Exception {
+                                // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 30s），以实现轮询间间隔设置
+                                return Observable.just(1).delay(30 , TimeUnit.SECONDS);
+                            }
+                        });
+                    }
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<ResultGson>() {
+                    @Override
+                    public void onSubscribe(Disposable d) { }
+
+                    @Override
+                    public void onNext(ResultGson value) {
+                        Log.i(TAG, "getDriverTask run: get同步请求 " + "code=" + value.getCode() + " msg=" + value.getMsg());
+                        ResultGson resultGson = value;
+                        lang = sp.getString("locale_language", "en");
+                        lang = lang.equals("en") ? "1" : "2";
+                        if (resultGson.getSuccess()) {
+
+                            WsManager.getInstance().disconnect();
+                            String token = sp.getString("token", "");
+                            WsManager.getInstance().init(token);
+
+                            taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
+                            Log.e(TAG, ""+resultGson.getData());
+
+                            if(!isStart && taskGsonList != null && taskGsonList.size() != 0){
+                                if (main_tv_arrive.getText().equals(getString(R.string.task_finish))) {
+                                    main_tv_arrive.setText(R.string.task_start);
+                                    main_tv_arrive.setClickable(true);
+                                    main_tv_arrive.setAlpha(1.0F);
+                                }
+                                if (taskGsonList.get(0).getState() != 1) {
+                                    if (taskGsonList.size() != 1) main_tv_arrive.setText(R.string.task_continue);
+                                    else main_tv_arrive.setText(R.string.task_finish);
+                                    isStart = true;
+                                    main_tv_arrive.setClickable(true);
+                                    main_tv_arrive.setAlpha(1.0F);
+                                }
+                            }
+
+                            if (taskGsonList != null && taskGsonList.size() != 0) {//任务列表不为空
+                                whiteTaskList = new ArrayList<>(taskGsonList);
+                                whiteTaskList.remove(0);
+
+                                //更新数据
+                                if (currentTask == null //当前任务和请求任务列表的第一个是不同的
+                                        || !currentTask.getTransportTaskId().equals(taskGsonList.get(0).getTransportTaskId())) {
+
+                                    main_tv_st.setText(taskGsonList.get(0).getStartTime());
+                                    main_tv_at.setText(taskGsonList.get(0).getArrivalTime());
                                 }
 
-                                @Override
-                                public void onFailure(Call<ResultGson> call, Throwable t) {
-                                    Log.i(TAG, "getTruckGPS onFailure， t=" + t.getMessage());
+                                currentTask = taskGsonList.get(0);
+                                ori = new DPoint(Double.parseDouble(currentTask.getOriginLat()),
+                                        Double.parseDouble(currentTask.getOriginLng()));
+                                ori_r = Float.parseFloat(currentTask.getOriginFenceRange());
+                                dest = new DPoint(Double.parseDouble(currentTask.getDestinationLat()),
+                                        Double.parseDouble(currentTask.getDestinationLng()));
+                                dest_r = Float.parseFloat(currentTask.getDestinationFenceRange());
+                                dest_warn = Float.parseFloat(currentTask.getDestinationWarningRange());
+
+                                if(currentTask.getStopOver()){
+                                    stop = new DPoint(Double.parseDouble(currentTask.getStopLat()),
+                                            Double.parseDouble(currentTask.getStopLng()));
+                                    stop_r = Float.parseFloat(currentTask.getStopFenceRange());
                                 }
-                            });
+
+                                if (lang.equals("1")) {
+                                    main_tv_dest.setText(currentTask.getNextStationEng() + currentTask.getTaskDura(lang));
+                                    main_tv_ec.setText(currentTask.getAdminNameEng());
+                                } else {
+                                    main_tv_dest.setText(currentTask.getNextStation() + currentTask.getTaskDura(lang));
+                                    main_tv_ec.setText(currentTask.getAdminName());
+                                }
+                                main_tv_pn.setText(currentTask.getAdminPhone());
+                                main_tv_ts.setText(currentTask.getTaskState(lang) + currentTask.getTaskStateDuration(lang));
+                                main_tv_arrive.setClickable(true);
+
+                                if(currentTask.getState() != 1){
+                                    if(currentTask.getState() > 2) isChange = true;
+                                    clearCircle();
+                                    drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
+                                            new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())),
+                                            Double.parseDouble(currentTask.getOriginFenceRange()),
+                                            Double.parseDouble(currentTask.getDestinationFenceRange()),
+                                            Double.parseDouble(currentTask.getDestinationWarningRange()));
+                                    if(currentTask.getStopOver())
+                                        drawGeofenceStop(new LatLng(Double.parseDouble(currentTask.getStopLat()),Double.parseDouble(currentTask.getStopLng())),
+                                                Double.parseDouble(currentTask.getStopFenceRange()));
+                                }
+
+                                if(aMap != null)
+                                    aMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(0.5*Double.parseDouble(currentTask.getOriginLat()) + 0.5*Double.parseDouble(currentTask.getDestinationLat()),
+                                            0.5*Double.parseDouble(currentTask.getOriginLng()) + 0.5*Double.parseDouble(currentTask.getDestinationLng())), 15));
+
+                                if(isStart) {
+                                    if (taskGsonList.size() != 1) main_tv_arrive.setText(R.string.task_continue);
+                                    else main_tv_arrive.setText(R.string.task_finish);
+                                }
+                            } else {//任务列表为空
+                                whiteTaskList = new ArrayList<>();
+                                currentTask = null;
+                                main_tv_dest.setText("null");
+                                main_tv_ts.setText("null");
+                                main_tv_st.setText("null");
+                                main_tv_at.setText("null");
+                                main_tv_arrive.setText(R.string.task_finish);
+                                main_tv_arrive.setClickable(false);
+                                main_tv_arrive.setAlpha(0.5F);
+                            }
+
+                            main_tv_tasknum.setText("" + taskGsonList.size());
+                            moreTaskAdapter.setList(whiteTaskList);
+
+                            if(settingDialog != null) settingDialog.setServer(getString(R.string.state_connected));
                         }else{
-                            Log.i(TAG, "getTruckGPS else");
+                            if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
+                            Log.i(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
+//                        LogHandler.writeFile(TAG, "getDriverTask连接成功 数据申请失败， msg="+resultGson.getMsg());
+                        }
+
+                        if(waitConnectDialog != null && waitConnectDialog.getIsShow())
+                            waitConnectDialog.dismiss();
+                        if(connectFailDialog != null && connectFailDialog.getIsShow())
+                            connectFailDialog.dismiss();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        Log.e(TAG, "getDriverTask onFailure:"+e.toString());
+//                    LogHandler.writeFile(TAG, "getDriverTask onFailure:"+e.toString());
+                        if(e instanceof ConnectException){
+                            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
+                                waitConnectDialog.dismiss();
+                            connectFailDialog.showConnectFailDialog();
+                            if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
                         }
                     }
 
-                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
-                        waitConnectDialog.dismiss();
-                    if(connectFailDialog != null && connectFailDialog.getIsShow())
-                        connectFailDialog.dismiss();
-                }
-
-                @Override
-                public void onError(Throwable e) {
-                    Log.e(TAG, "getDriverTask onFailure:"+e.toString());
-//                    LogHandler.writeFile(TAG, "getDriverTask onFailure:"+e.toString());
-                    if(e instanceof ConnectException){
-                        if(waitConnectDialog != null && waitConnectDialog.getIsShow())
-                            waitConnectDialog.dismiss();
-                        connectFailDialog.showConnectFailDialog();
-                        if(settingDialog != null) settingDialog.setServer(getString(R.string.state_lost));
-                    }
-                }
-
-                @Override
-                public void onComplete() { }
-            });
+                    @Override
+                    public void onComplete() { }
+                });
     }
 
 
@@ -791,6 +763,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 Log.i(TAG, "getDriverTaskOnce run: get同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
                 ResultGson resultGson = response.body();
                 if (resultGson.getSuccess()) {
+                    if (!mediaPlayer.isPlaying()) {
+                        mediaPlayer.start();
+                    }
+
                     taskGsonList = GsonConvertUtil.performTransform(resultGson.getData(), TaskGson.class);
 
                     if(taskGsonList != null && taskGsonList.size() != 0) {
@@ -1027,6 +1003,43 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
+    private void getTruckGPS(String lat, String lng){
+        HashMap<String, Object> map = new HashMap<>();
+        map.put("lng", lng);
+        map.put("lat", lat);
+        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), new JSONObject(map).toString());
+        apiInterface.getTruckGPS(requestBody).enqueue(new Callback<ResultGson>() {
+            @Override
+            public void onResponse(Call<ResultGson> call, Response<ResultGson> response) {
+                Log.i(TAG, "getTruckGPS run: post同步请求 " + "code=" + response.body().getCode() + " msg=" + response.body().getMsg());
+                ResultGson resultGson = response.body();
+                if (resultGson.getSuccess()) {
+                    Log.i(TAG, "getTruckGPS连接成功 数据申请成功， msg=" + resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请成功， msg="+resultGson.getMsg());
+                } else {
+                    Log.i(TAG, "getTruckGPS连接成功 数据申请失败， msg=" + resultGson.getMsg());
+//                    LogHandler.writeFile(TAG, "getTruckGPS连接成功 数据申请失败， msg="+resultGson.getMsg());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultGson> call, Throwable t) {
+                Log.i(TAG, "getTruckGPS onFailure， t=" + t.getMessage());
+            }
+        });
+    }
+
+
+    private void initMediaPlayer() {
+        try {
+            mediaPlayer = MediaPlayer.create(this, R.raw.ring);
+            mediaPlayer.prepare();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
     @Override
     protected void onResume() {
         super.onResume();
@@ -1063,6 +1076,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         WsManager.getInstance().disconnect();
         apiInterface = null;
         observable = null;
+        if (mHandler != null) {
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler = null;
+        }
+
+        if (mediaPlayer != null) {
+            mediaPlayer.stop();
+            mediaPlayer.release();
+        }
     }
 
 
@@ -1111,24 +1133,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(MessageResponse messageResponse){
-//        if(messageResponse.getType() == 1){//返回经纬度
-//            if(location != null && currentDriverInfo != null) {
-//                if(currentTask == null || currentTask.getState() != 2){
-//                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
-//                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
-//                            + ",\"lng\":" + location.getLongitude()
-//                            + ",\"lat\":" + location.getLatitude() + "}", 1, null));
-////                    LogHandler.writeFile(TAG, "经纬度 发送真实信息");
-//                }else {
-//                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
-//                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
-//                            + ",\"lng\":" + currentTask.getOriginLng()
-//                            + ",\"lat\":" + currentTask.getOriginLat() + "}", 1, null));
-////                    LogHandler.writeFile(TAG, "经纬度 发送起点信息");
-//                }
-//            }
-//        }else
-            if(messageResponse.getType() == 2){
+        if(messageResponse.getType() == 1){//返回经纬度
+            if(location != null && currentDriverInfo != null) {
+                if(currentTask == null || currentTask.getState() != 2){
+                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
+                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
+                            + ",\"lng\":" + location.getLongitude()
+                            + ",\"lat\":" + location.getLatitude() + "}", 1, null));
+//                    LogHandler.writeFile(TAG, "经纬度 发送真实信息");
+                }else {
+                    WsManager.getInstance().sendReq(new Action("{\"driverId\":" + currentDriverInfo.getDriverId()
+                            + ",\"truckId\":" + currentDriverInfo.getTruckId()
+                            + ",\"lng\":" + currentTask.getOriginLng()
+                            + ",\"lat\":" + currentTask.getOriginLat() + "}", 1, null));
+//                    LogHandler.writeFile(TAG, "经纬度 发送起点信息");
+                }
+            }
+        }else if(messageResponse.getType() == 2){
             //聊天消息
             WsManager.getInstance().sendReq(new Action(messageResponse.getMessage(), 3, null));
             Log.e(TAG, "收到消息type="+messageResponse.getType()+"\tmsg="+messageResponse.getMessage());
@@ -1180,6 +1201,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 getDriverInfo();
                 getDriverTask();
                 getWeatherInfo();
+
+                mHandler = new Handler();
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mHandler.postDelayed(this, 3 * 1000);
+                        if(location != null) {
+                            String lng = "" + location.getLongitude();
+                            String lat = "" + location.getLatitude();
+                            if (currentTask != null && currentTask.getState() == 2) {
+                                lng = currentTask.getOriginLng();
+                                lat = currentTask.getOriginLat();
+                            }
+                            Log.e(TAG, "mHandler lat="+lat+" lng="+lng);
+                            getTruckGPS(lat, lng);
+                        } else {
+                            Log.i(TAG, "location = null");
+                            if(currentTask != null) {
+                                String lng = currentTask.getOriginLng();
+                                String lat = currentTask.getOriginLat();
+                                getTruckGPS(lat, lng);
+                            }else{
+                                Log.i(TAG, "currentTask != null");
+                            }
+                        }
+                    }
+                }, 0);
             });
         }
 

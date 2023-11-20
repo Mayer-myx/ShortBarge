@@ -27,7 +27,7 @@ public interface ApiInterface {
      */
     @GET("account/login")
     Call<ResultGson> getLogin(@Query("username") String username,
-                                 @Query("password") String password);
+                              @Query("password") String password);
 
     /**
      * 登出
@@ -121,7 +121,7 @@ public interface ApiInterface {
      */
     @GET("transport/changeTaskState")
     Call<ResultGson> changeTaskState(@Query("transportTaskId") String transportTaskId,
-                              @Query("state") Integer state);
+                                     @Query("state") Integer state);
 
 
     /**
@@ -154,7 +154,7 @@ public interface ApiInterface {
 
 
     @POST("truck/getTruckGPS")
-    Observable<ResultGson> getTruckGPS(@Body RequestBody body);
+    Call<ResultGson> getTruckGPS(@Body RequestBody body);
 //    /*无参POST请求 */
 //    @POST("postNoParamUser")
 //    Call<DriverInfoGson>postNoParamUser();
