@@ -127,7 +127,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
 
-
     @RequiresApi(api = Build.VERSION_CODES.O)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -203,94 +202,91 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @RequiresApi(api = Build.VERSION_CODES.O)
     private void initLocationGaode(){
-        aMapLocationListener = new AMapLocationListener() {
-            @Override
-            public void onLocationChanged(AMapLocation aMapLocation) {
-                if (aMapLocation != null) {
-                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
-                        waitConnectDialog.dismiss();
+        aMapLocationListener = aMapLocation -> {
+            if (aMapLocation != null) {
+                if(waitConnectDialog != null && waitConnectDialog.getIsShow())
+                    waitConnectDialog.dismiss();
 
-                    if (aMapLocation.getErrorCode() == 0 && aMapLocation.getAccuracy() <= 200) {
-                        location = aMapLocation;
+                if (aMapLocation.getErrorCode() == 0 && aMapLocation.getAccuracy() <= 200) {
+                    location = aMapLocation;
 //                        LogHandler.writeFile(TAG, "acc=" + aMapLocation.getAccuracy()+" type="+aMapLocation.getLocationType());
-                        start_distance = CoordinateConverter.calculateLineDistance(ori,
-                                new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                        end_distance = CoordinateConverter.calculateLineDistance(dest,
-                                new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                    start_distance = CoordinateConverter.calculateLineDistance(ori,
+                            new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                    end_distance = CoordinateConverter.calculateLineDistance(dest,
+                            new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
 
-                        if(currentTask != null) {
-                            if (currentTask.getStopOver())
-                                stop_distance = CoordinateConverter.calculateLineDistance(stop,
-                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                    if(currentTask != null) {
+                        if (currentTask.getStopOver())
+                            stop_distance = CoordinateConverter.calculateLineDistance(stop,
+                                    new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
 
 //                            LogHandler.writeFile(TAG, "start="+start_distance+" end="+end_distance+" stop="+stop_distance);
 //                            LogHandler.writeFile(TAG, "isStart=" + isStart + " isChange="+isChange+" currentTask.getState()=" + currentTask.getState());
 
-                            if (isStart) {
-                                // 即将到达：经过起点 && 到预警围栏内 && 之前没预警过
-                                if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2 && isChange) {
+                        if (isStart) {
+                            // 即将到达：经过起点 && 到预警围栏内 && 之前没预警过
+                            if (end_distance <= dest_warn && !isAlter && currentTask.getState() > 2 && isChange) {
 //                                    LogHandler.writeFile(TAG, "即将到达 预警");
-                                    sendNotice(currentTask.getTransportTaskId());
-                                    isAlter = true;
-                                    isChange = false;
-                                }
+                                sendNotice(currentTask.getTransportTaskId());
+                                isAlter = true;
+                                isChange = false;
+                            }
 
-                                // 有经停站
-                                if (currentTask.getStopOver()){
-                                    if(aMapLocation.getSpeed() <= 4) {
-                                        // 经停站装卸货5：在经停站范围内 && 未停过 && 速度小 && 运输中3
-                                        if (stop_distance >= 0 && stop_distance <= stop_r && currentTask.getState() == 3 && !isStopOver) {
+                            // 有经停站
+                            if (currentTask.getStopOver()){
+                                if(aMapLocation.getSpeed() <= 4) {
+                                    // 经停站装卸货5：在经停站范围内 && 未停过 && 速度小 && 运输中3
+                                    if (stop_distance >= 0 && stop_distance <= stop_r && currentTask.getState() == 3 && !isStopOver) {
 //                                            LogHandler.writeFile(TAG, "经停站装卸货");
-                                            changeTaskState(currentTask.getTransportTaskId(), 5);
-                                            isStopOver = true;
-                                            Toast.makeText(MainActivity.this, "经停站装卸货", Toast.LENGTH_SHORT).show();
-                                        }
-                                    } else {// 经停站继续运输6：停过了 && 状态5
-                                        if (currentTask.getState() == 5 && isStopOver) {
+                                        changeTaskState(currentTask.getTransportTaskId(), 5);
+                                        isStopOver = true;
+                                        Toast.makeText(MainActivity.this, "经停站装卸货", Toast.LENGTH_SHORT).show();
+                                    }
+                                } else {// 经停站继续运输6：停过了 && 状态5
+                                    if (currentTask.getState() == 5 && isStopOver) {
 //                                            LogHandler.writeFile(TAG, "经停站继续运输");
-                                            changeTaskState(currentTask.getTransportTaskId(), 6);
-                                            Toast.makeText(MainActivity.this, "经停站继续运输", Toast.LENGTH_SHORT).show();
-                                        }
+                                        changeTaskState(currentTask.getTransportTaskId(), 6);
+                                        Toast.makeText(MainActivity.this, "经停站继续运输", Toast.LENGTH_SHORT).show();
                                     }
                                 }
+                            }
 
-                                float dis1 = CoordinateConverter.calculateLineDistance(new DPoint(30.555681, 120.960788),
-                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                                float dis2 = CoordinateConverter.calculateLineDistance(new DPoint(30.549946763571644, 120.94785337363145),
-                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                                float dis3 = CoordinateConverter.calculateLineDistance(new DPoint(30.549113, 120.923496),
-                                        new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                                if(dis1 <= 20 || dis2 <= 30 || dis3 <= 30) {
-                                    if (currentTask.getState() == 2) {
+                            float dis1 = CoordinateConverter.calculateLineDistance(new DPoint(30.555681, 120.960788),
+                                    new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                            float dis2 = CoordinateConverter.calculateLineDistance(new DPoint(30.549946763571644, 120.94785337363145),
+                                    new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                            float dis3 = CoordinateConverter.calculateLineDistance(new DPoint(30.549113, 120.923496),
+                                    new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
+                            if(dis1 <= 20 || dis2 <= 30 || dis3 <= 30) {
+                                if (currentTask.getState() == 2) {
 //                                        LogHandler.writeFile(TAG, "进入辅助围栏 运输中");
-                                        changeTaskState(currentTask.getTransportTaskId(), 3);
-                                        isChange = true;
-                                        Toast.makeText(MainActivity.this, "进入辅助围栏", Toast.LENGTH_SHORT).show();
-                                    }
-                                }else if (start_distance <= ori_r) {//起点
-                                    if (currentTask.getState() == 1) {//待运输
-//                                        LogHandler.writeFile(TAG, "起点装卸货");
-                                        changeTaskState(currentTask.getTransportTaskId(), 2);
-                                        Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
-                                    }
+                                    changeTaskState(currentTask.getTransportTaskId(), 3);
+                                    isChange = true;
+                                    Toast.makeText(MainActivity.this, "进入辅助围栏", Toast.LENGTH_SHORT).show();
                                 }
+                            }else if (start_distance <= ori_r) {//起点
+                                if (currentTask.getState() == 1) {//待运输
+//                                        LogHandler.writeFile(TAG, "起点装卸货");
+                                    changeTaskState(currentTask.getTransportTaskId(), 2);
+                                    Toast.makeText(MainActivity.this, "起点装卸货", Toast.LENGTH_SHORT).show();
+                                }
+                            }
 //                                else {//运输
 //                                    if (currentTask.getState() == 2) {//起点装卸货
 //                                        LogHandler.writeFile(TAG, "运输中");
 //                                        changeTaskState(currentTask.getTransportTaskId(), 3);
 //                                    }
 //                                }
-                            }
                         }
-                    }else {
-                        //Toast.makeText(MainActivity.this, "location Error, ErrCode:" + aMapLocation.getErrorCode()
-                        //        + ", errInfo:" + aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
-                        //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
-                        Log.e("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
-                                + ", errInfo:" + aMapLocation.getErrorInfo());
+                    }
+                }else {
+                    //Toast.makeText(MainActivity.this, "location Error, ErrCode:" + aMapLocation.getErrorCode()
+                    //        + ", errInfo:" + aMapLocation.getErrorInfo(), Toast.LENGTH_SHORT).show();
+                    //定位失败时，可通过ErrCode（错误码）信息来确定失败的原因，errInfo是错误信息，详见错误码表。
+                    Log.e("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
+                            + ", errInfo:" + aMapLocation.getErrorInfo());
 //                        LogHandler.writeFile("AmapError","location Error, ErrCode:" + aMapLocation.getErrorCode()
 //                                + ", errInfo:" + aMapLocation.getErrorInfo());
-                    }
                 }
             }
         };
@@ -568,49 +564,33 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
      */
     private void getDriverTask(){
         observable = apiInterface.getDriverTask();
-        observable.retryWhen(new Function<Observable<Throwable>, ObservableSource<?>>() {
-                    @Override
-                    public ObservableSource<?> apply(Observable<Throwable> throwableObservable) throws Exception {
-                        return throwableObservable.flatMap(new Function<Throwable, ObservableSource<?>>() {
-                            @Override
-                            public ObservableSource<?> apply(@NonNull Throwable throwable) throws Exception {
+        observable.retryWhen(throwableObservable -> throwableObservable.flatMap((Function<Throwable, ObservableSource<?>>) throwable -> {
 //                        if(currentRetryCount < maxConnectCount) {
-                                if(throwable instanceof ConnectException){
-                                    if(waitConnectDialog != null && waitConnectDialog.getIsShow())
-                                        waitConnectDialog.dismiss();
-                                    connectFailDialog.showConnectFailDialog();
-                                }else{
-                                    if(waitConnectDialog != null && !waitConnectDialog.getIsShow())
-                                        waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
-                                }
-                                Log.d(TAG, "发生异常 = " + throwable.toString());
-                                currentRetryCount++;
-                                Log.d(TAG, "重试次数 = " + currentRetryCount);
-                                waitRetryTime = 1 + currentRetryCount;
-                                Log.d(TAG, "等待时间 = " + waitRetryTime);
+            if(throwable instanceof ConnectException){
+                if(waitConnectDialog != null && waitConnectDialog.getIsShow())
+                    waitConnectDialog.dismiss();
+                connectFailDialog.showConnectFailDialog();
+            }else{
+                if(waitConnectDialog != null && !waitConnectDialog.getIsShow())
+                    waitConnectDialog.showWaitConnectDialog(MainActivity.this, getLayoutInflater());
+            }
+            Log.d(TAG, "发生异常 = " + throwable.toString());
+            currentRetryCount++;
+            Log.d(TAG, "重试次数 = " + currentRetryCount);
+            waitRetryTime = 1 + currentRetryCount;
+            Log.d(TAG, "等待时间 = " + waitRetryTime);
 //                        LogHandler.writeFile(TAG, "发生异常 = " + throwable.toString()+"重试次数 = " + currentRetryCount+"等待时间 = " + waitRetryTime);
-                                return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
+            return Observable.just(1).delay(waitRetryTime, TimeUnit.SECONDS);
 //                        }else{
 //                            if(waitConnectDialog != null && waitConnectDialog.getIsShow())
 //                                waitConnectDialog.dismiss();
 //                            connectFailDialog.showConnectFailDialog();
 //                            return Observable.error(new Throwable("重试次数已超过设置次数 = " +currentRetryCount  + "，即不再重试"));
 //                        }
-                            }
-                        });
-                    }
-                }).repeatWhen(new Function<Observable<Object>, ObservableSource<?>>() {
-                    @Override
-                    public ObservableSource<?> apply(Observable<Object> objectObservable) throws Exception {
-                        return objectObservable.flatMap(new Function<Object, ObservableSource<?>>() {
-                            @Override
-                            public ObservableSource<?> apply(@NonNull Object throwable) throws Exception {
-                                // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 30s），以实现轮询间间隔设置
-                                return Observable.just(1).delay(30 , TimeUnit.SECONDS);
-                            }
-                        });
-                    }
-                }).subscribeOn(Schedulers.io())
+        })).repeatWhen(objectObservable -> objectObservable.flatMap((Function<Object, ObservableSource<?>>) throwable -> {
+            // 注：此处加入了delay操作符，作用 = 延迟一段时间发送（此处设置 = 30s），以实现轮询间间隔设置
+            return Observable.just(1).delay(30 , TimeUnit.SECONDS);
+        })).subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<ResultGson>() {
                     @Override
