@@ -104,7 +104,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private AMap aMap;
     private Circle circle1, circle2, circle3, circle4;
     private DPoint ori, dest, stop;
-    private LatLng latLng1 = new LatLng(30.555825, 120.960806),//原大门：30.548730,120.954280
+    private LatLng latLng1 = new LatLng(30.555681, 120.960788),//原大门：30.548730,120.954280
             latLng2 = new LatLng(30.549946763571644, 120.94785337363145),
             latLng3 = new LatLng(30.549113, 120.923496);
     private float ori_r, dest_r, dest_warn, stop_r, start_distance = -1.0F, end_distance = -1.0F, stop_distance = -1.0F;
@@ -254,13 +254,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                     }
                                 }
 
-                                float dis1 = CoordinateConverter.calculateLineDistance(new DPoint(30.555825, 120.960806),
+                                float dis1 = CoordinateConverter.calculateLineDistance(new DPoint(30.555681, 120.960788),
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                                 float dis2 = CoordinateConverter.calculateLineDistance(new DPoint(30.549946763571644, 120.94785337363145),
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
                                 float dis3 = CoordinateConverter.calculateLineDistance(new DPoint(30.549113, 120.923496),
                                         new DPoint(aMapLocation.getLatitude(), aMapLocation.getLongitude()));
-                                if(dis1 <= 30 || dis2 <= 30 || dis3 <= 30) {
+                                if(dis1 <= 20 || dis2 <= 30 || dis3 <= 30) {
                                     if (currentTask.getState() == 2) {
 //                                        LogHandler.writeFile(TAG, "进入辅助围栏 运输中");
                                         changeTaskState(currentTask.getTransportTaskId(), 3);
@@ -410,15 +410,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void helpCirecle(){
         aMap.addCircle(new CircleOptions().center(latLng1)
-                .radius(50)
+                .radius(20)
                 .fillColor(0x50FF00FF)
                 .strokeWidth(1f));
         aMap.addCircle(new CircleOptions().center(latLng2)
-                .radius(50)
+                .radius(30)
                 .fillColor(0x50FF00FF)
                 .strokeWidth(1f));
         aMap.addCircle(new CircleOptions().center(latLng3)
-                .radius(50)
+                .radius(30)
                 .fillColor(0x50FF00FF)
                 .strokeWidth(1f));
     }
@@ -687,8 +687,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                 if(currentTask.getState() != 1){
                                     if(currentTask.getState() > 2) isChange = true;
                                     clearCircle();
-                                    drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()),Double.parseDouble(currentTask.getOriginLng())),
-                                            new LatLng(Double.parseDouble(currentTask.getDestinationLat()),Double.parseDouble(currentTask.getDestinationLng())),
+                                    drawGeofenceGaode(new LatLng(Double.parseDouble(currentTask.getOriginLat()), Double.parseDouble(currentTask.getOriginLng())),
+                                            new LatLng(Double.parseDouble(currentTask.getDestinationLat()), Double.parseDouble(currentTask.getDestinationLng())),
                                             Double.parseDouble(currentTask.getOriginFenceRange()),
                                             Double.parseDouble(currentTask.getDestinationFenceRange()),
                                             Double.parseDouble(currentTask.getDestinationWarningRange()));
