@@ -17,7 +17,6 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.deepsoft.shortbarge.driver.BuildConfig;
 import com.deepsoft.shortbarge.driver.R;
 import com.deepsoft.shortbarge.driver.constant.ConstantGlobal;
 import com.deepsoft.shortbarge.driver.bean.DriverInfoGson;

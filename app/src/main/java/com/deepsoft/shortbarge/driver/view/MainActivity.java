@@ -984,6 +984,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     private void getTruckGPS(String lat, String lng){
+        float dis = CoordinateConverter.calculateLineDistance(new DPoint(30.555681, 120.960788),
+                new DPoint(Double.parseDouble(lat), Double.parseDouble(lng)));
+        if(dis <= 10) {
+            lat = ""+30.555681;
+            lng = ""+120.960788;
+        }
         HashMap<String, Object> map = new HashMap<>();
         map.put("lng", lng);
         map.put("lat", lat);
