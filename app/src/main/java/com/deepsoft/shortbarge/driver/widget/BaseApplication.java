@@ -9,6 +9,8 @@ import com.deepsoft.shortbarge.driver.utils.MultiLanguageUtil;
 import com.deepsoft.shortbarge.driver.utils.SpUtil;
 import com.deepsoft.shortbarge.driver.callback.ForegroundCallbacks;
 import com.deepsoft.shortbarge.driver.websocket.WsManager;
+import com.tencent.map.geolocation.TencentLocationManager;
+import com.tencent.map.geolocation.TencentLocationManagerOptions;
 
 import android.app.Activity;
 import android.os.Build;

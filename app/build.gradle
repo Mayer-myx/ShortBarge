@@ -75,12 +75,16 @@ dependencies {
     implementation 'com.github.CymChad:BaseRecyclerViewAdapterHelper:3.0.10'
 
     // 腾讯地图
-//    implementation 'com.tencent.map:tencent-map-vector-sdk:4.3.5'
-//    implementation 'com.tencent.map.geolocation:TencentLocationSdk-openplatform:7.4.9'
+    //地图SDK依赖
+    implementation 'com.tencent.map:tencent-map-vector-sdk:5.6.0'
+    //地图定位SDK依赖
+    implementation 'com.tencent.map.geolocation:TencentLocationSdk-openplatform:7.4.9'
+    //地图组件库依赖
+    implementation 'com.tencent.map:sdk-utilities:1.0.5'
 
     // 高德地图
-    implementation 'com.amap.api:location:latest.integration'
-    implementation 'com.amap.api:map2d:latest.integration'
+//    implementation 'com.amap.api:location:latest.integration'
+//    implementation 'com.amap.api:map2d:latest.integration'
 
     // retrofit
     implementation 'com.squareup.retrofit2:retrofit:2.6.2'

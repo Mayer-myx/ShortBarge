@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.deepsoft.shortbarge.driver" >
+    package="com.deepsoft.shortbarge.driver">
 
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
     <uses-permission android:name="android.intent.action.BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.MANAGE_WRITE_SETTINGS" />
     <uses-permission android:name="android.permission.READ_PRIVILEGED_PHONE_STATE" />
@@ -22,12 +24,13 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_LOCATION_EXTRA_COMMANDS" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.CHANGE_CONFIGURATION"
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission
+        android:name="android.permission.CHANGE_CONFIGURATION"
         tools:ignore="ProtectedPermissions" />
-    <uses-permission android:name="android.permission.WRITE_SETTINGS"
+    <uses-permission
+        android:name="android.permission.WRITE_SETTINGS"
         tools:ignore="ProtectedPermissions" />
-
 
     <application
         android:name=".widget.BaseApplication"
@@ -43,7 +46,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ShortBarge"
         android:usesCleartextTraffic="true"
-        tools:targetApi="31" >
+        tools:targetApi="31">
         <activity
             android:name=".view.ServerConfigActivity"
             android:exported="false"
@@ -55,7 +58,7 @@
         <activity
             android:name=".view.LoginActivity"
             android:exported="true"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -65,25 +68,28 @@
         <activity
             android:name=".view.MainActivity"
             android:exported="true"
-            android:screenOrientation="landscape" />
+            android:screenOrientation="landscape">
+        </activity>
 
         <service android:name=".service.MyService" />
-
-        <!--<receiver android:name=".service.BootReceiver" >
+        <!--
+<receiver android:name=".service.BootReceiver" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
-        </receiver>-->
-
-
-        <service android:name="com.amap.api.location.APSService"></service>
+        </receiver>
+        -->
+        <!-- <service android:name="com.amap.api.location.APSService"></service> -->
+        <!-- <meta-data -->
+        <!-- android:name="com.amap.api.v2.apikey" -->
+        <!-- android:value="b79f7bfa929d029aaa6f8ddbd964dfcd"/> -->
         <meta-data
-            android:name="com.amap.api.v2.apikey"
-            android:value="b79f7bfa929d029aaa6f8ddbd964dfcd"/>
-
-        <!--<meta-data
             android:name="TencentMapSDK"
-            android:value="EGGBZ-TZLLU-DA6VA-BSQGA-J3F4E-PWBOI" />-->
+            android:value="EGGBZ-TZLLU-DA6VA-BSQGA-J3F4E-PWBOI" />
+
+        <service
+            android:name="com.tencent.map.geolocation.s"
+            android:foregroundServiceType="location" />
     </application>
 
 </manifest>

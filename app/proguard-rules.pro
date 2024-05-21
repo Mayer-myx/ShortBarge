@@ -20,38 +20,30 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# 腾讯地图
-#-keep public class com.tencent.lbssearch.** {*;}
-#-keep public class com.tencent.map.** {*;}
-#-keep public class com.tencent.mapsdk.** {*;}
-#-keep public class com.tencent.tencentmap.**{*;}
-#-keep public class com.tencent.tmsbeacon.**{*;}
-#-keep public class com.tencent.tmsbeacon.**{*;}
-#-dontwarn com.qq.**
-#-dontwarn com.tencent.**
-#
-#-keepattributes *Annotation*
-#-keepclassmembers class ** {
-#    public void on*Event(...);
-#}
-#-keep public class com.tencent.location.**{
-#    public protected *;
-#}
-#-keepclasseswithmembernames class * {
-#    native <methods>;
-#}
-#-keep class c.t.**{*;}
-#-keep class com.tencent.map.geolocation.**{*;}
-#-dontwarn  org.eclipse.jdt.annotation.**
-#-dontwarn  c.t.**
-#-dontwarn  android.location.Location
-#-dontwarn  android.net.wifi.WifiManager
-#-dontnote ct.**
-
 # 高德地图
--keep class com.amap.api.location.**{*;}
--keep class com.amap.api.fence.**{*;}
--keep class com.loc.**{*;}
--keep class com.autonavi.aps.amapapi.model.**{*;}
--keep class com.amap.api.maps2d.**{*;}
--keep class com.amap.api.mapcore2d.**{*;}
+#-keep class com.amap.api.location.**{*;}
+#-keep class com.amap.api.fence.**{*;}
+#-keep class com.loc.**{*;}
+#-keep class com.autonavi.aps.amapapi.model.**{*;}
+#-keep class com.amap.api.maps2d.**{*;}
+#-keep class com.amap.api.mapcore2d.**{*;}
+
+# 腾讯地图
+-keepattributes *Annotation*
+-keepclassmembers class ** {
+    public void on*Event(...);
+}
+-keep public class com.tencent.location.**{
+    public protected *;
+}
+-keepclasseswithmembernames class * {
+    native <methods>;
+}
+-keep class c.t.**{*;}
+-keep class com.tencent.map.geolocation.**{*;}
+-keep class com.tencent.tencentmap.lbssdk.service.*{*;}
+-dontwarn  org.eclipse.jdt.annotation.**
+-dontwarn  c.t.**
+-dontwarn  android.location.Location
+-dontwarn  android.net.wifi.WifiManager
+-dontnote ct.**
